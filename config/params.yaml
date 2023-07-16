@@ -1,0 +1,7 @@
+# Grid params
+grid_dimension: 3
+grid_resolution:  # in meters
+
+# APF params
+attractive_strength: 0.1
+repulsive_strength: 0.2
