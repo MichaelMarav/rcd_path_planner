@@ -4,6 +4,8 @@ IDEAS:
 
 Goal: Develop a clustering algorithm for motion planning. The clusters will be non-convex so keep this in mind.
 Maybe use the Mahalanobis distance. --> Distance between a point and a distribution D 
+Maybe this as a metric: https://www.youtube.com/watch?v=LgeXhp-hQIw
+
 
 # Literature
 Spectral clustering for path planning:
