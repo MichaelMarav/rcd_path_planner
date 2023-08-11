@@ -4,16 +4,22 @@ import matplotlib.pyplot as plt
 
 
 # Parameters
+# Arrays
 grid_size = (500, 500)     # Size of the occupancy grid in meters (rows, columns)
-brush_size =   30        # Size of the brush
 target_pos =  [0,0]  
 robot_pos  =  [0,0] 
 
+# Ints
+num_beams = 360
+brush_size =   30        # Size of the brush
+bounces_allowed = 2
+# Booleans
 drawing = False
 init_robot_pos= False
 init_target_pos= False
+real_time_plotting = False
 
-num_beams = 36
+#---------------------------------------------------------------------------------------
 
 
 # Create an empty grid
@@ -72,6 +78,16 @@ def set_goal_robot(event):
         im.set_data(grid)
         plt.draw()
 
+# Find coverage percentage
+def find_coverage():
+    count = 0
+    found_indices = np.where(grid == 100)
+    for row in range(grid.shape[0]):
+        for col in range(grid.shape[1]):
+            if grid[row, col] == 40 or grid[row,col] == 80:
+                count += 1
+    print("Coverage Percentage: ", 100*count/(grid_size[0]*grid_size[1]-len(found_indices[0])), " %" )
+
 grid = create_empty_grid(grid_size)
 
 
@@ -118,7 +134,7 @@ for angle in range(0, 360, int(360 / num_beams)):
         beam_x_robot = round(robot_pos[1] + dis * np.cos(angle_rad))
         beam_y_robot = round(robot_pos[0] + dis * np.sin(angle_rad))
 
-        if 0 <= beam_x_robot < grid_size[0] and 0 <= beam_y_robot < grid_size[1] and grid[beam_x_robot, beam_y_robot] != 100:
+        if grid[beam_x_robot, beam_y_robot] != 100:
             grid[beam_x_robot, beam_y_robot] = 80
         else:
             break
@@ -130,20 +146,34 @@ for angle in range(0, 360, int(360 / num_beams)):
         beam_x_target = round(target_pos[1] + dis * np.cos(angle_rad))
         beam_y_target = round(target_pos[0] + dis * np.sin(angle_rad))
 
-        if 0 <= beam_x_target < grid_size[0] and 0 <= beam_y_target < grid_size[1] and grid[beam_x_target, beam_y_target] != 100:
+        if grid[beam_x_target, beam_y_target] != 100:
             grid[beam_x_target, beam_y_target] = 40
         else:
+            # diffusion()
             break
+    if real_time_plotting:
+        target_beam_indices = np.where(grid == 40)
+        plt.scatter(target_beam_indices[1], target_beam_indices[0], color='red', s=2, label='TargetVirtual Beams')
 
+        robot_beam_indices = np.where(grid == 80)
+        plt.scatter(robot_beam_indices[1], robot_beam_indices[0], color='blue', s=2, label='RobotVirtual Beams')
 
+        plt.pause(0.01)  # Pause to allow time for updates to be shown
 
+if not real_time_plotting:
     target_beam_indices = np.where(grid == 40)
     plt.scatter(target_beam_indices[1], target_beam_indices[0], color='red', s=2, label='TargetVirtual Beams')
 
     robot_beam_indices = np.where(grid == 80)
-    plt.scatter(robot_beam_indices[1], robot_beam_indices[0], color='blue', s=2, label='TargetVirtual Beams')
+    plt.scatter(robot_beam_indices[1], robot_beam_indices[0], color='blue', s=2, label='RobotVirtual Beams')
 
-    plt.pause(0.1)  # Pause to allow time for updates to be shown
+    plt.pause(0.01)  # Pause to allow time for updates to be shown
+
+
+
+
+
+find_coverage()
 
 input("Press Enter to exit...")
 
