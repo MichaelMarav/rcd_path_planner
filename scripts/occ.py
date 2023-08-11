@@ -1,10 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from matplotlib.animation import FuncAnimation
-
-
-
 # Parameters
 grid_resolution = 0.1
 grid_size = (int(50/grid_resolution), int(50/grid_resolution))   # Size of the occupancy grid (rows, columns)
@@ -30,60 +26,56 @@ rooms = [
 for (start_row, start_col), (end_row, end_col) in rooms:
     occupancy_grid[start_row:end_row + 1, start_col:end_col + 1] = 1
 
+# Create the plot outside the loop
+plt.figure(figsize=(20, 20))
+plt.axis('off')
+plt.xticks([])
+plt.yticks([])
+
+# Enable interactive mode
+plt.ion()
+
 # Generate beams from the robot and the goal
-beam_grid = np.zeros_like(occupancy_grid)
-robot_x, robot_y = robot_pos
-target_x, target_y = target_pos
+for angle in range(0, 360, int(360 / num_beams)):
+    plt.clf()  # Clear the previous plot contents
 
-
-for angle in range(0,360,int(360 / num_beams)):
-    plt.figure(figsize=(20, 20))
-    plt.axis('off')
-    plt.xticks([])
-    plt.yticks([])
     angle_rad = np.radians(angle)
     dis = 0
-    while (True):
+
+    while True:
         dis += 1
 
         # Robot beam
-        beam_x_robot = round(robot_x + dis*np.cos(angle))
-        beam_y_robot = round(robot_y + dis*np.sin(angle))
+        beam_x_robot = round(robot_pos[0] + dis * np.cos(angle_rad))
+        beam_y_robot = round(robot_pos[1] + dis * np.sin(angle_rad))
 
-        if 0 <= beam_x_robot < grid_size[0] and 0 <= beam_y_robot < grid_size[1] and occupancy_grid[beam_x_robot,beam_y_robot] != 1:
-            occupancy_grid[beam_x_robot,beam_y_robot] = 2
+        if 0 <= beam_x_robot < grid_size[0] and 0 <= beam_y_robot < grid_size[1] and occupancy_grid[beam_x_robot, beam_y_robot] != 1:
+            occupancy_grid[beam_x_robot, beam_y_robot] = 2
         else:
             break
-    dis=0
-    while (True):
+
+    dis = 0
+    while True:
         dis += 1
         # Target beam
-        beam_x_target = round(target_x + dis*np.cos(angle))
-        beam_y_target = round(target_y + dis*np.sin(angle))
+        beam_x_target = round(target_pos[0] + dis * np.cos(angle_rad))
+        beam_y_target = round(target_pos[1] + dis * np.sin(angle_rad))
 
-        if 0 <= beam_x_target < grid_size[0] and 0 <= beam_y_target < grid_size[1] and occupancy_grid[beam_x_target,beam_y_target] != 1:
-            occupancy_grid[beam_x_target,beam_y_target] = 3
+        if 0 <= beam_x_target < grid_size[0] and 0 <= beam_y_target < grid_size[1] and occupancy_grid[beam_x_target, beam_y_target] != 1:
+            occupancy_grid[beam_x_target, beam_y_target] = 3
         else:
             break
 
-
     # Visualize the occupancy grid and beams for each iteration
-    plt.clf()
     plt.imshow(occupancy_grid, cmap='binary', origin='upper', vmin=0, vmax=3)
 
     plt.scatter([robot_pos[1]], [robot_pos[0]], color='blue', marker='o', label='Robot')
     plt.scatter([target_pos[1]], [target_pos[0]], color='red', marker='o', label='Target')
 
-    beam_indices = np.where(beam_grid == 1)
+    beam_indices = np.where(occupancy_grid == 2)
     plt.scatter(beam_indices[1], beam_indices[0], color='black', s=2, label='Virtual Beams')
 
-    # plt.legend()
-   
-    plt.draw()
-    plt.pause(0.01)
-    # plt.show()  
-    # Wait for user input to proceed to the next iteration
-    key = plt.waitforbuttonpress()
-    # if key:
-    #     break
+    plt.pause(0.1)  # Pause to allow time for updates to be shown
 
+plt.ioff()  # Turn off interactive mode
+plt.show()  # Display the final plot
