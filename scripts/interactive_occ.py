@@ -4,19 +4,21 @@ import matplotlib.pyplot as plt
 
 # TODO: 
 '''
+IDEAS: 
+* Once a beam detects collision from target and robot compare the distances from other intersections and select the smallest
 1) Change the beam size to the robot's size 
 2) Add diffusion 
-3) Add condition to stop
+3) Add condition to stop(when robot_beam finds the goal beam)
 '''
 
 
 # Parameters
 # Hyper
-real_time_plotting = False
+real_time_plotting = True
 
 
 # Arrays
-grid_size = (5000, 5000)     # Size of the occupancy grid in meters (rows, columns)
+grid_size = (500, 500)     # Size of the occupancy grid in meters (rows, columns)
 target_pos =  [0,0]  
 robot_pos  =  [0,0] 
 
@@ -131,37 +133,46 @@ plt.disconnect(release)
 plt.disconnect(motion)
 plt.disconnect(goal)
 
-# DO STUFF HERE
 
 # Generate beams from the robot and the goal
 for angle in range(0, 360, int(360 / num_beams)):
     angle_rad = np.radians(angle)
-    dis = 5
 
+    # Robot beam
+    dis = 5 # Start range from robot
     while True:
         dis += 1
 
-        # Robot beam
         beam_x_robot = round(robot_pos[1] + dis * np.cos(angle_rad))
         beam_y_robot = round(robot_pos[0] + dis * np.sin(angle_rad))
 
-        if grid[beam_x_robot, beam_y_robot] != 100:
-            grid[beam_x_robot, beam_y_robot] = 80
-        else:
+        # if grid[beam_x_robot, beam_y_robot] != 100:
+        #     grid[beam_x_robot, beam_y_robot] = 80
+        # else:
+        #     break
+        
+        if grid[beam_x_robot, beam_y_robot] == 100:
             break
-
-    dis = 5
+        else:
+            grid[beam_x_robot, beam_y_robot] = 80
+        
+        
+    # Target beam
+    dis = 5 # Start range from target
     while True:
         dis += 1
         # Target beam
         beam_x_target = round(target_pos[1] + dis * np.cos(angle_rad))
         beam_y_target = round(target_pos[0] + dis * np.sin(angle_rad))
 
-        if grid[beam_x_target, beam_y_target] != 100:
-            grid[beam_x_target, beam_y_target] = 40
-        else:
-            # diffusion()
+        if grid[beam_x_target, beam_y_target] == 100:
             break
+        elif grid[beam_x_target,beam_y_target] == 80 : # TODO: This does not work properly the beam passes throught the other beam sometimes
+            plt.scatter(beam_y_target,beam_x_target,color ="purple",s=40,label="Intersections")
+            break
+        else:
+            grid[beam_x_target, beam_y_target] = 40
+
     if real_time_plotting:
         target_beam_indices = np.where(grid == 40)
         plt.scatter(target_beam_indices[1], target_beam_indices[0], color='red', s=2, label='TargetVirtual Beams')
@@ -169,7 +180,7 @@ for angle in range(0, 360, int(360 / num_beams)):
         robot_beam_indices = np.where(grid == 80)
         plt.scatter(robot_beam_indices[1], robot_beam_indices[0], color='blue', s=2, label='RobotVirtual Beams')
 
-        plt.pause(0.01)  # Pause to allow time for updates to be shown
+        plt.pause(0.1)  # Pause to allow time for updates to be shown
 
 if not real_time_plotting:
     target_beam_indices = np.where(grid == 40)
