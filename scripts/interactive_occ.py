@@ -2,22 +2,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# TODO: 
+'''
+1) Change the beam size to the robot's size 
+2) Add diffusion 
+3) Add condition to stop
+'''
+
 
 # Parameters
+# Hyper
+real_time_plotting = False
+
+
 # Arrays
-grid_size = (500, 500)     # Size of the occupancy grid in meters (rows, columns)
+grid_size = (5000, 5000)     # Size of the occupancy grid in meters (rows, columns)
 target_pos =  [0,0]  
 robot_pos  =  [0,0] 
 
 # Ints
-num_beams = 360
+num_beams = 36
 brush_size =   30        # Size of the brush
 bounces_allowed = 2
 # Booleans
 drawing = False
 init_robot_pos= False
 init_target_pos= False
-real_time_plotting = False
 
 #---------------------------------------------------------------------------------------
 
@@ -91,7 +101,8 @@ def find_coverage():
 grid = create_empty_grid(grid_size)
 
 
-# Add walls at the limits of the grid
+# Add walls at the limits of the gridreal_time_plotting = True
+
 wall_size = 1
 grid[0:wall_size, :] = 100
 grid[-wall_size:, :] = 100
