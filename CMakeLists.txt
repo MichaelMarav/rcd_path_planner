@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(apf_planner)
+project(motion_planner)
 
 
 find_package(catkin REQUIRED COMPONENTS
@@ -19,16 +19,5 @@ catkin_package(
 )
 
 include_directories(
- include ${catkin_INCLUDE_DIRS} apf_planner
+ include ${catkin_INCLUDE_DIRS} 
 )
-
-## Declare a C++ library
-add_library(${PROJECT_NAME}
-  src/apf.cpp
-  include/${PROJECT_NAME}/apf.h
-)
-
-
-add_executable(main src/nodes/todo.cpp src/apf.cpp)
-target_link_libraries(main ${apf_LIBRARIES} ${catkin_LIBRARIES})
-add_dependencies(main ${catkin_EXPORTED_TARGETS})
