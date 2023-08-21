@@ -3,6 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
+class Point:
+    def __init__(self,x,y):
+        self.x = x
+        self.y = y
+
 
 # Hyperparams
 real_time_plotting = True
@@ -19,14 +24,14 @@ bounces_allowed = 2
 # Arrays
 grid_size = (int(workspace_size[0]/grid_resolution), int(workspace_size[1]/grid_resolution))     # Size of the occupancy grid in meters (rows, columns)
 # Initialize Global variables
-target_pos =  [0,0]  
-robot_pos  =  [0,0] 
+target_pos =  np.empty(0,dtype=object)
+robot_pos  =  np.empty(0,dtype=object)
 
 # Booleans
 drawing = False
 init_robot_pos= False
 init_target_pos= False
-
+path_found = False
 #---------------------------------------------------------------------------------------
 
 
@@ -84,19 +89,18 @@ def on_motion(event):
 def set_goal_robot(event):
     global init_robot_pos  # Declare init_robot_pos as global
     global init_target_pos
-    
+    global robot_pos,target_pos
     if event.xdata is not None and event.ydata is not None:
         if not init_target_pos and init_robot_pos:
-            target_pos[0] = round(event.xdata)
-            target_pos[1] = round(event.ydata)
+            target_pos = np.append(target_pos,Point(round(event.xdata),round(event.ydata)))
             init_target_pos = True
-            plt.scatter([target_pos[0]], [target_pos[1]], color='red', marker='o', s=50, label='Target')
+            plt.scatter([target_pos[0].x], [target_pos[0].y], color='green', marker='o', s=50, label='Target')
 
         if not init_robot_pos:
-            robot_pos[0] = round(event.xdata)
-            robot_pos[1] = round(event.ydata)
+            robot_pos = np.append(robot_pos,Point(round(event.xdata),round(event.ydata)))
+
             init_robot_pos = True
-            plt.scatter([robot_pos[0]], [robot_pos[1]], color='blue', marker='o', s=50, label='Robot')
+            plt.scatter([robot_pos[0].x], [robot_pos[0].y], color='black', marker='o', s=50, label='Robot')
 
        
         # Update the plot to show the robot and target positions
@@ -105,7 +109,7 @@ def set_goal_robot(event):
 
 def draw_grid():
     # Initialize the plot
-    plt.figure(figsize=(20, 20))
+    plt.figure(figsize=(30, 30))
     global im
 
     im = plt.imshow(grid, cmap='binary', origin='upper', vmin=0, vmax=100)
@@ -128,8 +132,11 @@ def draw_grid():
 
     return 
 
-
-def ray_casting():
+'''
+Ray cast two points 
+'''
+def ray_casting(x1,y1,x2,y2):
+    global path_found,robot_pos,target_pos
     # Generate beams from the robot and the goal
     for angle in range(0, 360, int(360 / num_beams)):
         angle_rad = np.radians(angle)
@@ -140,15 +147,19 @@ def ray_casting():
 
         dis = robot_size/grid_resolution # Start range from robot
 
-        while True:
+        while True and not path_found:
             dis += 1
             offset_lim = math.ceil(robot_size/grid_resolution)//2 # +- for the robot's size 
 
             if not stop_robot_beam_flag:
 
                 # Beam center
-                beam_x_robot = round(robot_pos[1] + dis * np.cos(angle_rad))
-                beam_y_robot = round(robot_pos[0] + dis * np.sin(angle_rad))
+                beam_x_robot = round(y1 + dis * np.cos(angle_rad))
+                beam_y_robot = round(x1 + dis * np.sin(angle_rad))
+                '''
+                if grid[beam_x_robot,beam_y_robot] == 80:
+                    found_Same_breakkkkk
+                '''
                 # Enlarge the beam to robot size 
                 try:
                     for offset_x in range(-offset_lim,offset_lim+1):
@@ -156,30 +167,40 @@ def ray_casting():
                             x = beam_x_robot + offset_x                        
                             y = beam_y_robot + offset_y                
                             # Add break here to block robot's beam
-                            if grid[x, y] not in (40, 100):
-                                grid[x, y] = 80
-                            else: 
-                                stop_robot_beam_flag = True
+
+                            if grid[x, y] == 40:
+                                path_found = True
                                 break_casting()
+                            elif grid[x,y] == 100:
+                                stop_robot_beam_flag = True
+                                robot_pos = np.append(robot_pos, Point(beam_x_robot,beam_y_robot))
+                                break_casting()
+                            else: 
+                                grid[x,y] = 80
                 except StopIteration:
                     pass
 
             if not stop_target_beam_flag:
 
                 # Target beam
-                beam_x_target = round(target_pos[1] + dis * np.cos(angle_rad))
-                beam_y_target = round(target_pos[0] + dis * np.sin(angle_rad))
+                beam_x_target = round(y2 + dis * np.cos(angle_rad))
+                beam_y_target = round(x2 + dis * np.sin(angle_rad))
                 try:
                     for offset_x in range(-offset_lim,offset_lim+1):
                         for offset_y in range (-offset_lim,offset_lim+1):
                             x = beam_x_target + offset_x                        
                             y = beam_y_target + offset_y                
                             # Add break here to block target's beam
-                            if grid[x, y] not in (80, 100):
-                                grid[x, y] = 40
-                            else: 
-                                stop_target_beam_flag = True
+                            if grid[x,y] == 80:
+                                path_found = True  # Stop when path is found
                                 break_casting()
+                            elif grid[x, y] == 100:
+                                stop_target_beam_flag = True
+                                target_pos = np.append(target_pos, Point(beam_x_target,beam_y_target))
+                                break_casting()
+                            else: 
+                                grid[x, y] = 40
+
                 except StopIteration:
                     pass
             
@@ -196,7 +217,8 @@ def ray_casting():
 
             plt.pause(0.1)  # Pause to allow time for updates to be shown
                
-
+        if path_found:
+            break
 
         
 
@@ -215,7 +237,9 @@ if __name__ == "__main__":
     init_grid()
 
     draw_grid()  
+    while not path_found:
+            
+        ray_casting(robot_pos[0].x,robot_pos[0].y,target_pos[0].x, target_pos[0].y)
 
-    ray_casting()
 
     input("Press Enter to exit...")
