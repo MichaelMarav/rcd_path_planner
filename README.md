@@ -40,3 +40,7 @@ https://www.tutorialspoint.com/what-is-grid-based-methods
 ### Consensus clustering
 
 https://www.google.com/search?channel=fs&client=ubuntu&q=Consensus+clustering
+
+
+## RAY CASTING 
+*Name* ; RAY CASTING DIFFUSION MODEL-> RA CA DIM

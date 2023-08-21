@@ -9,13 +9,14 @@ IDEAS:
 1) Change the beam size to the robot's size 
 2) Add diffusion 
 3) Add condition to stop(when robot_beam finds the goal beam)
+4) Add saving occupancy grid option
 '''
 
 
 # Parameters
 # Hyper
 real_time_plotting = True
-
+robot_size = 0.5 # m (robot's diameter)
 
 # Arrays
 grid_size = (500, 500)     # Size of the occupancy grid in meters (rows, columns)
@@ -24,7 +25,7 @@ robot_pos  =  [0,0]
 
 # Ints
 num_beams = 36
-brush_size =   30        # Size of the brush
+drawing_brush_size =   30        # Size of the brush
 bounces_allowed = 2
 # Booleans
 drawing = False
@@ -39,9 +40,9 @@ def create_empty_grid(grid_size):
     return np.zeros(grid_size, dtype=int)
 
 
-def update_grid(grid, position, brush_size):
+def update_grid(grid, position, drawing_brush_size):
     cell_position = (round(position[0]),round(position[1]))
-    half_brush = brush_size // 2
+    half_brush = drawing_brush_size // 2
     for i in range(-half_brush, half_brush + 1):
         for j in range(-half_brush, half_brush + 1):
             y = cell_position[1] + i
@@ -54,7 +55,7 @@ def on_press(event):
     global drawing
     drawing = True
     if (event.xdata is not None and event.ydata is not None): 
-        update_grid(grid, (event.xdata, event.ydata), brush_size)
+        update_grid(grid, (event.xdata, event.ydata), drawing_brush_size)
         im.set_data(grid)
         plt.draw()
 
@@ -64,7 +65,7 @@ def on_release(event):
 
 def on_motion(event):
     if (drawing and event.xdata is not None and event.ydata is not None): 
-        update_grid(grid, (event.xdata, event.ydata), brush_size)
+        update_grid(grid, (event.xdata, event.ydata), drawing_brush_size)
         im.set_data(grid)
         plt.draw()
 
@@ -83,7 +84,7 @@ def set_goal_robot(event):
             robot_pos[0] = round(event.xdata)
             robot_pos[1] = round(event.ydata)
             init_robot_pos = True
-            plt.scatter([robot_pos[0]], [robot_pos[1]], color='blue', marker='o', s=40, label='Robot')
+            plt.scatter([robot_pos[0]], [robot_pos[1]], color='blue', marker='o', s=robot_size/0.001, label='Robot')
 
        
         # Update the plot to show the robot and target positions
