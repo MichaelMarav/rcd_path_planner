@@ -3,14 +3,6 @@ import matplotlib.pyplot as plt
 
 
 # TODO: 
-'''
-IDEAS: 
-* Once a beam detects collision from target and robot compare the distances from other intersections and select the smallest
-1) Change the beam size to the robot's size 
-2) Add diffusion 
-3) Add condition to stop(when robot_beam finds the goal beam)
-4) Add saving occupancy grid option
-'''
 
 
 # Parameters

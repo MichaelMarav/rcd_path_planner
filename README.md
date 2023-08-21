@@ -11,6 +11,7 @@
 4. Add diffusion 
 5. Add condition to stop(when robot_beam finds the goal beam)
 6. Add saving occupancy grid option  
+7. Check Voronoi diagram
 
 
 

@@ -1,12 +1,12 @@
 #! /usr/bin/env python3
 import numpy as np
 import matplotlib.pyplot as plt
-
+import math
 
 
 # Hyperparams
-real_time_plotting = False
-robot_size = 0.5 # (m) Robot's diameter
+real_time_plotting = True
+robot_size = 0.2 # (m) Robot's diameter
 grid_resolution = 0.1 # (m) 
 workspace_size = (50,50) # (m) Size of the workspace/room where the robot needs to navigate
 num_beams = 36
@@ -39,7 +39,7 @@ def init_grid():
     grid = np.zeros(grid_size, dtype=int)
 
     # Add walls to the boundary of the grid
-    wall_size = 1
+    wall_size = math.ceil(robot_size/grid_resolution)
     grid[0:wall_size, :] = 100
     grid[-wall_size:, :] = 100
     grid[:, 0:wall_size] = 100
@@ -48,6 +48,8 @@ def init_grid():
     return 
 
 
+def break_casting():
+    raise StopIteration
 
 def update_grid(grid, position, drawing_brush_size):
     cell_position = (round(position[0]),round(position[1]))
@@ -133,55 +135,58 @@ def ray_casting():
         angle_rad = np.radians(angle)
 
         # Robot beam
+        stop_robot_beam_flag  = False
+        stop_target_beam_flag = False
+
         dis = robot_size/grid_resolution # Start range from robot
+
         while True:
             dis += 1
+            offset_lim = math.ceil(robot_size/grid_resolution)//2 # +- for the robot's size 
 
-            beam_x_robot = round(robot_pos[1] + dis * np.cos(angle_rad))
-            beam_y_robot = round(robot_pos[0] + dis * np.sin(angle_rad))
+            if not stop_robot_beam_flag:
 
-            if grid[beam_x_robot, beam_y_robot] == 100:
-                break
-            elif grid[beam_x_robot,beam_y_robot] == 40 : # TODO: This does not work properly the beam passes throught the other beam sometimes
-                plt.scatter(beam_y_robot,beam_x_robot,color ="purple",s=40,label="Intersections")
-                break
-            else:
-                # Add break to block robot's beam
-                offsets = [(0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)]
-                for offset_x, offset_y in offsets:
-                    x = beam_x_robot + offset_x
-                    y = beam_y_robot + offset_y
+                # Beam center
+                beam_x_robot = round(robot_pos[1] + dis * np.cos(angle_rad))
+                beam_y_robot = round(robot_pos[0] + dis * np.sin(angle_rad))
+                # Enlarge the beam to robot size 
+                try:
+                    for offset_x in range(-offset_lim,offset_lim+1):
+                        for offset_y in range (-offset_lim,offset_lim+1):
+                            x = beam_x_robot + offset_x                        
+                            y = beam_y_robot + offset_y                
+                            # Add break here to block robot's beam
+                            if grid[x, y] not in (40, 100):
+                                grid[x, y] = 80
+                            else: 
+                                stop_robot_beam_flag = True
+                                break_casting()
+                except StopIteration:
+                    pass
 
-                    if grid[x, y] not in (40, 100):
-                        grid[x, y] = 80
+            if not stop_target_beam_flag:
+
+                # Target beam
+                beam_x_target = round(target_pos[1] + dis * np.cos(angle_rad))
+                beam_y_target = round(target_pos[0] + dis * np.sin(angle_rad))
+                try:
+                    for offset_x in range(-offset_lim,offset_lim+1):
+                        for offset_y in range (-offset_lim,offset_lim+1):
+                            x = beam_x_target + offset_x                        
+                            y = beam_y_target + offset_y                
+                            # Add break here to block target's beam
+                            if grid[x, y] not in (80, 100):
+                                grid[x, y] = 40
+                            else: 
+                                stop_target_beam_flag = True
+                                break_casting()
+                except StopIteration:
+                    pass
             
-        # Target beam
-        dis = robot_size/grid_resolution # Start range from target
-        while True:
-            dis += 1
-            # Target beam
-            beam_x_target = round(target_pos[1] + dis * np.cos(angle_rad))
-            beam_y_target = round(target_pos[0] + dis * np.sin(angle_rad))
+            if stop_robot_beam_flag and stop_target_beam_flag: 
+                break # Breaks the while loop
 
-            if grid[beam_x_target, beam_y_target] == 100:
-                break
-            elif grid[beam_x_target,beam_y_target] == 80 :
-                plt.scatter(beam_y_target,beam_x_target,color ="purple",s=40,label="Intersections")
-                break
-            else:
-                # Add break to block target's beam
-
-                offsets = [(0, 0), (-1, 0), (1, 0), (0, -1), (0, 1)]
-                for offset_x, offset_y in offsets:
-                    x = beam_x_target + offset_x
-                    y = beam_y_target + offset_y
-
-                    if grid[x, y] not in (80, 100):
-                        grid[x, y] = 40
-
-
-
-        # REAL-TIME PLOTTING
+        # REAL-TIME PLOTTING    
         if real_time_plotting:
             target_beam_indices = np.where(grid == 40)
             plt.scatter(target_beam_indices[1], target_beam_indices[0], color='red', s=2, label='TargetVirtual Beams')
@@ -190,6 +195,10 @@ def ray_casting():
             plt.scatter(robot_beam_indices[1], robot_beam_indices[0], color='blue', s=2, label='RobotVirtual Beams')
 
             plt.pause(0.1)  # Pause to allow time for updates to be shown
+               
+
+
+        
 
     if not real_time_plotting:
         target_beam_indices = np.where(grid == 40)
