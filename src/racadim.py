@@ -3,14 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-'''
-TODO: 
-1. Change the scatter plot from the beams to be plotted as a grid values not dots in scatter
-2. Make ray casting more generic. Add a list with points for diffusion. At first the list will contain only the one pose then the next one and the next one
-3. Make the ray beam have the size of the robot and find a way if one part of the beam is stack what happens (Change the cmap value in plt.imshow())
-4.  
-'''
-
 
 # Hyperparams
 real_time_plotting = False
