@@ -187,8 +187,6 @@ if not real_time_plotting:
 
 
 
-
 find_coverage()
 
 input("Press Enter to exit...")
-
