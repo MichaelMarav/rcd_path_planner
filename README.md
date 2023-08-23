@@ -7,7 +7,7 @@
 0. Split the raycasting with multi threading. One function one input x,y
 1. Change the scatter plot from the beams to be plotted as a grid values not dots in scatter
 2. Make ray casting more generic. Add a list with points for diffusion. At first the list will contain only the one pose then the next one and the next one
-3. Make the ray beam have the size of the robot and find a way if one part of the beam is stack what happens (Change the cmap value in plt.imshow())
+3. <del>Make the ray beam have the size of the robot and find a way if one part of the beam is stack what happens (Change the cmap value in plt.imshow())</del>
 4. Add diffusion 
 5. Add condition to stop(when robot_beam finds the goal beam)
 6. Add saving occupancy grid option  
