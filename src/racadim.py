@@ -15,7 +15,7 @@ real_time_plotting = True
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m) 
 workspace_size = (50,50) # (m) Size of the workspace/room where the robot needs to navigate
-num_beams = 36
+num_beams = 6
 drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
 bounces_allowed = 2 
 
@@ -210,49 +210,36 @@ def ray_casting(x,y):
         angle_rad = np.radians(angle)
 
         stop_beam = False # Stop casting flag
+        
 
-        dis = robot_size/grid_resolution - 5# Starting distance (radius) from ray casting 
+
+        dis = 0#robot_size/grid_resolution - 5# Starting distance (radius) from ray casting 
+        prev_x = int(math.ceil(x))
+        prev_y = int(math.ceil(y))
         while True and not path_found:
             dis += 1
-            if not stop_beam and grid[x,y] != 100:
+            if not stop_beam:
                 beam_x = int(math.ceil(x + dis * np.cos(angle_rad)))
                 beam_y = int(math.ceil(y - dis * np.sin(angle_rad)))
 
                 # Found same ray
                 if grid[beam_x,beam_y] == 80:
-                    plt.scatter([beam_x], [beam_y], color='red', marker='o', s=50, label='Robot')
-                    break 
-                elif( grid[beam_x,beam_y] == 100):
+                    plt.scatter([prev_x], [prev_y], color='purple', marker='o', s=50, label='Robot')
+                    stop_beam = True 
+                elif(grid[beam_x,beam_y] == 100):
+                    if math.sqrt((beam_x-x)**2 + (beam_y-y)**2) > 5: # FIX HYPER
+                        robot_pos = np.append(robot_pos, Point(prev_x,prev_y))
+                        plt.scatter([prev_x], [prev_y], color='red', marker='o', s=50, label='Robot')
+                    else:
+                        pass
                     stop_beam = True
-                    robot_pos = np.append(robot_pos, Point(beam_x,beam_y))
-                    plt.scatter([beam_x], [beam_y], color='red', marker='o', s=50, label='Robot')
+
+
                 else:
-                    indexes_to_change.append([beam_x, beam_y])
-
-                # try: 
-                    # for offset_x in range(-1,2):
-                    #     for offset_y in range(-1,2):
-                    #         x_i = beam_x + offset_x
-                    #         y_i = beam_y + offset_y
-
-                    #         if grid[x_i,y_i] == 40:
-                    #             path_found = True 
-                    #             break_casting()
-                    #         elif grid[x_i,y_i] == 100:
-                    #             stop_beam = True
-                    #             robot_pos = np.append(robot_pos, Point(beam_x,beam_y))
-
-                    #             plt.scatter([beam_x], [beam_y], color='black', marker='o', s=50, label='Robot')
-
-                    #             break_casting()                          
-                    #             # Add here the point to diffuse
-                    #         else:
-                    #             # if what_to_find == 40:
-                    #             indexes_to_change.append([beam_x, beam_y])
-                    #             # else: 
-                    #             #     grid[x_i,y_i] = 40
-                # except StopIteration:
-                #     pass
+                    indexes_to_change.append([prev_x, prev_y])
+                prev_x = beam_x
+                prev_y = beam_y
+            
             else: 
                 break
 
@@ -273,22 +260,24 @@ if __name__ == "__main__":
 
     
     it = 1
-    max_it = 2
+    max_it = 1
     while not path_found and it <= max_it:
-        for i in range(robot_pos.shape[0]-1,-1,-1):
-            ray_casting(robot_pos[i].x, robot_pos[i].y)
-            robot_pos = np.delete(robot_pos, i)
+        while True:
+            if robot_pos.shape[0] >= 1:
+                ray_casting(robot_pos[-1].x, robot_pos[-1].y)
+                robot_pos = np.delete(robot_pos, -1)
+                input("Press Enter to continue...")
+            else:
+                break
 
-            input("Press Enter to continue...")
+            if real_time_plotting:
+                target_beam_indices = np.where(grid == 40)
+                plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
 
-        if real_time_plotting:
-            target_beam_indices = np.where(grid == 40)
-            plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
+                robot_beam_indices = np.where(grid == 80)
+                plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
 
-            robot_beam_indices = np.where(grid == 80)
-            plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
-
-            plt.pause(0.1)  # Pause to allow time for updates to be shown
+                plt.pause(0.1)  # Pause to allow time for updates to be shown
         it += 1
         
 
