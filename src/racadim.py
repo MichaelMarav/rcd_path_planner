@@ -186,6 +186,9 @@ Remove the size of  the robot but check around the beam
 #     for row_idx, col_idx in indexes_to_change:
 #         grid[row_idx,col_idx] = 80
 
+'''
+* Add line intersections
+'''
 
 def ray_casting(x,y):
     global path_found,robot_pos
