@@ -11,7 +11,7 @@ class Point:
 
 
 # Hyperparams
-real_time_plotting = False
+real_time_plotting = True
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m) 
 workspace_size = (50,30) # (m) Size of the workspace/room where the robot needs to navigate
@@ -241,17 +241,16 @@ if __name__ == "__main__":
 
     draw_grid()  
 
-    it = 1
-    max_it = 1
-    while not path_found and it <= max_it:
+    curr_it = 1
+    max_it = 2
+    while not path_found and curr_it <= max_it:
         while True:
+            print(robot_pos.shape) # This does not stop
             if robot_pos.shape[0] >= 1:
-                ray_casting(robot_pos[-1].x, robot_pos[-1].y)
-                robot_pos = np.delete(robot_pos, -1)
-                #input("Press Enter to continue...")
+                ray_casting(robot_pos[-1].x,robot_pos[-1].y)
+                robot_pos = np.delete(robot_pos,-1)
             else:
                 break
-
             if real_time_plotting:
                 target_beam_indices = np.where(grid == 40)
                 plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
@@ -260,7 +259,8 @@ if __name__ == "__main__":
                 plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
 
                 plt.pause(0.1)  # Pause to allow time for updates to be shown
-        it += 1
+        curr_it += 1
+        print("Done")
         
 
    
