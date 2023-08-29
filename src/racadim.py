@@ -6,9 +6,10 @@ import threading
 from matplotlib import colors
 
 class Point:
-    def __init__(self,x,y):
+    def __init__(self,x,y,angle = None):
         self.x = x
         self.y = y
+        self.angle = angle
 
 
 # Hyperparams
@@ -192,12 +193,20 @@ Remove the size of  the robot but check around the beam
 Input: Source point x0,y0 + orientation
 '''
 def check_intersection(x0,y0,r,lines):
-    for points in lines:
-        segment_dir = (points[1].x - points[0].x, points[1].y - points[0].y)
+    print(lines.shape)
+    if lines.shape[0] == 0:
+        return None
+    for point in lines:
+        x2 = point[1].x
+        y2 = grid_size[1] - point[1].y
+        x1 = point[0].x
+        y1 = grid_size[1] - point[0].y
+        # Calculate direction vectors
+        segment_dir = (x2 - x1, y2 - y1)
         semi_infinite_dir = (math.cos(r), math.sin(r))
 
         # Solve for t and s
-        t_numerator = (x0 - points[0].x) * semi_infinite_dir[1] - (y0 - points[0].y) * semi_infinite_dir[0]
+        t_numerator = (x0 - x1) * semi_infinite_dir[1] - (y0 - y1) * semi_infinite_dir[0]
         t_denominator = segment_dir[0] * semi_infinite_dir[1] - segment_dir[1] * semi_infinite_dir[0]
         
         if t_denominator == 0:
@@ -210,35 +219,54 @@ def check_intersection(x0,y0,r,lines):
             # Intersection point is outside the line segment
             return None
 
-        s = ((points[0].x - x0) + t * segment_dir[0]) / semi_infinite_dir[0]
+        s = ((x1 - x0) + t * segment_dir[0]) / semi_infinite_dir[0]
 
         if s < 0:
             # Intersection point is behind the semi-infinite line
             return None
 
         # Calculate intersection point
-        intersection_x = points[0].x + t * segment_dir[0]
-        intersection_y = points[0].y + t * segment_dir[1]
-        if intersection_x >= 0 and intersection_x <= grid_size[0] and intersection_y >= 0 and intersection_y <= grid_size[1]:
+        intersection_x = x1 + t * segment_dir[0]
+        intersection_y = y1 + t * segment_dir[1]
+
+        if intersection_x >= 0 and intersection_x <= grid_size[0] and intersection_y >= 0 and intersection_y < grid_size[1]:
+            plt.scatter(intersection_x,intersection_y,c = 'purple', s= 90)
             return (intersection_x, intersection_y)
         else:
             return None
 
+def find_angle_to_exclude(in_angle):
+    if in_angle is None:
+        return None 
+    res = in_angle + 180
+    if res >= 360:
+        res -= 360
+    elif (res < 0):
+        res += 360
+    print(res)
+    return res
+
+
 '''
 * Add line intersections
 '''
-def ray_casting(x,y):
+def ray_casting(x,y,in_angle):
     global path_found,robot_pos, beam_lines
     indexes_to_change = []
+    angle_to_exclude = find_angle_to_exclude(in_angle)
 
+    
     for angle in range(0,360,int(360/num_beams)): # TODO: Add condition to stop if the arc length R dtheta is greater than the robot's size
+        if angle_to_exclude is not None and angle == angle_to_exclude:
+            continue
+
         angle_rad = np.radians(angle)
 
         stop_beam = False # Stop casting flag
         
 
 
-        dis = robot_size/grid_resolution # Starting distance (radius) from ray casting 
+        dis = 3#robot_size/grid_resolution # Starting distance (radius) from ray casting 
         prev_x = int(math.ceil(x))
         prev_y = int(math.ceil(y))
         while True and not path_found:
@@ -246,10 +274,10 @@ def ray_casting(x,y):
             beam_x = int(math.ceil(x + dis * np.cos(angle_rad)))
             beam_y = int(math.ceil(y - dis * np.sin(angle_rad)))
             # Check if the current beam is intersecting with any other from the previous 
-            intersection = check_intersection(x,y,angle,beam_lines) 
-            if intersection is not None:
-                print("Found Intersection at", intersection[0], intersection[1])
-                plt.scatter([intersection[0]], [intersection[1]], color='purple', marker='o', s=50, label='Robot')
+            # intersection = check_intersection(x,y,angle,beam_lines) 
+            # if intersection is not None:
+            #     print("Found Intersection at", intersection[0], intersection[1])
+                # plt.scatter([intersection[0]], [intersection[1]], color='purple', marker='o', s=50, label='Robot')
                 
             if not stop_beam and beam_x > 0 and beam_x < grid_size[0] and beam_y > 0 and beam_y < grid_size[1]:
                 # Found same ray
@@ -257,27 +285,19 @@ def ray_casting(x,y):
                     # Don't crash with wall next to the point
                     if math.sqrt((beam_x-x)**2 + (beam_y-y)**2) > 5: 
                         # Save Position for next order of diffusion
-                        robot_pos  = np.append(robot_pos, Point(prev_x,prev_y))
+                        # robot_pos  = np.append(robot_pos, Point(prev_x,prev_y))
+                        robot_pos  = np.append(robot_pos,Point(prev_x,prev_y,angle))
                         # Save for checking for intersection
-                        beam_lines = np.append(beam_lines,[[Point(x,y),Point(prev_x,prev_y)],],axis = 0)
+                        # beam_lines = np.append(beam_lines,[[Point(x,y),Point(prev_x,prev_y)],],axis = 0)
                         # Plot with red the hit point
                         plt.scatter([prev_x], [prev_y], color='red', marker='o', s=50, label='Robot')
-
+        
                     stop_beam = True
-
-                # # Found same ray
-                # if grid[beam_x,beam_y] == 80:
-                #     plt.scatter([beam_x], [beam_y], color='purple', marker='o', s=50, label='Robot')
-                #     stop_beam = True 
-                # elif(grid[beam_x,beam_y] == 100):
-                #     if math.sqrt((beam_x-x)**2 + (beam_y-y)**2) > 5: # FIX HYPER
-                #         robot_pos  = np.append(robot_pos, Point(prev_x,prev_y))
-                #         beam_lines = np.append(beam_lines,(x,y,prev_x,prev_y))
-
-                #         plt.scatter([prev_x], [prev_y], color='red', marker='o', s=50, label='Robot')
-                #     else:
-                #         pass
-                #     stop_beam = True
+                elif (grid[beam_x-1,beam_y] == 80 or grid[beam_x+1,beam_y] == 80 or grid[beam_x,beam_y+1] == 80 or grid[beam_x,beam_y-1] == 80 or grid[beam_x,beam_y] == 80):
+                    plt.scatter(beam_x,beam_y,s = 80, color = 'purple')
+                    robot_pos  = np.append(robot_pos, Point(prev_x,prev_y,angle))
+                    stop_beam = True
+              
                 else:
                     # For plotting with blue color where the beam has passed
                     indexes_to_change.append([prev_x, prev_y])
@@ -288,7 +308,7 @@ def ray_casting(x,y):
             else: 
                 break
 
-        print(beam_lines.shape)
+        # print(beam_lines.shape)
 
     for row_idx, col_idx in indexes_to_change:
         grid[row_idx,col_idx] = 80
@@ -302,13 +322,12 @@ if __name__ == "__main__":
     draw_grid()  
 
     curr_it = 1
-    max_it = 2
+    max_it = 6
     while not path_found and curr_it <= max_it:
         while True:
-            # print(robot_pos.shape) # This does not stop
             if robot_pos.shape[0] >= 1:
-                ray_casting(robot_pos[-1].x,robot_pos[-1].y)
-                robot_pos = np.delete(robot_pos,-1)
+                ray_casting(robot_pos[0].x,robot_pos[0].y,robot_pos[0].angle)
+                robot_pos = np.delete(robot_pos,0)
             else:
                 break
             if real_time_plotting:
@@ -320,8 +339,10 @@ if __name__ == "__main__":
 
                 plt.pause(0.1)  # Pause to allow time for updates to be shown
             break
-        curr_it += 1
-        print("Done With Ray Casting")
+            # break # Remove this to check if it works
+        # curr_it += 1
+        input("Press Enter to Continue...")
+
         
 
    
