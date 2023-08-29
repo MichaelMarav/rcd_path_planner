@@ -246,6 +246,11 @@ def find_angle_to_exclude(in_angle):
     print(res)
     return res
 
+def check_valid_cond(x,y,robot_pos):
+    for pos in robot_pos:
+        if math.sqrt((pos.x-x)**2 + (pos.y-y)**2) < 20: 
+            return False
+    return True 
 
 '''
 * Add line intersections
@@ -257,14 +262,14 @@ def ray_casting(x,y,in_angle):
 
     
     for angle in range(0,360,int(360/num_beams)): # TODO: Add condition to stop if the arc length R dtheta is greater than the robot's size
-        if angle_to_exclude is not None and angle == angle_to_exclude:
-            continue
+        # if angle_to_exclude is not None and angle == angle_to_exclude:
+        #     continue
 
         angle_rad = np.radians(angle)
 
         stop_beam = False # Stop casting flag
         
-
+        valid_ray = False
 
         dis = 3#robot_size/grid_resolution # Starting distance (radius) from ray casting 
         prev_x = int(math.ceil(x))
@@ -282,8 +287,12 @@ def ray_casting(x,y,in_angle):
             if not stop_beam and beam_x > 0 and beam_x < grid_size[0] and beam_y > 0 and beam_y < grid_size[1]:
                 # Found same ray
                 if(grid[beam_x,beam_y] == 100):
+                    stop_beam = True
+
                     # Don't crash with wall next to the point
-                    if math.sqrt((beam_x-x)**2 + (beam_y-y)**2) > 5: 
+                    if check_valid_cond(beam_x,beam_y,robot_pos):
+                        valid_ray = True
+                    # if math.sqrt((beam_x-x)**2 + (beam_y-y)**2) > 5: 
                         # Save Position for next order of diffusion
                         # robot_pos  = np.append(robot_pos, Point(prev_x,prev_y))
                         robot_pos  = np.append(robot_pos,Point(prev_x,prev_y,angle))
@@ -292,12 +301,12 @@ def ray_casting(x,y,in_angle):
                         # Plot with red the hit point
                         plt.scatter([prev_x], [prev_y], color='red', marker='o', s=50, label='Robot')
         
+                elif (grid[beam_x,beam_y] == 80):# or grid[beam_x-1,beam_y] == 80 or grid[beam_x+1,beam_y] == 80 or grid[beam_x,beam_y+1] == 80 or grid[beam_x,beam_y-1] == 80):
                     stop_beam = True
-                elif (grid[beam_x-1,beam_y] == 80 or grid[beam_x+1,beam_y] == 80 or grid[beam_x,beam_y+1] == 80 or grid[beam_x,beam_y-1] == 80 or grid[beam_x,beam_y] == 80):
-                    plt.scatter(beam_x,beam_y,s = 80, color = 'purple')
-                    robot_pos  = np.append(robot_pos, Point(prev_x,prev_y,angle))
-                    stop_beam = True
-              
+                    if check_valid_cond(beam_x,beam_y,robot_pos):
+                        valid_ray = True
+                        plt.scatter(beam_x,beam_y,s = 80, color = 'purple')
+                        robot_pos  = np.append(robot_pos, Point(beam_x,beam_y,angle))
                 else:
                     # For plotting with blue color where the beam has passed
                     indexes_to_change.append([prev_x, prev_y])
@@ -309,9 +318,9 @@ def ray_casting(x,y,in_angle):
                 break
 
         # print(beam_lines.shape)
-
-    for row_idx, col_idx in indexes_to_change:
-        grid[row_idx,col_idx] = 80
+        if valid_ray:
+            for row_idx, col_idx in indexes_to_change:
+                grid[row_idx,col_idx] = 80
 
 
 
