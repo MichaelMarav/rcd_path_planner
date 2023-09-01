@@ -1,9 +1,12 @@
 # Motion Planner Package
 
-
+### Ideas for choosing next point to diffuse:
+1. https://www.youtube.com/watch?v=2iF9PRriA7w
+2. https://www.youtube.com/watch?v=uAB9WOQCSxw
+3. https://www.google.com/search?channel=fs&client=ubuntu&q=Value+Iteration
 
 ## RAY CASTING IDEA
-*Name* ; RAY CASTING DIFFUSION MODEL-> RA CA DIM
+*Name* ; RAY CASTING & DIFFUSION MODEL-> RA CA DIM
 0. Split the raycasting with multi threading. One function one input x,y
 1. Change the scatter plot from the beams to be plotted as a grid values not dots in scatter
 2. Make ray casting more generic. Add a list with points for diffusion. At first the list will contain only the one pose then the next one and the next one
