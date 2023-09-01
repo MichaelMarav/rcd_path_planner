@@ -2,9 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import threading 
-from matplotlib import colors
-
+import networkx 
 class Point:
     def __init__(self,x,y,angle = None):
         self.x = x
@@ -364,6 +362,7 @@ if __name__ == "__main__":
     init_grid()
 
     draw_grid()  
+
     cur_it = 1
     do_robot = True
     while True:
