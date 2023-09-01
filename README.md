@@ -5,56 +5,42 @@
 2. https://www.youtube.com/watch?v=uAB9WOQCSxw
 3. https://www.google.com/search?channel=fs&client=ubuntu&q=Value+Iteration
 
-## RAY CASTING IDEA
-*Name* ; RAY CASTING & DIFFUSION MODEL-> RA CA DIM
-0. Split the raycasting with multi threading. One function one input x,y
-1. Change the scatter plot from the beams to be plotted as a grid values not dots in scatter
-2. Make ray casting more generic. Add a list with points for diffusion. At first the list will contain only the one pose then the next one and the next one
-3. <del>Make the ray beam have the size of the robot and find a way if one part of the beam is stack what happens (Change the cmap value in plt.imshow())</del>
-4. Add diffusion 
-5. Add condition to stop(when robot_beam finds the goal beam)
-6. Add saving occupancy grid option  
-7. Check Voronoi diagram
+
+* Paper for finding the shortest path on a directed non negative weighted graph
 
 
+"Integer priority queues with decrease key in constant time and the single source shortest paths problem"
 
-# CLUSTERING IDEAS
-Goal: Develop a clustering algorithm for motion planning. The clusters will be non-convex so keep this in mind.
-Maybe use the Mahalanobis distance. --> Distance between a point and a distribution D 
-Maybe this as a metric: https://www.youtube.com/watch?v=LgeXhp-hQIw
+## ToDos:
 
-
-# Literature
-Spectral clustering for path planning:
- https://arxiv.org/abs/1712.06206
-
-## Other methods for clustering 
-
-### Hierachical clustering
-https://www.google.com/search?channel=fs&client=ubuntu&q=hierachical+clustering
+*Name*: RAY CASTING & DIFFUSION MODEL-> RA CA DIM
+## Ongoing
+1. Create a directed weighted graph from the intesections of the ray beams
+2. Find the shortest path between robot and goal (number of points)
+3. Find path from these points: Spline Smoothing or smthing 
+4. Figure out a metric to decide which point to cast next*
 
 
-### Spectral Clustering
-https://www.google.com/search?channel=fs&client=ubuntu&q=spectral+clustering
-
-### Density based Clustering
-
-https://pro.arcgis.com/en/pro-app/latest/tool-reference/spatial-statistics/how-density-based-clustering-works.htm
-
-### DBSCAN clustering 
-
-https://www.google.com/search?channel=fs&client=ubuntu&q=dbscan+clustering
-
-### Agglomerative hierarchical clustering
-
-https://www.google.com/search?channel=fs&client=ubuntu&q=Agglomerative+hierarchical+clustering+
-
-### Grid-based methods
-
-https://www.tutorialspoint.com/what-is-grid-based-methods
+## Done 
+1. <del>Make the ray beam have the size of the robot and find a way if one part of the beam is stack what happens (Change the cmap value in plt.imshow())</del>
+2. <del> Add diffusion </del> 
+3. <del> Add condition to stop(when robot_beam finds the goal beam) </del>
+4. Desp: <del>Add saving occupancy grid option  </del>
+5. <del> Check Voronoi diagram <del>
 
 
-### Consensus clustering
+## Ideas
+* Weight each point based on some distance. EG distance traveled?
+* Pich best point based on probability which is analogous to the discovered area
+* Value Iteration
+* Markov Decision process
+* Exploration exploitation
+* Self Organizing maps 
 
-https://www.google.com/search?channel=fs&client=ubuntu&q=Consensus+clustering
+
+* Rotate the source rays randomly.
+
+* Do multi threading 
+
+
 
