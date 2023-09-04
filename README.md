@@ -1,4 +1,7 @@
-# Motion Planner Package
+# Path Planner Package
+# Main Idea
+Perform two-way ray casting in order to find a path. Cast some N rays from robot and target. Inflate occupancy grid by R_robot/2 and consider the robot as a point. Each intersection between same rays is considered a new source point. Construct two trees, one with root the robot and one with root the target. Perform ray casting until there is an intersection between the beams of the robot with the beams of the target. Find the shortest path between the robot root and the target root. These points are connected with linear lines. Perform spline smoothing in these points to obtain a path. Maybe add a metric in order to choose which of the children to cast first.
+
 
 ### Ideas for choosing next point to diffuse:
 1. https://www.youtube.com/watch?v=2iF9PRriA7w
