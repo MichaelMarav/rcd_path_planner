@@ -17,7 +17,6 @@ grid_resolution = 0.1 # (m)
 workspace_size = (50,30) # (m) Size of the workspace/room where the robot needs to navigate
 num_beams = 6
 drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
-bounces_allowed = 2 
 
 
 
@@ -103,9 +102,6 @@ def set_goal_robot(event):
             init_robot_pos = True
             plt.scatter([robot_pos[0].x], [robot_pos[0].y], color='black', marker='o', s=50, label='Robot')
 
-       
-        # Update the plot to show the robot and target positions
-        # im.set_data(grid)
         plt.draw()
 
 def draw_grid():

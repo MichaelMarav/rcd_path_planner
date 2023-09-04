@@ -15,7 +15,6 @@ grid_resolution = 0.1 # (m)
 workspace_size = (50,30) # (m) Size of the workspace/room where the robot needs to navigate
 num_beams = 6
 drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
-bounces_allowed = 2 
 
 
 # Parameters
@@ -42,6 +41,6 @@ class RayTracer:
 
 
 if __name__ == "__main__":
-    occ_grid = Grid(workspace_size[0],workspace_size[1],grid_resolution)
-    # test = RayTracer()
-    
+    test = Grid(workspace_size[0],workspace_size[1],grid_resolution,robot_size)
+    print(test.occ_grid[0,0].occupied)
+    # test = RayTracer.()
