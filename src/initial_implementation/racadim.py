@@ -2,12 +2,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import networkx as nx
+
+
 class Point:
-    def __init__(self,x,y,angle = None):
+    def __init__(self,x,y):
         self.x = x
         self.y = y
-        self.angle = angle
 
 
 # Hyperparams
@@ -130,64 +130,6 @@ def draw_grid():
     return 
 
 
-'''
-Input: Source point x0,y0 + orientation
-'''
-def check_intersection(x0,y0,r,lines):
-    print(lines.shape)
-    if lines.shape[0] == 0:
-        return None
-    for point in lines:
-        x2 = point[1].x
-        y2 = grid_size[1] - point[1].y
-        x1 = point[0].x
-        y1 = grid_size[1] - point[0].y
-        # Calculate direction vectors
-        segment_dir = (x2 - x1, y2 - y1)
-        semi_infinite_dir = (math.cos(r), math.sin(r))
-
-        # Solve for t and s
-        t_numerator = (x0 - x1) * semi_infinite_dir[1] - (y0 - y1) * semi_infinite_dir[0]
-        t_denominator = segment_dir[0] * semi_infinite_dir[1] - segment_dir[1] * semi_infinite_dir[0]
-        
-        if t_denominator == 0:
-            # Lines are parallel
-            return None
-
-        t = t_numerator / t_denominator
-
-        if t < 0 or t > 1:
-            # Intersection point is outside the line segment
-            return None
-
-        s = ((x1 - x0) + t * segment_dir[0]) / semi_infinite_dir[0]
-
-        if s < 0:
-            # Intersection point is behind the semi-infinite line
-            return None
-
-        # Calculate intersection point
-        intersection_x = x1 + t * segment_dir[0]
-        intersection_y = y1 + t * segment_dir[1]
-
-        if intersection_x >= 0 and intersection_x <= grid_size[0] and intersection_y >= 0 and intersection_y < grid_size[1]:
-            plt.scatter(intersection_x,intersection_y,c = 'purple', s= 90)
-            return (intersection_x, intersection_y)
-        else:
-            return None
-
-
-def find_angle_to_exclude(in_angle):
-    if in_angle is None:
-        return None 
-    res = in_angle + 180
-    if res >= 360:
-        res -= 360
-    elif (res < 0):
-        res += 360
-    print(res)
-    return res
-
 def check_closest_distance(x,y,visited_points,closest_threshold):
     for pos in visited_points:
         if math.sqrt((pos.x-x)**2 + (pos.y-y)**2) < closest_threshold: 
@@ -220,7 +162,7 @@ def choose_index(robot_pos):
     pass
 
 def ray_casting_robot(x,y):
-    global path_found,robot_pos,visited_robot,visited_target
+    global path_found,robot_pos,visited_robot,visited_target,robot_node_count
 
     
     for angle in range(0,360,int(360/num_beams)): # TODO: Add condition to stop if the arc length R dtheta is greater than the robot's size
@@ -245,16 +187,18 @@ def ray_casting_robot(x,y):
                 if(grid[beam_x,beam_y] == 100):
                     stop_beam = True
 
+
                     # Don't crash with wall next to the point
                     if check_closest_distance(beam_x,beam_y,visited_robot,10):
                         valid_ray = True
                         robot_pos  = np.append(robot_pos,Point(prev_x,prev_y))
                         visited_robot  = np.append(visited_robot,Point(prev_x,prev_y))
-
                         # Plot with red the hit point
                         plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
-        
+                
+                # Check for intersection between same ray 
                 elif (grid[beam_x,beam_y] == 80 or grid[beam_x-1,beam_y] == 80 or grid[beam_x+1,beam_y] == 80 or grid[beam_x,beam_y+1] == 80 or grid[beam_x,beam_y-1] == 80):
+                    # Find which path is the shortest and delete the connection
                     stop_beam = True
                     intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,80)
                     if intersect_point_x is not None and intersect_point_y is not None and check_closest_distance(intersect_point_x,intersect_point_y,visited_robot,10):
@@ -263,6 +207,7 @@ def ray_casting_robot(x,y):
                         robot_pos  = np.append(robot_pos, Point(intersect_point_x,intersect_point_y))
                         visited_robot  = np.append(visited_robot,Point(intersect_point_x,intersect_point_y))
                 
+                # Check if path is found
                 elif (grid[beam_x,beam_y] == 40 or grid[beam_x-1,beam_y] == 40 or grid[beam_x+1,beam_y] == 40 or grid[beam_x,beam_y+1] == 40 or grid[beam_x,beam_y-1] == 40):
                     path_found = True
                     print("FOUND PATH by robot")
@@ -270,7 +215,8 @@ def ray_casting_robot(x,y):
 
                     intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,40)
                     plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
-
+                
+                # No intersection continue
                 else:
                     # For plotting with blue color where the beam has passed
                     indexes_to_change.append([beam_x, beam_y])
@@ -344,7 +290,7 @@ def ray_casting_target(x,y):
 
                 prev_x = beam_x
                 prev_y = beam_y
-            
+
             else: 
                 break
 
@@ -359,6 +305,8 @@ if __name__ == "__main__":
 
     draw_grid()  
 
+  
+    
     cur_it = 1
     do_robot = True
     while True:
