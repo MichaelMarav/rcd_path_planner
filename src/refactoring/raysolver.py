@@ -7,6 +7,7 @@ import networkx as nx
 
 # Custom imports
 from occupancy_grid import Point,Grid
+from visualizer import Visualizer
 
 # Hyperparams
 real_time_plotting = False
@@ -18,7 +19,6 @@ drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
 
 
 # Parameters
-grid_size = (int(workspace_size[0]/grid_resolution), int(workspace_size[1]/grid_resolution))     # Size of the occupancy grid in meters (rows, columns)
 target     = np.empty(0,dtype=object)
 robot      = np.empty(0,dtype=object)
 visited_robot  = np.empty(0,dtype=object)
@@ -41,6 +41,7 @@ class RayTracer:
 
 
 if __name__ == "__main__":
-    test = Grid(workspace_size[0],workspace_size[1],grid_resolution,robot_size)
-    print(test.occ_grid[0,0].occupied)
+    map = Grid(workspace_size[0],workspace_size[1],grid_resolution,robot_size)
+    vis = Visualizer(workspace_size[0],workspace_size[1],map.occ_grid,drawing_brush_size)
+    print(map.occ_grid[0,0].occupied)
     # test = RayTracer.()

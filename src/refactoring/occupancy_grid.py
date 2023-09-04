@@ -40,15 +40,4 @@ class Grid:
             for j in range(self.wall_size):
                 self.occ_grid[i, j].occupied = True
                 self.occ_grid[i, -j - 1].occupied = True
-       
-       
-    
-       
-       
-       
-        # self.occ_grid[0,0].occupied = True
-        # self.wall_size = math.ceil(robot_size/grid_resolution)
-        # self.occ_grid[-wall_size:, :].occupied = True
-        # self.occ_grid[:, 0:wall_size].occupied = True
-        # self.occ_grid[:, -wall_size:].occupied = True
         return self.occ_grid
