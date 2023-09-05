@@ -304,8 +304,6 @@ if __name__ == "__main__":
     init_grid()
 
     draw_grid()  
-
-  
     
     cur_it = 1
     do_robot = True
