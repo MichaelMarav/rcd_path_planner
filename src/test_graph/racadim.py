@@ -40,6 +40,15 @@ total_nodes = 0
 #---------------------------------------------------------------------------------------
 
 
+
+class edge_object:
+    def __init__(self,start_node,end_node):
+        start = start_node
+        end = end_node
+    
+
+
+
 '''
 Initializes the occupancy grid
 '''
@@ -197,6 +206,7 @@ def ray_casting_robot(x,y,parent):
                         child_name = parent+str(child_index)
                         robot_graph.add_node(child_name,x= prev_x,y=prev_y, ray_casted = False)
                         robot_graph.add_edge(parent,child_name,weight = dis)
+                        
                         child_index += 1
                         total_nodes += 1
 
