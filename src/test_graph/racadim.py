@@ -254,7 +254,7 @@ def ray_casting_robot(x,y,parent):
 
                 # No intersection continue
                 else:
-                    # For plotting with blue color where the beam has passed
+                    # For plotting with blue color where the beam has passed+
                     indexes_to_change.append([beam_x, beam_y])
 
                 prev_x = beam_x
