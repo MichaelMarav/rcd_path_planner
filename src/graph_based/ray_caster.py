@@ -24,9 +24,12 @@ class Point:
 
 class Edge:
     def __init__(self,edge_id,start_node,end_node):
-        self.edge_id    = edge_id
+        self.edge_id    = edge_id # Unique String for specifing which edge is this
         self.start_node = start_node
         self.end_node   = end_node
+
+
+
 
 
 
@@ -39,16 +42,17 @@ robot_pos      = np.empty(0,dtype=object)
 visited_robot  = np.empty(0,dtype=object)
 visited_target = np.empty(0,dtype=object)
 
-grid = np.zeros(grid_size, dtype=int)
-object_grid = np.empty(0,dtype=object)
+grid         = np.zeros(grid_size)
+grid_edge_id = np.empty(grid_size) # Contains the edge id that passes through each cell
+
 
 drawing = False
 init_robot_pos= False
 init_target_pos= False
 path_found = False
 
-robot_graph = nx.Graph()
-
+robot_graph  = nx.DiGraph()
+target_graph = nx.DiGraph() 
 
 
 
@@ -59,7 +63,6 @@ Initializes the occupancy grid
 def init_grid():
     # Init empty occ grid
     global grid
-    grid = np.zeros(grid_size, dtype=int)
 
     # Add walls to the boundary of the grid
     wall_size = math.ceil(robot_size/grid_resolution)
@@ -152,9 +155,42 @@ def draw_grid():
 #----------------------------------------------------------------------
 
 
+# Returns true if the node has been casted else it returns false
+def get_casted_flag(graph,node_name):
+    return nx.get_node_attributes(graph,'ray_casted')[node_name]
+
+# Returns the x,y coordinates of a node that belongs to graph
+def get_node_position(graph,node_name):
+    x_v = nx.get_node_attributes(graph,'x')[node_name]
+    y_v = nx.get_node_attributes(graph,'y')[node_name]
+    return x_v,y_v
+
+
+def ray_casting_robot(x,y,parent):
+
+    global path_found,robot_pos,visited_robot,visited_target,robot_graph,total_nodes
+
+
 
 if __name__ == "__main__":
     init_grid()
 
     draw_grid()
 
+
+    # Add Robot Node to the graph
+    robot_graph.add_node("R",x=robot_pos[0].x,y=robot_pos[0].y, ray_casted = False)
+    target_graph.add_node("G",x=target_pos[0].x, y = target_pos[0].y, ray_casted = False)
+
+    while True:
+
+        for node in list(robot_graph.nodes):
+
+            if not get_casted_flag(robot_graph,node):
+                print("Casting node : ", node)
+                casting_x,casting_y = get_node_position(robot_graph,node)
+                ray_casting_robot(casting_x,casting_y,parent=node)
+                robot_graph.nodes[node]['ray_casted'] = True
+            else:
+                print("Node is already casted")
+                continue
