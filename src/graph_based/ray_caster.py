@@ -7,7 +7,7 @@ import networkx as nx
 
 # Hyperparams
 real_time_plotting = True
-draw_edge_split = False
+draw_edge_split = True
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
 workspace_size = (50,30) # (m) Size of the workspace/room where the robot needs to navigate
