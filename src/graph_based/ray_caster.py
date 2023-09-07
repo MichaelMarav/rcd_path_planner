@@ -7,6 +7,7 @@ import networkx as nx
 
 # Hyperparams
 real_time_plotting = True
+draw_edge_split = False
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
 workspace_size = (50,30) # (m) Size of the workspace/room where the robot needs to navigate
@@ -44,7 +45,6 @@ visited_target = np.empty(0,dtype=object)
 
 grid         = np.zeros(grid_size)
 grid_edge_id = np.empty(grid_size,dtype=object) # Contains the edge id that passes through each cell
-edge_name = 0 
 
 
 drawing = False
@@ -220,28 +220,43 @@ def split_edge(graph,grid_edge_id,new_node,x,y):
     mask = np.vectorize(lambda obj: obj.edge_id == edge_.edge_id)(grid_edge_id)
     indices = np.argwhere(mask) # Stores the indices of grid_edge_id where the edge we are about to delete is located
 
+    edge_name_1 = node_1 + "-" + node_2
+    edge_name_2 = node_2 + "-" + node_3
 
+    if x_1 < x_2: 
+        for idx in indices:
+            if idx[0] < x_2:
+                grid_edge_id[idx[0],idx[1]] = Edge(edge_name_1,node_1,node_2)
+            else:
+                grid_edge_id[idx[0],idx[1]] = Edge(edge_name_2,node_2,node_3)
+    else:
+        for idx in indices:
+            if idx[0] < x_2:
+                grid_edge_id[idx[0],idx[1]] = Edge(edge_name_2,node_3,node_2)
+            else:
+                grid_edge_id[idx[0],idx[1]] = Edge(edge_name_1,node_2,node_1)
 
-    for idx in indices:
-        print(idx)
-        if idx[0] == x_2 and idx[1] == y_2:
-            plt.scatter(x_2,y_2,color="red",marker='o', s=100, label='Robot')
+    graph.remove_edge(node_1,node_3)
+    graph.add_edge(node_1,node_2,weight = dis_12)
+    graph.add_edge(node_2,node_3,weight = dis_23)
+    if draw_edge_split:
+        mask = np.vectorize(lambda obj: obj.edge_id == edge_name_1)(grid_edge_id)
+        indices = np.argwhere(mask) # Stores the indices of grid_edge_id where the edge we are about to delete is located
+        plt.scatter(indices[:,0],indices[:,1],c = [np.random.rand(3)], marker='o', s=40) 
 
+        mask = np.vectorize(lambda obj: obj.edge_id == edge_name_2)(grid_edge_id)
+        indices = np.argwhere(mask) # Stores the indices of grid_edge_id where the edge we are about to delete is located
+        plt.scatter(indices[:,0],indices[:,1],c = [np.random.rand(3)], marker='o', s=40) 
 
-    plt.scatter(indices[:,0], indices[:,1], color='blue', marker='o', s=20, label='Robot')
-
-    # graph.remove_edge(node_1,node_3)
-
-
-    # graph.a
 
 
 
 # Ray casting from parent node and create childs and directed edges
 def ray_casting_robot(x,y,parent):
 
-    global path_found, robot_pos, visited_robot, robot_graph, grid, grid_edge_id, edge_name
+    global path_found, robot_pos, visited_robot, robot_graph, grid, grid_edge_id
     child_id = 1
+    edge_name = ""
 
     for angle in range(0,360,int(360/num_beams)): 
 
@@ -277,8 +292,10 @@ def ray_casting_robot(x,y,parent):
                     child_name = parent + str(child_id)
                     robot_graph.add_node(child_name, x = prev_x, y = prev_y, ray_casted = False)
                     robot_graph.add_edge(parent, child_name, weight = dis)
-                    edge_name += 1
+
                     child_id += 1 # Update index for next child
+                    
+                    edge_name = parent + "-" + child_name
 
                     visited_robot  = np.append(visited_robot,Point(prev_x,prev_y)) # Save the places that the robot has visited
             
@@ -302,7 +319,7 @@ def ray_casting_robot(x,y,parent):
                     robot_graph.add_edge(parent,child_name,weight = dis)
 
                     child_id += 1
-                    edge_name += 1
+                    edge_name = parent + "-" + child_name
 
                     # Break the edge that has the intersection in it
                     split_edge(robot_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
@@ -324,7 +341,7 @@ def ray_casting_robot(x,y,parent):
                     robot_graph.add_node(child_name,x= prev_x,y=prev_y, ray_casted = False)
                     robot_graph.add_edge(parent,child_name,weight = dis)
                     child_id += 1
-                    edge_name += 1
+                    edge_name = parent + "-" + child_name
 
 
                     intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,40)
@@ -338,7 +355,7 @@ def ray_casting_robot(x,y,parent):
             if valid_ray:
                 for row_idx, col_idx in indexes_to_change:
                     grid[row_idx,col_idx] = 80 # Robot ray has passed
-                    grid_edge_id[row_idx,col_idx].edge_id = str(edge_name)
+                    grid_edge_id[row_idx,col_idx].edge_id = edge_name
                     grid_edge_id[row_idx,col_idx].start_node = parent
                     grid_edge_id[row_idx,col_idx].end_node    = child_name
 
