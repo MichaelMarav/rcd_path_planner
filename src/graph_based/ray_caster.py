@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import networkx as nx
+from scipy.interpolate import pchip_interpolate
 
 import cv2
 # Hyperparams
@@ -612,21 +613,28 @@ if __name__ == "__main__":
     im.set_data(grid.T)
 
     # Extract the path points as a list of (x, y) tuples
-    path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
+    # path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
 
     # Convert the path to a NumPy array for easier indexing
-    path = np.array(path)
+    # path = np.array(path)
 
     # Plot the grid
-    plt.plot(path[:(-1), 0], path[:(-1), 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
+    # plt.plot(path[:(-1), 0], path[:(-1), 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
 
     # Invert the y-axis
     # plt.gca().invert_yaxis()
 
     # Add labels and title
-    plt.xlabel('X-axis')
-    plt.ylabel('Inverted Y-axis')
-    plt.title('Points Inside the Path on Inverted Y-axis Grid')
+    # plt.xlabel('X-axis')
+    # plt.ylabel('Inverted Y-axis')
+    # plt.title('Points Inside the Path on Inverted Y-axis Grid')
+
+    x_path_smooth = np.linspace(min(x_path), max(x_path), num=100)
+    y_path_smooth = pchip_interpolate(x_path, y_path, x_path_smooth)
+    plt.plot(x_path, y_path, "o", label="path nodes")
+    plt.plot(x_path_smooth, y_path_smooth, label="Smoothed path using pchip interpolation")
+    plt.legend()
+
 
     # Show the plot
     plt.show()
