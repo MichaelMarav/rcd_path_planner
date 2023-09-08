@@ -3,11 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import networkx as nx
-
+from scipy.interpolate import CubicSpline
 
 # Hyperparams
-real_time_plotting = True
-draw_edge_split = True
+real_time_plotting = False
+draw_edge_split = False
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
 workspace_size = (50,30) # (m) Size of the workspace/room where the robot needs to navigate
@@ -31,6 +31,11 @@ class Edge:
 
 
 
+class Final_Node:
+    def __init__(self,robot_found_path,x,y):
+        self.robot_found_path    = False # Unique String for specifing which edge is this
+        self.x = x
+        self.y = y
 
 
 
@@ -42,6 +47,8 @@ target_pos     = np.empty(0,dtype=object)
 robot_pos      = np.empty(0,dtype=object)
 visited_robot  = np.empty(0,dtype=object)
 visited_target = np.empty(0,dtype=object)
+
+
 
 grid         = np.zeros(grid_size)
 grid_edge_id = np.empty(grid_size,dtype=object) # Contains the edge id that passes through each cell
@@ -254,7 +261,7 @@ def split_edge(graph,grid_edge_id,new_node,x,y):
 # Ray casting from parent node and create childs and directed edges
 def ray_casting_robot(x,y,parent):
 
-    global path_found, robot_pos, visited_robot, robot_graph, grid, grid_edge_id
+    global path_found, visited_robot, robot_graph, grid, grid_edge_id, target_graph
     child_id = 1
     edge_name = ""
 
@@ -335,16 +342,22 @@ def ray_casting_robot(x,y,parent):
                     valid_ray = True
 
                     print("FOUND PATH by robot")
-
+                    
                     # Add node
-                    child_name = parent + str(child_id)
+                    child_name = "F"
                     robot_graph.add_node(child_name,x= prev_x,y=prev_y, ray_casted = False)
                     robot_graph.add_edge(parent,child_name,weight = dis)
                     child_id += 1
                     edge_name = parent + "-" + child_name
+                    
 
 
                     intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,40)
+
+                    target_graph.add_node(child_name,x= prev_x,y=prev_y, ray_casted = False)
+
+                    split_edge(target_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
+
                     plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
             else:
                 indexes_to_change.append([beam_x,beam_y])
@@ -361,6 +374,121 @@ def ray_casting_robot(x,y,parent):
 
 
 
+# Ray casting from parent node and create childs and directed edges
+def ray_casting_target(x,y,parent):
+
+    global path_found, visited_target, target_graph, grid, grid_edge_id, robot_graph
+
+
+    child_id = 1
+    edge_name = ""
+
+    for angle in range(0,360,int(360/num_beams)): 
+
+        # Saves the indices to change in the grid
+        indexes_to_change = [] 
+
+        angle_rad = np.radians(angle)
+
+        stop_beam = False # Stop ray casting flag for this angle
+
+        valid_ray = False # Flag that specifies if the ray is valid-> Not close enough to another node
+        
+        # Starting distance (radius) from ray casting TODO: Make this start from robot_size
+        dis = 3 # robot_size/grid_resolution 
+
+        prev_x = int(math.ceil(x))
+        prev_y = int(math.ceil(y))
+        
+        # Propagates ray until 1. Ray hits wall 2. Ray hits another ray 3. Robot Ray and Goal ray are connected (path found)
+        while not stop_beam and not path_found:
+            dis += 1
+
+            beam_x = int(math.ceil(x + dis * np.cos(angle_rad)))
+            beam_y = int(math.ceil(y - dis * np.sin(angle_rad)))
+
+            # Case 1: If beam hit wall
+            if grid[beam_x,beam_y] == 100:
+                stop_beam = True          
+                if check_closest_node_distance(beam_x,beam_y,visited_target,10):          
+                    valid_ray = True
+
+                    # Add node to graph
+                    child_name = parent + str(child_id)
+                    target_graph.add_node(child_name, x = prev_x, y = prev_y, ray_casted = False)
+                    target_graph.add_edge(parent, child_name, weight = dis)
+
+                    child_id += 1 # Update index for next child
+                    
+                    edge_name = parent + "-" + child_name
+
+                    visited_target  = np.append(visited_target,Point(prev_x,prev_y)) # Save the places that the robot has visited
+            
+                    plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
+
+            # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
+            elif (grid[beam_x,beam_y] == 40 or grid[beam_x-1,beam_y] == 40 or grid[beam_x+1,beam_y] == 40 or grid[beam_x,beam_y+1] == 40 or grid[beam_x,beam_y-1] == 40):
+                
+                stop_beam = True
+
+                intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,40) # where exactly the beams meet
+               
+                if intersect_point_x is not None and intersect_point_y is not None and check_closest_node_distance(intersect_point_x, intersect_point_y, visited_target, 10):
+
+
+                    valid_ray = True
+
+                    # Add node
+                    child_name = parent+str(child_id)
+                    target_graph.add_node(child_name,x = intersect_point_x, y =intersect_point_y, ray_casted = False)
+                    target_graph.add_edge(parent,child_name,weight = dis)
+
+                    child_id += 1
+                    edge_name = parent + "-" + child_name
+
+                    # Break the edge that has the intersection in it
+                    split_edge(target_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
+
+
+
+                    plt.scatter(intersect_point_x,intersect_point_y,s = 20, color = 'purple')
+                    visited_target = np.append(visited_target, Point(intersect_point_x,intersect_point_y))
+            
+            # Case 3: If beam hits the other kind of ray (path found)
+            elif (grid[beam_x,beam_y] == 80 or grid[beam_x-1,beam_y] == 80 or grid[beam_x+1,beam_y] == 80 or grid[beam_x,beam_y+1] == 80 or grid[beam_x,beam_y-1] == 80):
+                    path_found = True
+                    valid_ray = True
+
+                    print("FOUND PATH by Target")
+
+                    # Add node
+                    child_name = "F"
+                    target_graph.add_node(child_name,x= prev_x,y=prev_y, ray_casted = False)
+                    target_graph.add_edge(parent,child_name,weight = dis)
+                    child_id += 1
+                    edge_name = parent + "-" + child_name
+
+                    intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,80)
+
+                    robot_graph.add_node(child_name,x= prev_x,y=prev_y, ray_casted = False)
+
+                    split_edge(robot_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
+
+                    plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
+            else:
+                indexes_to_change.append([beam_x,beam_y])
+            
+            prev_x = beam_x
+            prev_y = beam_y
+            
+            if valid_ray:
+                for row_idx, col_idx in indexes_to_change:
+                    grid[row_idx,col_idx] = 40 # Robot ray has passed
+                    grid_edge_id[row_idx,col_idx].edge_id = edge_name
+                    grid_edge_id[row_idx,col_idx].start_node = parent
+                    grid_edge_id[row_idx,col_idx].end_node    = child_name
+
+
 
 
 
@@ -375,25 +503,121 @@ if __name__ == "__main__":
     robot_graph.add_node("R",x=robot_pos[0].x,y=robot_pos[0].y, ray_casted = False)
     target_graph.add_node("G",x=target_pos[0].x, y = target_pos[0].y, ray_casted = False)
 
-    while True:
+    while not path_found:
 
         for node in list(robot_graph.nodes):
 
             if not get_casted_flag(robot_graph,node):
-                print("Casting node : ", node)
                 casting_x,casting_y = get_node_position(robot_graph,node)
                 ray_casting_robot(casting_x, casting_y, parent = node)
                 robot_graph.nodes[node]['ray_casted'] = True
             else:
-                print("Node is already casted")
                 continue
 
-            if real_time_plotting:
-                target_beam_indices = np.where(grid == 40)
-                plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
 
-                robot_beam_indices = np.where(grid == 80)
-                plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
+        for node in list(target_graph.nodes):
 
-                plt.pause(0.1)  # Pause to allow time for updates to be shown
-                input("Press Enter to Continue...")
+            if not get_casted_flag(target_graph,node):
+                casting_x,casting_y = get_node_position(target_graph,node)
+                ray_casting_target(casting_x, casting_y, parent = node)
+                target_graph.nodes[node]['ray_casted'] = True
+            else:
+                continue
+
+
+
+        if real_time_plotting:
+            target_beam_indices = np.where(grid == 40)
+            plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
+
+            robot_beam_indices = np.where(grid == 80)
+            plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
+
+            plt.pause(0.1)  # Pause to allow time for updates to be shown
+            input("Press Enter to Continue...")
+
+
+    # At this point the path is found. TODO: add what to do when there is not a valid path
+
+    # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
+
+
+    if not real_time_plotting:
+        target_beam_indices = np.where(grid == 40)
+        plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
+
+        robot_beam_indices = np.where(grid == 80)
+        plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
+
+        plt.pause(0.01)  # Pause to allow time for updates to be shown
+        input("Press Enter to Continue...")
+    
+
+
+    shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F")
+    x_path = []
+    y_path = []
+
+    for name in shortest_robot:
+        x_i, y_i = get_node_position(robot_graph,name)
+        x_path.append(x_i)
+        y_path.append(y_i)
+
+
+    shortest_target = nx.shortest_path(target_graph,source = "G",target = "F")
+    # x_target = []
+    # y_target = []
+
+    for name in shortest_target:
+        x_i, y_i = get_node_position(target_graph,name)
+        x_path.append(x_i)
+        y_path.append(y_i)
+
+
+
+
+    t = np.arange(len(x_path))
+    spl_x = CubicSpline(t, x_path)
+    spl_y = CubicSpline(t, y_path)
+
+    # Define a denser set of points along the path for smoother visualization
+    t_new = np.linspace(0, len(x_path) - 1, 100)
+    x_new = spl_x(t_new)
+    y_new = spl_y(t_new)
+
+    # Plot the original points and the smooth path
+    fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
+
+
+    grid = np.where((grid != 0) & (grid != 100), 0, grid) 
+
+    im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
+    im.set_data(grid.T)
+
+    plt.scatter(x_path, y_path, label='Original Points', c='red', marker='o')
+    plt.plot(x_new, y_new, label='Smoothed Path', c='blue')
+    plt.legend()
+    plt.title('Smoothed Path')
+    plt.xlabel('X Coordinate')
+    plt.ylabel('Y Coordinate')
+    plt.grid(True)
+    plt.show()
+
+
+
+
+    # fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
+
+    # grid = np.where((grid != 0) & (grid != 100), 0, grid) 
+
+    # im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
+    # im.set_data(grid.T)
+
+    # plt.scatter(x_robot, y_robot, color='blue', s=40, label='RobotVirtual Beams')
+    # plt.scatter(x_target,y_target, color='red', s=40, label='RobotVirtual Beams')
+
+    # plt.title('Figure 2')
+    # plt.xlabel('x')
+    # plt.ylabel('y')
+    # plt.show()
+    # input("Press Enter to exit...")
