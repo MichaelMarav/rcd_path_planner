@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import math
 import networkx as nx
@@ -90,23 +92,22 @@ def init_grid():
 
 
 '''
-Adds obstacles by drawing at the plot
+Utility functions for drawing 
+----------------------------------------------------------------------
 '''
+
+# Adds obstacles by drawing at the plot
 def draw_obstacles(grid, position, drawing_brush_size):
     cell_position = (round(position[0]),round(position[1]))
     half_brush = drawing_brush_size // 2
     for i in range(-half_brush, half_brush + 1):
         for j in range(-half_brush, half_brush + 1):
-            x = cell_position[0] + i
-            y = cell_position[1] + j
+            x = int(cell_position[0] + i)
+            y = int(cell_position[1] + j)
             if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
                 grid[x, y] = 100
 
 
-'''
-Utility functions for drawing 
-----------------------------------------------------------------------
-'''
 def on_press(event):
     global drawing
     drawing = True
@@ -114,6 +115,7 @@ def on_press(event):
         draw_obstacles(grid, (event.xdata, event.ydata), drawing_brush_size)
         im.set_data(grid.T)
         plt.draw()
+
 
 def on_release(event):
     global drawing
@@ -143,29 +145,32 @@ def set_goal_robot(event):
 
         plt.draw()
 
+
+
 def draw_grid():
-    # Initialize the plot
-    plt.figure(figsize=(workspace_size[0], workspace_size[1]))
     global im
+    plt.figure(figsize=(workspace_size[0], workspace_size[1]))
 
     im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
     plt.title('Occupancy Grid (Left Mouse Button: Draw Occupied Cells)')
     plt.axis('off')  # Turn on axis for grid lines
 
-    # Connect the mouse events
+    # # Connect the mouse events
     press   = plt.connect('button_press_event', on_press)
     release = plt.connect('button_release_event', on_release)
     motion  = plt.connect('motion_notify_event', on_motion)
     goal    = plt.connect('key_press_event', set_goal_robot)
+
+    plt.show(block = False)
+
     print("Draw and place goal and robot")
-    plt.show(block=False)
     input("Press Enter when setup is completed...")
+
 
     plt.disconnect(press)
     plt.disconnect(release)
     plt.disconnect(motion)
     plt.disconnect(goal)
-
     return
 #----------------------------------------------------------------------
 
@@ -579,91 +584,37 @@ if __name__ == "__main__":
         y_path.append(y_i)
 
     #----------------------------------------------------------
-    
-    
-    
-    # grid = np.where((grid != 0) & (grid != 100), 0, grid) 
-    # fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
-    # im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
-    # im.set_data(grid.T)
+   
 
+    # DEFAULT PATH (STRAIGHT LINES)
 
-
-    # path = []
-    # for i in range(len(x_path)):
-    #     path.append([x_path[i], y_path[i]])
-    
-    # plt.plot(path[:][0],path[:][1], marker='o')
-    # plt.gca().invert_yaxis()
-
-    # # Add labels and title
-    # plt.xlabel('X-axis')
-    # plt.ylabel('Inverted Y-axis')
-    # plt.title('Linear Line from A to B with Inverted Y-axis')
-
-    # # Show the plot
-    # plt.show()
-
-    # Modify the grid based on your conditions
-    grid = np.where((grid != 0) & (grid != 100), 0, grid)
-
+    grid = np.where((grid != 0) & (grid != 100), 0, grid) # Remove rays
     # Create a figure
     fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
     im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
     im.set_data(grid.T)
+    
+    
+    path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
 
-    # Extract the path points as a list of (x, y) tuples
-    # path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
-
+    plt.title('Smoothed Path')
     # Convert the path to a NumPy array for easier indexing
-    # path = np.array(path)
+    plt.xlabel('X Coordinate')
+    path = np.array(path)
+    plt.ylabel('Y Coordinate')
 
+    plt.grid(True)
     # Plot the grid
-    # plt.plot(path[:(-1), 0], path[:(-1), 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
+    plt.plot(path[:(-1), 0], path[:(-1), 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
+    plt.show(block = False)
 
-    # Invert the y-axis
-    # plt.gca().invert_yaxis()
-
-    # Add labels and title
-    # plt.xlabel('X-axis')
-    # plt.ylabel('Inverted Y-axis')
-    # plt.title('Points Inside the Path on Inverted Y-axis Grid')
-
-    x_path_smooth = np.linspace(min(x_path), max(x_path), num=100)
-    y_path_smooth = pchip_interpolate(x_path, y_path, x_path_smooth)
-    plt.plot(x_path, y_path, "o", label="path nodes")
-    plt.plot(x_path_smooth, y_path_smooth, label="Smoothed path using pchip interpolation")
-    plt.legend()
+    input("Press something to Exit")
+    #----------------------------------------------------------
 
 
-    # Show the plot
-    plt.show()
-
-
-
-    # t = np.arange(len(x_path))
-    # spl_x = CubicSpline(t, x_path)
-    # spl_y = CubicSpline(t, y_path)
-
-    # # Define a denser set of points along the path for smoother visualization
-    # t_new = np.linspace(0, len(x_path) - 1, 100)
-    # x_new = spl_x(t_new)
-    # y_new = spl_y(t_new)
-
-    # # Plot the original points and the smooth path
-
-
-    # grid = np.where((grid != 0) & (grid != 100), 0, grid) 
-    # fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
-    # im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
-    # im.set_data(grid.T)
-
-    # plt.scatter(x_path, y_path, label='Original Points', c='red', marker='o')
-    # plt.plot(x_new, y_new, label='Smoothed Path', c='blue')
+    # Despina smoother
+    # x_path_smooth = np.linspace(min(x_path), max(x_path), num=100)
+    # y_path_smooth = pchip_interpolate(x_path, y_path, x_path_smooth)
+    # plt.plot(x_path, y_path, "o", label="path nodes")
+    # plt.plot(x_path_smooth, y_path_smooth, label="Smoothed path using pchip interpolation")
     # plt.legend()
-    # plt.title('Smoothed Path')
-    # plt.xlabel('X Coordinate')
-    # plt.ylabel('Y Coordinate')
-    # plt.grid(True)
-    # plt.show()
-
