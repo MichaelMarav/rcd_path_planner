@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import networkx as nx
-from scipy.interpolate import CubicSpline
 
+import cv2
 # Hyperparams
 real_time_plotting = False
 draw_edge_split = False
@@ -492,7 +492,6 @@ def ray_casting_target(x,y,parent):
 
 
 
-
 if __name__ == "__main__":
     init_grid()
 
@@ -557,7 +556,6 @@ if __name__ == "__main__":
     shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F")
     x_path = []
     y_path = []
-
     for name in shortest_robot:
         x_i, y_i = get_node_position(robot_graph,name)
         x_path.append(x_i)
@@ -568,56 +566,96 @@ if __name__ == "__main__":
     # x_target = []
     # y_target = []
 
+    shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
+    shortest_target.pop(0)
+
+    
+    # print(shortest_target)
+
     for name in shortest_target:
         x_i, y_i = get_node_position(target_graph,name)
         x_path.append(x_i)
         y_path.append(y_i)
 
+    #----------------------------------------------------------
+    
+    
+    
+    # grid = np.where((grid != 0) & (grid != 100), 0, grid) 
+    # fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
+    # im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
+    # im.set_data(grid.T)
 
 
 
-    t = np.arange(len(x_path))
-    spl_x = CubicSpline(t, x_path)
-    spl_y = CubicSpline(t, y_path)
+    # path = []
+    # for i in range(len(x_path)):
+    #     path.append([x_path[i], y_path[i]])
+    
+    # plt.plot(path[:][0],path[:][1], marker='o')
+    # plt.gca().invert_yaxis()
 
-    # Define a denser set of points along the path for smoother visualization
-    t_new = np.linspace(0, len(x_path) - 1, 100)
-    x_new = spl_x(t_new)
-    y_new = spl_y(t_new)
+    # # Add labels and title
+    # plt.xlabel('X-axis')
+    # plt.ylabel('Inverted Y-axis')
+    # plt.title('Linear Line from A to B with Inverted Y-axis')
 
-    # Plot the original points and the smooth path
+    # # Show the plot
+    # plt.show()
+
+    # Modify the grid based on your conditions
+    grid = np.where((grid != 0) & (grid != 100), 0, grid)
+
+    # Create a figure
     fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
-
-
-    grid = np.where((grid != 0) & (grid != 100), 0, grid) 
-
     im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
     im.set_data(grid.T)
 
-    plt.scatter(x_path, y_path, label='Original Points', c='red', marker='o')
-    plt.plot(x_new, y_new, label='Smoothed Path', c='blue')
-    plt.legend()
-    plt.title('Smoothed Path')
-    plt.xlabel('X Coordinate')
-    plt.ylabel('Y Coordinate')
-    plt.grid(True)
+    # Extract the path points as a list of (x, y) tuples
+    path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
+
+    # Convert the path to a NumPy array for easier indexing
+    path = np.array(path)
+
+    # Plot the grid
+    plt.plot(path[:(-1), 0], path[:(-1), 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
+
+    # Invert the y-axis
+    # plt.gca().invert_yaxis()
+
+    # Add labels and title
+    plt.xlabel('X-axis')
+    plt.ylabel('Inverted Y-axis')
+    plt.title('Points Inside the Path on Inverted Y-axis Grid')
+
+    # Show the plot
     plt.show()
 
 
 
+    # t = np.arange(len(x_path))
+    # spl_x = CubicSpline(t, x_path)
+    # spl_y = CubicSpline(t, y_path)
 
-    # fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
+    # # Define a denser set of points along the path for smoother visualization
+    # t_new = np.linspace(0, len(x_path) - 1, 100)
+    # x_new = spl_x(t_new)
+    # y_new = spl_y(t_new)
+
+    # # Plot the original points and the smooth path
+
 
     # grid = np.where((grid != 0) & (grid != 100), 0, grid) 
-
+    # fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
     # im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
     # im.set_data(grid.T)
 
-    # plt.scatter(x_robot, y_robot, color='blue', s=40, label='RobotVirtual Beams')
-    # plt.scatter(x_target,y_target, color='red', s=40, label='RobotVirtual Beams')
-
-    # plt.title('Figure 2')
-    # plt.xlabel('x')
-    # plt.ylabel('y')
+    # plt.scatter(x_path, y_path, label='Original Points', c='red', marker='o')
+    # plt.plot(x_new, y_new, label='Smoothed Path', c='blue')
+    # plt.legend()
+    # plt.title('Smoothed Path')
+    # plt.xlabel('X Coordinate')
+    # plt.ylabel('Y Coordinate')
+    # plt.grid(True)
     # plt.show()
-    # input("Press Enter to exit...")
+
