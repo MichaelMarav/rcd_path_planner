@@ -570,7 +570,7 @@ if __name__ == "__main__":
     grid = inflate_occupancy_grid(robot_size)
     print("Stop Inflation")
 
-
+    print(robot_pos[0].x,robot_pos[0].y)
     # Add Robot Node to the graph
     robot_graph.add_node("R",x=robot_pos[0].x,y=robot_pos[0].y, ray_casted = False)
     target_graph.add_node("G",x=target_pos[0].x, y = target_pos[0].y, ray_casted = False)
