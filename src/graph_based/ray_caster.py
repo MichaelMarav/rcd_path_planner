@@ -13,7 +13,7 @@ import time
 
 # Hyperparams
 real_time_plotting = False
-draw_edge_split = False
+draw_edge_split = True
 
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
@@ -660,6 +660,9 @@ if __name__ == "__main__":
     path = find_shortest_path(robot_graph,target_graph)
    
 
+
+
+
     end_time = time.time()
     elapsed_time = end_time - start_time
     print("Elapsed Time = ",elapsed_time," (s)")
@@ -704,17 +707,6 @@ if __name__ == "__main__":
     input("Press something to Exit")
     #----------------------------------------------------------
 
-    fig3 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
-    plt.xlim(0, workspace_size[0]/grid_resolution)
-    plt.ylim(0, workspace_size[1]/grid_resolution)
-    ax = plt.gca()
-    ax.invert_yaxis()
-    for p in path:
-        plt.scatter(p[0],p[1], s = 50, c = 'r')
-        plt.show(block = False)
-        input("Add one more")
-
-    input("enter to exti")
 
 
     # Despina smoother
