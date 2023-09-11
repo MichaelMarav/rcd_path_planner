@@ -605,7 +605,7 @@ if __name__ == "__main__":
 
     plt.grid(True)
     # Plot the grid
-    plt.plot(path[:(-1), 0], path[:(-1), 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
+    plt.plot(path[:, 0], path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
     plt.show(block = False)
 
     input("Press something to Exit")
