@@ -21,31 +21,12 @@ drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
 
 
 
-# Objects
-class Point:
-    def __init__(self,x,y):
-        self.x = x
-        self.y = y
-
-class Edge:
-    def __init__(self,edge_id,start_node,end_node):
-        self.edge_id    = edge_id # Unique String for specifing which edge is this
-        self.start_node = start_node
-        self.end_node   = end_node
-
-
-
-class Final_Node:
-    def __init__(self,robot_found_path,x,y):
-        self.robot_found_path    = False # Unique String for specifing which edge is this
-        self.x = x
-        self.y = y
-
-
-
 # Parameters
-# Arrays
+
+
 grid_size = (int(workspace_size[0]/grid_resolution), int(workspace_size[1]/grid_resolution))     # Size of the occupancy grid in meters (rows, columns)
+wall_size = math.ceil((robot_size//2)/grid_resolution)
+
 # Initialize Global variables
 target_pos     = np.empty(0,dtype=object)
 robot_pos      = np.empty(0,dtype=object)
@@ -69,12 +50,35 @@ target_graph = nx.Graph()
 
 
 
+
+# Objects
+class Point:
+    def __init__(self,x,y):
+        self.x = x
+        self.y = y
+
+class Edge:
+    def __init__(self,edge_id,start_node,end_node):
+        self.edge_id    = edge_id # Unique String for specifing which edge is this
+        self.start_node = start_node
+        self.end_node   = end_node
+
+
+
+class Final_Node:
+    def __init__(self,robot_found_path,x,y):
+        self.robot_found_path    = False # Unique String for specifing which edge is this
+        self.x = x
+        self.y = y
+
+
+
 '''
 Initializes the occupancy grid
 '''
 def init_grid():
     # Init empty occ grid
-    global grid, grid_edge_id
+    global grid, grid_edge_id, wall_size
 
     # Every element in the grid_edge_id array is a Null object
     for i in range(grid_edge_id.shape[0]):
@@ -83,12 +87,10 @@ def init_grid():
 
         
     # Add walls to the boundary of the grid
-    wall_size = math.ceil(robot_size/grid_resolution)
     grid[0:wall_size, :] = 100
     grid[-wall_size:, :] = 100
     grid[:, 0:wall_size] = 100
     grid[:, -wall_size:] = 100
-
     return
 
 
@@ -174,6 +176,29 @@ def draw_grid():
     plt.disconnect(goal)
     return
 #----------------------------------------------------------------------
+
+def inflate_occupancy_grid(robot_size):
+    global wall_size, grid
+    inflated_grid = np.copy(grid)
+    robot_radius = robot_size // 2
+
+    height, width = grid.shape
+
+    for x in range(wall_size, height - wall_size):
+        for y in range(wall_size, width - wall_size):
+            if grid[x, y] == 100:  # Check if the cell is occupied
+                for i in range(-robot_radius, robot_radius + 1):
+                    for j in range(-robot_radius, robot_radius + 1):
+                        if (
+                            x + i >= 0
+                            and x + i < height
+                            and y + j >= 0
+                            and y + j < width
+                            and (i != 0 or j != 0)
+                        ):
+                            inflated_grid[x + i, y + j] = 100
+
+    return inflated_grid
 
 
 # Returns true if the node has been casted else it returns false
@@ -514,6 +539,7 @@ if __name__ == "__main__":
 
     draw_grid()
 
+    grid = inflate_occupancy_grid(robot_size)
 
     # Add Robot Node to the graph
     robot_graph.add_node("R",x=robot_pos[0].x,y=robot_pos[0].y, ray_casted = False)
@@ -521,7 +547,8 @@ if __name__ == "__main__":
 
     cant_cast_robot_count = 0
     cant_cast_target_count = 0
-    flag = False
+
+
     while not path_found:
 
         for node in list(robot_graph.nodes):
@@ -536,9 +563,7 @@ if __name__ == "__main__":
 
                 cant_cast_robot_count += 1
                 if cant_cast_robot_count == robot_graph.number_of_nodes():
-                    # sys.exit("Valid path from robot to goal does not exist")
-                    flag = True
-                    break
+                    sys.exit("Valid path from robot to goal does not exist")
                 else:
                     continue
 
@@ -555,13 +580,9 @@ if __name__ == "__main__":
                 cant_cast_target_count += 1
 
                 if cant_cast_target_count == target_graph.number_of_nodes():
-                    # sys.exit("Valid path from robot to goal does not exist")
-                    flag = True
+                    sys.exit("Valid path from robot to goal does not exist")
                 else:
                     continue
-
-        if flag == True:
-            break
 
         if real_time_plotting:
             target_beam_indices = np.where(grid == 40)
