@@ -761,6 +761,6 @@ if __name__ == "__main__":
     global main_path 
     graph_path = os.path.dirname(os.path.realpath(__file__)) 
     src_pth = os.path.abspath(os.path.join(graph_path, os.pardir)) 
-    main_path = os.path.abspath(os.path.join(src_pth, os.pardir)) + "/compare/"
+    main_path = os.path.abspath(os.path.join(src_pth, os.pardir)) + "/"
 
     main()
