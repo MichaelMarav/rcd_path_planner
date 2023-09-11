@@ -9,11 +9,12 @@ import random
 from scipy.interpolate import pchip_interpolate
 import sys
 from scipy.signal import convolve2d
-
+import time
 
 # Hyperparams
-real_time_plotting = True
+real_time_plotting = False
 draw_edge_split = False
+
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
 workspace_size = (50,30) # (m) Size of the workspace/room where the robot needs to navigate
@@ -560,15 +561,42 @@ def ray_casting_target(x,y,parent):
 
 
 
+'''
+Finds the shortest path in both graphs (from R to F and from G to F) and constructs a way point path
+'''
+def find_shortest_path(robot_graph,target_graph):
+    shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F")
+    x_path = []
+    y_path = []
+    for name in shortest_robot:
+        x_i, y_i = get_node_position(robot_graph,name)
+        x_path.append(x_i)
+        y_path.append(y_i)
+
+
+    shortest_target = nx.shortest_path(target_graph,source = "G",target = "F")
+    shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
+    shortest_target.pop(0) # Remove the common node from robot and target path
+    
+    # print(shortest_target)
+
+    for name in shortest_target:
+        x_i, y_i = get_node_position(target_graph,name)
+        x_path.append(x_i)
+        y_path.append(y_i)
+
+    path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
+    return path
+
+
+
 
 if __name__ == "__main__":
     init_grid()
 
     draw_grid()
 
-    print("Begin Inflation")
     grid = inflate_occupancy_grid(robot_size)
-    print("Stop Inflation")
 
     print(robot_pos[0].x,robot_pos[0].y)
     # Add Robot Node to the graph
@@ -577,7 +605,8 @@ if __name__ == "__main__":
 
     cant_cast_robot_count = 0
     cant_cast_target_count = 0
-
+    
+    start_time = time.time()
 
     while not path_found:
 
@@ -628,8 +657,16 @@ if __name__ == "__main__":
     # At this point the path is found. TODO: add what to do when there is not a valid path
 
     # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
+    path = find_shortest_path(robot_graph,target_graph)
+   
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print("Elapsed Time = ",elapsed_time," (s)")
 
 
+    # --------------------- PLOTTING STAFF
+    # Plots the ray casting result
     if not real_time_plotting:
         target_beam_indices = np.where(grid == 40)
         plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
@@ -641,35 +678,9 @@ if __name__ == "__main__":
         input("Press Enter to Continue...")
     
 
-
-    shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F")
-    x_path = []
-    y_path = []
-    for name in shortest_robot:
-        x_i, y_i = get_node_position(robot_graph,name)
-        x_path.append(x_i)
-        y_path.append(y_i)
-
-
-    shortest_target = nx.shortest_path(target_graph,source = "G",target = "F")
-    # x_target = []
-    # y_target = []
-
-    shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
-    shortest_target.pop(0)
-
-    
-    # print(shortest_target)
-
-    for name in shortest_target:
-        x_i, y_i = get_node_position(target_graph,name)
-        x_path.append(x_i)
-        y_path.append(y_i)
-
     #----------------------------------------------------------
    
-
-    # DEFAULT PATH (STRAIGHT LINES)
+    # PLOT PATH WITH STRAIGHT LINES
 
     grid = np.where((grid != 0) & (grid != 100), 0, grid) # Remove rays
     # Create a figure
@@ -678,7 +689,6 @@ if __name__ == "__main__":
     im.set_data(grid.T)
     
     
-    path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
 
     plt.title('Smoothed Path')
     # Convert the path to a NumPy array for easier indexing
@@ -693,6 +703,18 @@ if __name__ == "__main__":
 
     input("Press something to Exit")
     #----------------------------------------------------------
+
+    fig3 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
+    plt.xlim(0, workspace_size[0]/grid_resolution)
+    plt.ylim(0, workspace_size[1]/grid_resolution)
+    ax = plt.gca()
+    ax.invert_yaxis()
+    for p in path:
+        plt.scatter(p[0],p[1], s = 50, c = 'r')
+        plt.show(block = False)
+        input("Add one more")
+
+    input("enter to exti")
 
 
     # Despina smoother
