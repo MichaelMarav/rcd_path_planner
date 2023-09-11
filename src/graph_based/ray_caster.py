@@ -5,9 +5,10 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import math
 import networkx as nx
+import random
 from scipy.interpolate import pchip_interpolate
+import sys
 
-import cv2
 # Hyperparams
 real_time_plotting = False
 draw_edge_split = False
@@ -271,7 +272,13 @@ def ray_casting_robot(x,y,parent):
     child_id = 1
     edge_name = ""
 
-    for angle in range(0,360,int(360/num_beams)): 
+
+    angle_list = np.arange(0,360,int(360/num_beams))
+    random_rotation_bias = random.randint(0, 180) # Spin the orientation of the beams
+    angle_list += random_rotation_bias
+
+
+    for angle in angle_list: 
 
         # Saves the indices to change in the grid
         indexes_to_change = [] 
@@ -389,7 +396,11 @@ def ray_casting_target(x,y,parent):
     child_id = 1
     edge_name = ""
 
-    for angle in range(0,360,int(360/num_beams)): 
+    angle_list = np.arange(0,360,int(360/num_beams))
+    random_rotation_bias = random.randint(0, 180) # Spin the orientation of the beams
+    angle_list += random_rotation_bias
+
+    for angle in angle_list: 
 
         # Saves the indices to change in the grid
         indexes_to_change = [] 
@@ -508,6 +519,9 @@ if __name__ == "__main__":
     robot_graph.add_node("R",x=robot_pos[0].x,y=robot_pos[0].y, ray_casted = False)
     target_graph.add_node("G",x=target_pos[0].x, y = target_pos[0].y, ray_casted = False)
 
+    cant_cast_robot_count = 0
+    cant_cast_target_count = 0
+    flag = False
     while not path_found:
 
         for node in list(robot_graph.nodes):
@@ -516,8 +530,17 @@ if __name__ == "__main__":
                 casting_x,casting_y = get_node_position(robot_graph,node)
                 ray_casting_robot(casting_x, casting_y, parent = node)
                 robot_graph.nodes[node]['ray_casted'] = True
+                cant_cast_robot_count = 0
+
             else:
-                continue
+
+                cant_cast_robot_count += 1
+                if cant_cast_robot_count == robot_graph.number_of_nodes():
+                    # sys.exit("Valid path from robot to goal does not exist")
+                    flag = True
+                    break
+                else:
+                    continue
 
 
         for node in list(target_graph.nodes):
@@ -526,10 +549,19 @@ if __name__ == "__main__":
                 casting_x,casting_y = get_node_position(target_graph,node)
                 ray_casting_target(casting_x, casting_y, parent = node)
                 target_graph.nodes[node]['ray_casted'] = True
+                cant_cast_target_count = 0
             else:
-                continue
 
+                cant_cast_target_count += 1
 
+                if cant_cast_target_count == target_graph.number_of_nodes():
+                    # sys.exit("Valid path from robot to goal does not exist")
+                    flag = True
+                else:
+                    continue
+
+        if flag == True:
+            break
 
         if real_time_plotting:
             target_beam_indices = np.where(grid == 40)
