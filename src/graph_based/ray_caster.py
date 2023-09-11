@@ -8,9 +8,11 @@ import networkx as nx
 import random
 from scipy.interpolate import pchip_interpolate
 import sys
+from scipy.signal import convolve2d
+
 
 # Hyperparams
-real_time_plotting = False
+real_time_plotting = True
 draw_edge_split = False
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
@@ -25,7 +27,7 @@ drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
 
 
 grid_size = (int(workspace_size[0]/grid_resolution), int(workspace_size[1]/grid_resolution))     # Size of the occupancy grid in meters (rows, columns)
-wall_size = math.ceil((robot_size//2)/grid_resolution)
+wall_size = int(math.ceil((robot_size)/grid_resolution))
 
 # Initialize Global variables
 target_pos     = np.empty(0,dtype=object)
@@ -91,6 +93,7 @@ def init_grid():
     grid[-wall_size:, :] = 100
     grid[:, 0:wall_size] = 100
     grid[:, -wall_size:] = 100
+    
     return
 
 
@@ -177,28 +180,51 @@ def draw_grid():
     return
 #----------------------------------------------------------------------
 
+# def inflate_occupancy_grid(robot_size):
+#     global wall_size, grid
+#     inflated_grid = np.copy(grid)
+#     robot_radius = int((robot_size // 2)/grid_resolution)
+
+#     height, width = grid.shape
+
+#     for x in range(wall_size, height - wall_size):
+#         for y in range(wall_size, width - wall_size):
+#             if grid[x, y] == 100:  # Check if the cell is occupied
+#                 for i in range(-robot_radius, robot_radius + 1):
+#                     for j in range(-robot_radius, robot_radius + 1):
+#                         if (
+#                             x + i >= 0
+#                             and x + i < height
+#                             and y + j >= 0
+#                             and y + j < width
+#                             and (i != 0 or j != 0)
+#                         ):
+#                             inflated_grid[x + i, y + j] = 100
+
+#     return inflated_grid
+
+
+'''
+Uses the convolve2d to inflate the occupancy grid by robot_size//2
+'''
 def inflate_occupancy_grid(robot_size):
-    global wall_size, grid
+    global grid, grid_resolution
     inflated_grid = np.copy(grid)
-    robot_radius = robot_size // 2
+    robot_radius = int((robot_size / 2)/grid_resolution)
 
-    height, width = grid.shape
+    kernel = np.ones((robot_size, robot_size), dtype=np.int32)
 
-    for x in range(wall_size, height - wall_size):
-        for y in range(wall_size, width - wall_size):
-            if grid[x, y] == 100:  # Check if the cell is occupied
-                for i in range(-robot_radius, robot_radius + 1):
-                    for j in range(-robot_radius, robot_radius + 1):
-                        if (
-                            x + i >= 0
-                            and x + i < height
-                            and y + j >= 0
-                            and y + j < width
-                            and (i != 0 or j != 0)
-                        ):
-                            inflated_grid[x + i, y + j] = 100
+    # Create a binary mask of occupied cells
+    occupied_mask = (grid == 100).astype(np.int32)
+
+    # Use convolution to inflate the occupied cells
+    inflated_occupied = convolve2d(occupied_mask, kernel, mode='same', boundary='fill', fillvalue=0)
+    
+    # Update the inflated grid
+    inflated_grid[inflated_occupied > 0] = 100
 
     return inflated_grid
+
 
 
 # Returns true if the node has been casted else it returns false
@@ -315,7 +341,7 @@ def ray_casting_robot(x,y,parent):
         valid_ray = False # Flag that specifies if the ray is valid-> Not close enough to another node
         
         # Starting distance (radius) from ray casting TODO: Make this start from robot_size
-        dis = 3 # robot_size/grid_resolution 
+        dis = (robot_size/2)/grid_resolution 
 
         prev_x = int(math.ceil(x))
         prev_y = int(math.ceil(y))
@@ -330,7 +356,7 @@ def ray_casting_robot(x,y,parent):
             # Case 1: If beam hit wall
             if grid[beam_x,beam_y] == 100:
                 stop_beam = True          
-                if check_closest_node_distance(beam_x,beam_y,visited_robot,10):          
+                if check_closest_node_distance(beam_x,beam_y,visited_robot,(robot_size)/grid_resolution):          
                     valid_ray = True
 
                     # Add node to graph
@@ -353,7 +379,7 @@ def ray_casting_robot(x,y,parent):
 
                 intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,80) # where exactly the beams meet
                
-                if intersect_point_x is not None and intersect_point_y is not None and check_closest_node_distance(intersect_point_x, intersect_point_y, visited_robot, 10):
+                if intersect_point_x is not None and intersect_point_y is not None and check_closest_node_distance(intersect_point_x, intersect_point_y, visited_robot, (robot_size)/grid_resolution):
 
 
                     valid_ray = True
@@ -437,7 +463,8 @@ def ray_casting_target(x,y,parent):
         valid_ray = False # Flag that specifies if the ray is valid-> Not close enough to another node
         
         # Starting distance (radius) from ray casting TODO: Make this start from robot_size
-        dis = 3 # robot_size/grid_resolution 
+        dis = (robot_size/2)/grid_resolution 
+
 
         prev_x = int(math.ceil(x))
         prev_y = int(math.ceil(y))
@@ -452,7 +479,7 @@ def ray_casting_target(x,y,parent):
             # Case 1: If beam hit wall
             if grid[beam_x,beam_y] == 100:
                 stop_beam = True          
-                if check_closest_node_distance(beam_x,beam_y,visited_target,10):          
+                if check_closest_node_distance(beam_x,beam_y,visited_target,(robot_size)/grid_resolution):          
                     valid_ray = True
 
                     # Add node to graph
@@ -475,7 +502,7 @@ def ray_casting_target(x,y,parent):
 
                 intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,40) # where exactly the beams meet
                
-                if intersect_point_x is not None and intersect_point_y is not None and check_closest_node_distance(intersect_point_x, intersect_point_y, visited_target, 10):
+                if intersect_point_x is not None and intersect_point_y is not None and check_closest_node_distance(intersect_point_x, intersect_point_y, visited_target,(robot_size)/grid_resolution):
 
 
                     valid_ray = True
@@ -539,7 +566,10 @@ if __name__ == "__main__":
 
     draw_grid()
 
+    print("Begin Inflation")
     grid = inflate_occupancy_grid(robot_size)
+    print("Stop Inflation")
+
 
     # Add Robot Node to the graph
     robot_graph.add_node("R",x=robot_pos[0].x,y=robot_pos[0].y, ray_casted = False)
