@@ -15,7 +15,7 @@ from copy import copy
 import os 
 import json
 
-offline_experiments = True
+offline_experiments = False
 
 # Hyperparams
 real_time_plotting = False
@@ -588,6 +588,31 @@ def find_shortest_path(robot_graph,target_graph):
 
 
 
+'''
+Generates samples on the initial path in order to perform LoS next
+'''
+def generate_samples(path):
+    global robot_size, grid_resolution
+    generated_path = []
+    for p in range(len(path)-1):
+        new_point = list(path[p])
+        generated_path.append(new_point)
+
+        curr_point = path[p]
+        next_point = path[p+1]
+        distance_between_points = math.sqrt((curr_point[0] - next_point[0])**2  + (curr_point[1] - next_point[1])**2 )
+        angle = math.atan2((next_point[1]-curr_point[1]),(next_point[0]-curr_point[0]))
+
+        dis = robot_size/grid_resolution
+        while dis < distance_between_points:
+            x_p = int(math.ceil(curr_point[0] + dis * np.cos(angle)))
+            y_p = int(math.ceil(curr_point[1] + dis * np.sin(angle)))
+            dis += robot_size/grid_resolution
+            generated_path.append([x_p,y_p])
+
+    return generated_path
+
+
 def check_collision(curr_point,next_point):
     global grid
     distance_between_points = math.sqrt((curr_point[0] - next_point[0])**2  + (curr_point[1] - next_point[1])**2 )
@@ -604,6 +629,7 @@ def check_collision(curr_point,next_point):
         return True
     else:
         return False
+
 
 
 def reduce_path_with_LoS(path):
@@ -626,7 +652,6 @@ def reduce_path_with_LoS(path):
             p += 1
     reduced_path.append(list(path[-1]))
     return reduced_path
-
 
 
 '''
@@ -727,10 +752,19 @@ def online_experiments_main():
     path = find_shortest_path(robot_graph,target_graph)
    
 
+    # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
+    path = find_shortest_path(robot_graph,target_graph)
+
+    # Generate new samples
+    path = generate_samples(path)
+
+    reduced_path = reduce_path_with_LoS(path)
 
     end_time = time.time()
     elapsed_time = end_time - start_time
     print("Elapsed Time = ",elapsed_time," (s)")
+
+
 
 
     # --------------------- PLOTTING STAFF
@@ -770,7 +804,6 @@ def online_experiments_main():
     plt.show(block = False)
 
 
-    reduced_path = reduce_path_with_LoS(path)
 
 
 
@@ -908,6 +941,9 @@ def offline_experiments_main():
 
         # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
         path = find_shortest_path(robot_graph,target_graph)
+
+        # Generate new samples
+        path = generate_samples(path)
 
         reduced_path = reduce_path_with_LoS(path)
 
