@@ -15,7 +15,7 @@ import json
 from matplotlib import image
 
 # Hyperparams
-real_time_plotting = True
+real_time_plotting = False
 draw_edge_split = False
 num_beams = 6
 
@@ -29,6 +29,7 @@ drawing = False
 init_robot_pos= False
 init_target_pos= False
 path_found = False
+ALL_DATASET = True
 
 robot_graph  = nx.Graph()
 target_graph = nx.Graph() 
@@ -580,8 +581,6 @@ def save_solution(x_path, y_path, duration, distance, coverage):
     path_point_meters = np.column_stack((x_path, y_path))
     np.savetxt(main_path + "Data/Solutions/RayCaster_solution/"+img_name+"_path.txt", path_point_meters, delimiter=",")
 
-
-
     solution = { 'duration' : duration, 'distance': distance,  'coverage' : coverage}
   
     with open(main_path + "Data/Solutions/RayCaster_solution/"+img_name+".json", 'w') as convert_file:
@@ -611,138 +610,143 @@ def save_solution(x_path, y_path, duration, distance, coverage):
 
 def main():
 
-    global img_name, robot_size, grid_resolution, workspace_size, grid_size, wall_size, drawing_brush_size, coverage
-    coverage = 0
-    img_name = '3'
+
+
+    # find datataset folder
+    cur_path = os.path.dirname(os.path.realpath(__file__)) 
+
+    src_path = os.path.abspath(os.path.join(cur_path, os.pardir))
+
+    motion_path = os.path.abspath(os.path.join(src_path, os.pardir))
+
+    path_dataset = motion_path + '/Data/GRID/'
     
-    print("Load Grid and Parameters")
-    load_grid()
-    load_params()
-    init_edge_grid()
-    
-    print("Begin Inflation")
-    inflate_occupancy_grid(robot_size)
-    print("Stop Inflation")
+    names_list = []
+    if ALL_DATASET:
 
-    # Add Robot Node to the graph
-    robot_graph.add_node("R",x=robot_pos[0],y=robot_pos[1], ray_casted = False)
-    target_graph.add_node("G",x=target_pos[0], y = target_pos[1], ray_casted = False)
+        # get the last data .png id
 
-    cant_cast_robot_count = 0
-    cant_cast_target_count = 0
+        for x in os.listdir(path_dataset):
+            if x.endswith(".png"):
+                # Prints only text file present in My Folder
+                names_list.append(x.split('.png')[0])
+    else:
+        names_list.append('3')
+
+    for x in names_list:
+        
+        global img_name, robot_size, grid_resolution, workspace_size, grid_size, wall_size, drawing_brush_size, coverage
+        
+        coverage = 0
+        img_name = str(x)
+        
+        print("Load Grid and Parameters")
+        load_grid()
+        load_params()
+        init_edge_grid()
+        
+        print("Begin Inflation")
+        inflate_occupancy_grid(robot_size)
+        print("Stop Inflation")
+
+        # Add Robot Node to the graph
+        robot_graph.add_node("R",x=robot_pos[0],y=robot_pos[1], ray_casted = False)
+        target_graph.add_node("G",x=target_pos[0], y = target_pos[1], ray_casted = False)
+
+        cant_cast_robot_count = 0
+        cant_cast_target_count = 0
 
 
-    # Start timer
-    start_time = time.time()
+        # Start timer
+        start_time = time.time()
 
-    while not path_found:
+        while not path_found:
 
-        for node in list(robot_graph.nodes):
+            for node in list(robot_graph.nodes):
 
-            if not get_casted_flag(robot_graph,node):
-                casting_x,casting_y = get_node_position(robot_graph,node)
-                ray_casting_robot(casting_x, casting_y, parent = node)
-                robot_graph.nodes[node]['ray_casted'] = True
-                cant_cast_robot_count = 0
+                if not get_casted_flag(robot_graph,node):
+                    casting_x,casting_y = get_node_position(robot_graph,node)
+                    ray_casting_robot(casting_x, casting_y, parent = node)
+                    robot_graph.nodes[node]['ray_casted'] = True
+                    cant_cast_robot_count = 0
 
-            else:
-
-                cant_cast_robot_count += 1
-                if cant_cast_robot_count == robot_graph.number_of_nodes():
-                    sys.exit("Valid path from robot to goal does not exist")
                 else:
-                    continue
+
+                    cant_cast_robot_count += 1
+                    if cant_cast_robot_count == robot_graph.number_of_nodes():
+                        # sys.exit("Valid path from robot to goal does not exist")
+                        print("Valid path from robot to goal does not exist")
+                        return
+                    else:
+                        continue
 
 
-        for node in list(target_graph.nodes):
+            for node in list(target_graph.nodes):
 
-            if not get_casted_flag(target_graph,node):
-                casting_x,casting_y = get_node_position(target_graph,node)
-                ray_casting_target(casting_x, casting_y, parent = node)
-                target_graph.nodes[node]['ray_casted'] = True
-                cant_cast_target_count = 0
-            else:
-
-                cant_cast_target_count += 1
-
-                if cant_cast_target_count == target_graph.number_of_nodes():
-                    sys.exit("Valid path from robot to goal does not exist")
+                if not get_casted_flag(target_graph,node):
+                    casting_x,casting_y = get_node_position(target_graph,node)
+                    ray_casting_target(casting_x, casting_y, parent = node)
+                    target_graph.nodes[node]['ray_casted'] = True
+                    cant_cast_target_count = 0
                 else:
-                    continue
 
-                # TODO to ekana comment
-        # if real_time_plotting:
-        #     target_beam_indices = np.where(grid == 40)
-        #     plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
+                    cant_cast_target_count += 1
 
-        #     robot_beam_indices = np.where(grid == 80)
-        #     plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
-
-        #     plt.pause(0.1)  # Pause to allow time for updates to be shown
-        #     input("Press Enter to Continue...")
+                    if cant_cast_target_count == target_graph.number_of_nodes():
+                        # sys.exit("Valid path from robot to goal does not exist")
+                        print("Valid path from robot to goal does not exist")
+                        return
+                    else:
+                        continue
 
 
+        # End timer
+        end_time = time.time()
+        # Calculate elapsed time
+        elapsed_time = end_time - start_time
+        print("Elapsed time: ", elapsed_time) 
+        
+        # At this point the path is found. TODO: add what to do when there is not a valid path
 
-    # End timer
-    end_time = time.time()
-    # Calculate elapsed time
-    elapsed_time = end_time - start_time
-    print("Elapsed time: ", elapsed_time) 
-    
-    # At this point the path is found. TODO: add what to do when there is not a valid path
+        # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
 
-    # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
-
- # TODO to ekana comment
-    # if not real_time_plotting:
-    #     target_beam_indices = np.where(grid == 40)
-    #     plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
-
-    #     robot_beam_indices = np.where(grid == 80)
-    #     plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
-    #     plt.show()
-    #     plt.pause(0.01)  # Pause to allow time for updates to be shown
-    #     input("Press Enter to Continue...")
-    
+        shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F")
+        x_path = []
+        y_path = []
+        for name in shortest_robot:
+            x_i, y_i = get_node_position(robot_graph,name)
+            x_path.append(x_i)
+            y_path.append(y_i)
 
 
-    shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F")
-    x_path = []
-    y_path = []
-    for name in shortest_robot:
-        x_i, y_i = get_node_position(robot_graph,name)
-        x_path.append(x_i)
-        y_path.append(y_i)
+        shortest_target = nx.shortest_path(target_graph,source = "G",target = "F")
+        # x_target = []
+        # y_target = []
 
+        shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
+        shortest_target.pop(0)
 
-    shortest_target = nx.shortest_path(target_graph,source = "G",target = "F")
-    # x_target = []
-    # y_target = []
+        # End timer
+        end_time2 = time.time()
+        # Calculate elapsed time
+        elapsed_time2 = end_time2 - start_time
+        print("Elapsed time for short path : ", elapsed_time2) 
+        
+        for name in shortest_target:
+            x_i, y_i = get_node_position(target_graph,name)
+            x_path.append(x_i)
+            y_path.append(y_i)
 
-    shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
-    shortest_target.pop(0)
+        #----------------------------------------------------------
+        distance = calc_dist_cell(x_path, y_path)/grid_resolution 
+        #----------------------------------------------------------
 
-    # End timer
-    end_time2 = time.time()
-    # Calculate elapsed time
-    elapsed_time2 = end_time2 - start_time
-    print("Elapsed time for short path : ", elapsed_time2) 
-    
-    for name in shortest_target:
-        x_i, y_i = get_node_position(target_graph,name)
-        x_path.append(x_i)
-        y_path.append(y_i)
+        # DEFAULT PATH (STRAIGHT LINES)
 
-    #----------------------------------------------------------
-    distance = calc_dist_cell(x_path, y_path)/grid_resolution 
-    #----------------------------------------------------------
-
-    # DEFAULT PATH (STRAIGHT LINES)
-
-    save_solution(x_path, y_path, elapsed_time2, distance, coverage)
-    plt.close()
-    # input("Press something to Exit")
-    #----------------------------------------------------------
+        save_solution(x_path, y_path, elapsed_time2, distance, coverage)
+        plt.close()
+        # input("Press something to Exit")
+        #----------------------------------------------------------
 
 
 
