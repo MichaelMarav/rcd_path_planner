@@ -18,9 +18,9 @@ Perform two-way ray casting in order to find a path. Cast some N rays from robot
 
 *Name*: RAY CASTING & DIFFUSION MODEL-> RA CA DIM
 ## Ongoing
-
+* Fix xy from upper left to lower left
 * Add condition, when the path is not found to start rotating the source angles
-* Implement line of sight to reduce way points
+* <del> Implement line of sight to reduce way points </del>
 
 * <del> Create a directed weighted graph from the intesections of the ray beams </del>
 * <del> Find the shortest path between robot and goal (number of points) </del>
