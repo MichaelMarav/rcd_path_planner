@@ -767,34 +767,8 @@ if __name__ == "__main__":
     plt.show(block = False)
 
 
-    # fig3 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
-    # im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
-    # im.set_data(grid.T)
     
-
-    # plt.title('Smoothed Path')
-    # # Convert the path to a NumPy array for easier indexing
-    # plt.xlabel('X Coordinate')
-    # path = np.array(path)
-    # plt.ylabel('Y Coordinate')
-
-    # plt.grid(True)
-    # # Plot the grid
-    # reduced_x = [point[0] for point in reduced_path]
-    # reduced_y = [point[1] for point in reduced_path]
-
-    # # Plot the reduced path
-    # plt.plot(reduced_x, reduced_y, marker='o', color='red', markersize=5)
-    # plt.show(block = False)
-
     input("Press something to Exit")
     #----------------------------------------------------------
 
 
-
-    # Despina smoother
-    # x_path_smooth = np.linspace(min(x_path), max(x_path), num=100)
-    # y_path_smooth = pchip_interpolate(x_path, y_path, x_path_smooth)
-    # plt.plot(x_path, y_path, "o", label="path nodes")
-    # plt.plot(x_path_smooth, y_path_smooth, label="Smoothed path using pchip interpolation")
-    # plt.legend()
