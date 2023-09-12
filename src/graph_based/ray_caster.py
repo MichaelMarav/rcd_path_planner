@@ -344,7 +344,7 @@ def ray_casting_robot(x,y,parent):
             dis += 1
 
             beam_x = int(math.ceil(x + dis * np.cos(angle_rad)))
-            beam_y = int(math.ceil(y - dis * np.sin(angle_rad)))
+            beam_y = int(math.ceil(y + dis * np.sin(angle_rad)))
 
             # Case 1: If beam hit wall
             if grid[beam_x,beam_y] == 100:
@@ -471,7 +471,7 @@ def ray_casting_target(x,y,parent):
             dis += 1
 
             beam_x = int(math.ceil(x + dis * np.cos(angle_rad)))
-            beam_y = int(math.ceil(y - dis * np.sin(angle_rad)))
+            beam_y = int(math.ceil(y + dis * np.sin(angle_rad)))
 
             # Case 1: If beam hit wall
             if grid[beam_x,beam_y] == 100:
@@ -591,11 +591,11 @@ def check_collision(curr_point,next_point):
     global grid
     distance_between_points = math.sqrt((curr_point[0] - next_point[0])**2  + (curr_point[1] - next_point[1])**2 )
     dis = 3
-    angle = math.atan2((curr_point[1]-next_point[1]),(next_point[0]-curr_point[0]))
+    angle = math.atan2((next_point[1]-curr_point[1]),(next_point[0]-curr_point[0]))
     collision_flag = False
     while dis < distance_between_points and not collision_flag:
         x_p = int(math.ceil(curr_point[0] + dis * np.cos(angle)))
-        y_p = int(math.ceil(curr_point[1] - dis * np.sin(angle)))
+        y_p = int(math.ceil(curr_point[1] + dis * np.sin(angle)))
         dis += 1
         if grid[x_p,y_p] == 100:
             collision_flag = True
