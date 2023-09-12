@@ -185,12 +185,16 @@ Uses the convolve2d to inflate the occupancy grid by robot_size//2
 def inflate_occupancy_grid(robot_size):
     global grid, grid_resolution
     inflated_grid = np.copy(grid)
-    robot_radius = int((robot_size / 2)/grid_resolution)
-
-    kernel = np.ones((robot_size, robot_size), dtype=np.int32)
 
     # Create a binary mask of occupied cells
     occupied_mask = (grid == 100).astype(np.int32)
+
+    # Create a circular kernel for inflation
+    kernel_size = int(robot_size / grid_resolution)
+    kernel = np.zeros((kernel_size * 2 + 1, kernel_size * 2 + 1), dtype=np.int32)
+    y, x = np.ogrid[-kernel_size:kernel_size + 1, -kernel_size:kernel_size + 1]
+    mask = x**2 + y**2 <= robot_size**2
+    kernel[mask] = 1
 
     # Use convolution to inflate the occupied cells
     inflated_occupied = convolve2d(occupied_mask, kernel, mode='same', boundary='fill', fillvalue=0)
@@ -198,7 +202,8 @@ def inflate_occupancy_grid(robot_size):
     # Update the inflated grid
     inflated_grid[inflated_occupied > 0] = 100
 
-    return inflated_grid
+    if not np.allclose(inflated_grid, grid):
+        grid = inflated_grid
 
 
 
@@ -616,7 +621,7 @@ def main():
     init_edge_grid()
     
     print("Begin Inflation")
-    grid = inflate_occupancy_grid(robot_size)
+    inflate_occupancy_grid(robot_size)
     print("Stop Inflation")
 
     # Add Robot Node to the graph
