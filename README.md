@@ -18,30 +18,31 @@ Perform two-way ray casting in order to find a path. Cast some N rays from robot
 
 *Name*: RAY CASTING & DIFFUSION MODEL-> RA CA DIM
 ## Ongoing
-1. Create a directed weighted graph from the intesections of the ray beams
-2. Find the shortest path between robot and goal (number of points)
-3. Find path from these points: Spline Smoothing or smthing 
-4. Figure out a metric to decide which point to cast next*
+
+* <del> Create a directed weighted graph from the intesections of the ray beams </del>
+* <del> Find the shortest path between robot and goal (number of points) </del>
+* Find path from these points: Spline Smoothing or smthing 
+* Figure out a metric to decide which point to cast next*
 
 
 ## Done 
-1. <del>Make the ray beam have the size of the robot and find a way if one part of the beam is stack what happens (Change the cmap value in plt.imshow())</del>
-2. <del> Add diffusion </del> 
-3. <del> Add condition to stop(when robot_beam finds the goal beam) </del>
-4. Desp: <del>Add saving occupancy grid option  </del>
-5. <del> Check Voronoi diagram <del>
+* <del>Make the ray beam have the size of the robot and find a way if one part of the beam is stack what happens (Change the cmap value in plt.imshow())</del>
+* <del> Add diffusion </del> 
+* <del> Add condition to stop(when robot_beam finds the goal beam) </del>
+* Desp: <del>Add saving occupancy grid option  </del>
+* <del> Check Voronoi diagram </del>
 
 
 ## Ideas
 * Weight each point based on some distance. EG distance traveled?
-* Pich best point based on probability which is analogous to the discovered area
+* Pick best point based on probability which is analogous to the discovered area
 * Value Iteration
 * Markov Decision process
 * Exploration exploitation
 * Self Organizing maps 
 
 
-* Rotate the source rays randomly.
+* <del> Rotate the source rays randomly. </del>
 
 * Do multi threading 
 
