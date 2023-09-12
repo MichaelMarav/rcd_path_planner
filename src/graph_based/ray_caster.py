@@ -9,11 +9,14 @@ import random
 from scipy.interpolate import pchip_interpolate
 import sys
 from scipy.signal import convolve2d
-
+import time
 
 # Hyperparams
-real_time_plotting = True
+real_time_plotting = False
 draw_edge_split = False
+random_source_dir = True
+
+
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
 workspace_size = (50,30) # (m) Size of the workspace/room where the robot needs to navigate
@@ -180,28 +183,6 @@ def draw_grid():
     return
 #----------------------------------------------------------------------
 
-# def inflate_occupancy_grid(robot_size):
-#     global wall_size, grid
-#     inflated_grid = np.copy(grid)
-#     robot_radius = int((robot_size // 2)/grid_resolution)
-
-#     height, width = grid.shape
-
-#     for x in range(wall_size, height - wall_size):
-#         for y in range(wall_size, width - wall_size):
-#             if grid[x, y] == 100:  # Check if the cell is occupied
-#                 for i in range(-robot_radius, robot_radius + 1):
-#                     for j in range(-robot_radius, robot_radius + 1):
-#                         if (
-#                             x + i >= 0
-#                             and x + i < height
-#                             and y + j >= 0
-#                             and y + j < width
-#                             and (i != 0 or j != 0)
-#                         ):
-#                             inflated_grid[x + i, y + j] = 100
-
-#     return inflated_grid
 
 
 '''
@@ -210,12 +191,16 @@ Uses the convolve2d to inflate the occupancy grid by robot_size//2
 def inflate_occupancy_grid(robot_size):
     global grid, grid_resolution
     inflated_grid = np.copy(grid)
-    robot_radius = int((robot_size / 2)/grid_resolution)
-
-    kernel = np.ones((robot_size, robot_size), dtype=np.int32)
 
     # Create a binary mask of occupied cells
     occupied_mask = (grid == 100).astype(np.int32)
+
+    # Create a circular kernel for inflation
+    kernel_size = int(robot_size / grid_resolution)
+    kernel = np.zeros((kernel_size * 2 + 1, kernel_size * 2 + 1), dtype=np.int32)
+    y, x = np.ogrid[-kernel_size:kernel_size + 1, -kernel_size:kernel_size + 1]
+    mask = x**2 + y**2 <= robot_size**2
+    kernel[mask] = 1
 
     # Use convolution to inflate the occupied cells
     inflated_occupied = convolve2d(occupied_mask, kernel, mode='same', boundary='fill', fillvalue=0)
@@ -223,8 +208,8 @@ def inflate_occupancy_grid(robot_size):
     # Update the inflated grid
     inflated_grid[inflated_occupied > 0] = 100
 
-    return inflated_grid
-
+    if not np.allclose(inflated_grid, grid):
+        grid = inflated_grid
 
 
 # Returns true if the node has been casted else it returns false
@@ -325,8 +310,9 @@ def ray_casting_robot(x,y,parent):
 
 
     angle_list = np.arange(0,360,int(360/num_beams))
-    random_rotation_bias = random.randint(0, 180) # Spin the orientation of the beams
-    angle_list += random_rotation_bias
+    if random_source_dir:
+        random_rotation_bias = random.randint(0, 180) # Spin the orientation of the beams
+        angle_list += random_rotation_bias
 
 
     for angle in angle_list: 
@@ -343,8 +329,8 @@ def ray_casting_robot(x,y,parent):
         # Starting distance (radius) from ray casting TODO: Make this start from robot_size
         dis = (robot_size/2)/grid_resolution 
 
-        prev_x = int(math.ceil(x))
-        prev_y = int(math.ceil(y))
+        beam_x = int(math.ceil(x))
+        beam_y = int(math.ceil(y))
         
         # Propagates ray until 1. Ray hits wall 2. Ray hits another ray 3. Robot Ray and Goal ray are connected (path found)
         while not stop_beam and not path_found:
@@ -361,16 +347,16 @@ def ray_casting_robot(x,y,parent):
 
                     # Add node to graph
                     child_name = parent + str(child_id)
-                    robot_graph.add_node(child_name, x = prev_x, y = prev_y, ray_casted = False)
+                    robot_graph.add_node(child_name, x = beam_x, y = beam_y, ray_casted = False)
                     robot_graph.add_edge(parent, child_name, weight = dis)
 
                     child_id += 1 # Update index for next child
                     
                     edge_name = parent + "-" + child_name
 
-                    visited_robot  = np.append(visited_robot,Point(prev_x,prev_y)) # Save the places that the robot has visited
+                    visited_robot  = np.append(visited_robot,Point(beam_x,beam_y)) # Save the places that the robot has visited
             
-                    plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
+                    plt.scatter([beam_x], [beam_y], color='red', marker='o', s=20, label='Robot')
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
             elif (grid[beam_x,beam_y] == 80 or grid[beam_x-1,beam_y] == 80 or grid[beam_x+1,beam_y] == 80 or grid[beam_x,beam_y+1] == 80 or grid[beam_x,beam_y-1] == 80):
@@ -385,9 +371,9 @@ def ray_casting_robot(x,y,parent):
                     valid_ray = True
 
                     # Add node
-                    child_name = parent+str(child_id)
-                    robot_graph.add_node(child_name,x = intersect_point_x, y =intersect_point_y, ray_casted = False)
-                    robot_graph.add_edge(parent,child_name,weight = dis)
+                    child_name = parent + str(child_id)
+                    robot_graph.add_node(child_name, x = intersect_point_x, y = intersect_point_y, ray_casted = False)
+                    robot_graph.add_edge(parent, child_name, weight = dis)
 
                     child_id += 1
                     edge_name = parent + "-" + child_name
@@ -406,11 +392,12 @@ def ray_casting_robot(x,y,parent):
                     valid_ray = True
 
                     print("FOUND PATH by robot")
-                    
+                    intersect_point_x, intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,40) # where exactly the beams meet
+
                     # Add node
                     child_name = "F"
-                    robot_graph.add_node(child_name,x= prev_x,y=prev_y, ray_casted = False)
-                    robot_graph.add_edge(parent,child_name,weight = dis)
+                    robot_graph.add_node(child_name, x= intersect_point_x, y = intersect_point_y, ray_casted = False)
+                    robot_graph.add_edge(parent, child_name,weight = dis)
                     child_id += 1
                     edge_name = parent + "-" + child_name
                     
@@ -418,7 +405,7 @@ def ray_casting_robot(x,y,parent):
 
                     intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,40)
 
-                    target_graph.add_node(child_name,x= prev_x,y=prev_y, ray_casted = False)
+                    target_graph.add_node(child_name,x= beam_x,y=beam_y, ray_casted = False)
 
                     split_edge(target_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
 
@@ -426,8 +413,8 @@ def ray_casting_robot(x,y,parent):
             else:
                 indexes_to_change.append([beam_x,beam_y])
             
-            prev_x = beam_x
-            prev_y = beam_y
+            beam_x = beam_x
+            beam_y = beam_y
             
             if valid_ray:
                 for row_idx, col_idx in indexes_to_change:
@@ -448,8 +435,12 @@ def ray_casting_target(x,y,parent):
     edge_name = ""
 
     angle_list = np.arange(0,360,int(360/num_beams))
-    random_rotation_bias = random.randint(0, 180) # Spin the orientation of the beams
-    angle_list += random_rotation_bias
+
+
+    if random_source_dir:
+        random_rotation_bias = random.randint(0, 180) # Spin the orientation of the beams
+        angle_list += random_rotation_bias
+
 
     for angle in angle_list: 
 
@@ -466,9 +457,6 @@ def ray_casting_target(x,y,parent):
         dis = (robot_size/2)/grid_resolution 
 
 
-        prev_x = int(math.ceil(x))
-        prev_y = int(math.ceil(y))
-        
         # Propagates ray until 1. Ray hits wall 2. Ray hits another ray 3. Robot Ray and Goal ray are connected (path found)
         while not stop_beam and not path_found:
             dis += 1
@@ -484,16 +472,16 @@ def ray_casting_target(x,y,parent):
 
                     # Add node to graph
                     child_name = parent + str(child_id)
-                    target_graph.add_node(child_name, x = prev_x, y = prev_y, ray_casted = False)
+                    target_graph.add_node(child_name, x = beam_x, y = beam_y, ray_casted = False)
                     target_graph.add_edge(parent, child_name, weight = dis)
 
                     child_id += 1 # Update index for next child
                     
                     edge_name = parent + "-" + child_name
 
-                    visited_target  = np.append(visited_target,Point(prev_x,prev_y)) # Save the places that the robot has visited
+                    visited_target  = np.append(visited_target,Point(beam_x,beam_y)) # Save the places that the robot has visited
             
-                    plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
+                    plt.scatter([beam_x], [beam_y], color='red', marker='o', s=20, label='Robot')
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
             elif (grid[beam_x,beam_y] == 40 or grid[beam_x-1,beam_y] == 40 or grid[beam_x+1,beam_y] == 40 or grid[beam_x,beam_y+1] == 40 or grid[beam_x,beam_y-1] == 40):
@@ -532,14 +520,14 @@ def ray_casting_target(x,y,parent):
 
                     # Add node
                     child_name = "F"
-                    target_graph.add_node(child_name,x= prev_x,y=prev_y, ray_casted = False)
+                    target_graph.add_node(child_name,x= beam_x, y = beam_y, ray_casted = False)
                     target_graph.add_edge(parent,child_name,weight = dis)
                     child_id += 1
                     edge_name = parent + "-" + child_name
 
                     intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,80)
 
-                    robot_graph.add_node(child_name,x= prev_x,y=prev_y, ray_casted = False)
+                    robot_graph.add_node(child_name,x= beam_x,y=beam_y, ray_casted = False)
 
                     split_edge(robot_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
 
@@ -547,8 +535,8 @@ def ray_casting_target(x,y,parent):
             else:
                 indexes_to_change.append([beam_x,beam_y])
             
-            prev_x = beam_x
-            prev_y = beam_y
+            beam_x = beam_x
+            beam_y = beam_y
             
             if valid_ray:
                 for row_idx, col_idx in indexes_to_change:
@@ -560,27 +548,57 @@ def ray_casting_target(x,y,parent):
 
 
 
+'''
+Finds the shortest path in both graphs (from R to F and from G to F) and constructs a way point path
+'''
+def find_shortest_path(robot_graph,target_graph):
+    shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F")
+    x_path = []
+    y_path = []
+    for name in shortest_robot:
+        x_i, y_i = get_node_position(robot_graph,name)
+        x_path.append(x_i)
+        y_path.append(y_i)
+
+
+    shortest_target = nx.shortest_path(target_graph,source = "G",target = "F")
+    shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
+    shortest_target.pop(0) # Remove the common node from robot and target path
+    
+    # print(shortest_target)
+
+    for name in shortest_target:
+        x_i, y_i = get_node_position(target_graph,name)
+        x_path.append(x_i)
+        y_path.append(y_i)
+
+    path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
+    return path
+
+
+
 
 if __name__ == "__main__":
     init_grid()
 
     draw_grid()
 
-    print("Begin Inflation")
-    grid = inflate_occupancy_grid(robot_size)
-    print("Stop Inflation")
+    inflate_occupancy_grid(robot_size)
+    
 
-    print(robot_pos[0].x,robot_pos[0].y)
+
     # Add Robot Node to the graph
-    robot_graph.add_node("R",x=robot_pos[0].x,y=robot_pos[0].y, ray_casted = False)
+    robot_graph.add_node("R",x=robot_pos[0].x, y=robot_pos[0].y, ray_casted = False)
     target_graph.add_node("G",x=target_pos[0].x, y = target_pos[0].y, ray_casted = False)
 
     cant_cast_robot_count = 0
     cant_cast_target_count = 0
-
+    
+    start_time = time.time()
 
     while not path_found:
 
+        # Casting Robot Graph
         for node in list(robot_graph.nodes):
 
             if not get_casted_flag(robot_graph,node):
@@ -588,6 +606,7 @@ if __name__ == "__main__":
                 ray_casting_robot(casting_x, casting_y, parent = node)
                 robot_graph.nodes[node]['ray_casted'] = True
                 cant_cast_robot_count = 0
+                break
 
             else:
 
@@ -597,7 +616,7 @@ if __name__ == "__main__":
                 else:
                     continue
 
-
+        # Casting Target Graph
         for node in list(target_graph.nodes):
 
             if not get_casted_flag(target_graph,node):
@@ -605,6 +624,7 @@ if __name__ == "__main__":
                 ray_casting_target(casting_x, casting_y, parent = node)
                 target_graph.nodes[node]['ray_casted'] = True
                 cant_cast_target_count = 0
+                break
             else:
 
                 cant_cast_target_count += 1
@@ -628,8 +648,19 @@ if __name__ == "__main__":
     # At this point the path is found. TODO: add what to do when there is not a valid path
 
     # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
+    path = find_shortest_path(robot_graph,target_graph)
+   
 
 
+
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print("Elapsed Time = ",elapsed_time," (s)")
+
+
+    # --------------------- PLOTTING STAFF
+    # Plots the ray casting result
     if not real_time_plotting:
         target_beam_indices = np.where(grid == 40)
         plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
@@ -641,35 +672,9 @@ if __name__ == "__main__":
         input("Press Enter to Continue...")
     
 
-
-    shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F")
-    x_path = []
-    y_path = []
-    for name in shortest_robot:
-        x_i, y_i = get_node_position(robot_graph,name)
-        x_path.append(x_i)
-        y_path.append(y_i)
-
-
-    shortest_target = nx.shortest_path(target_graph,source = "G",target = "F")
-    # x_target = []
-    # y_target = []
-
-    shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
-    shortest_target.pop(0)
-
-    
-    # print(shortest_target)
-
-    for name in shortest_target:
-        x_i, y_i = get_node_position(target_graph,name)
-        x_path.append(x_i)
-        y_path.append(y_i)
-
     #----------------------------------------------------------
    
-
-    # DEFAULT PATH (STRAIGHT LINES)
+    # PLOT PATH WITH STRAIGHT LINES
 
     grid = np.where((grid != 0) & (grid != 100), 0, grid) # Remove rays
     # Create a figure
@@ -678,7 +683,6 @@ if __name__ == "__main__":
     im.set_data(grid.T)
     
     
-    path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
 
     plt.title('Smoothed Path')
     # Convert the path to a NumPy array for easier indexing
@@ -693,6 +697,7 @@ if __name__ == "__main__":
 
     input("Press something to Exit")
     #----------------------------------------------------------
+
 
 
     # Despina smoother
