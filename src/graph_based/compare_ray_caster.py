@@ -11,13 +11,12 @@ import sys
 from scipy.signal import convolve2d
 import time
 import os 
+import json
+from matplotlib import image
 
 # Hyperparams
-real_time_plotting = True
+real_time_plotting = False
 draw_edge_split = False
-# robot_size = 1 # (m) Robot's diameter
-# grid_resolution = 0.1 # (m)
-# workspace_size = (50,30) # (m) Size of the workspace/room where the robot needs to navigate
 num_beams = 6
 
 # Initialize Global variables
@@ -30,13 +29,10 @@ drawing = False
 init_robot_pos= False
 init_target_pos= False
 path_found = False
+ALL_DATASET = True
 
 robot_graph  = nx.Graph()
 target_graph = nx.Graph() 
-
-
-
-
 
 # Objects
 class Point:
@@ -63,12 +59,11 @@ class Final_Node:
 '''
 Initializes the occupancy grid
 '''
-def init_grid():
+def init_edge_grid():
     # Init empty occ grid
     global grid_edge_id
 
     grid_edge_id = np.empty(grid_size,dtype=object) # Contains the edge id that passes through each cell
-
 
     # Every element in the grid_edge_id array is a Null object
     for i in range(grid_edge_id.shape[0]):
@@ -191,12 +186,16 @@ Uses the convolve2d to inflate the occupancy grid by robot_size//2
 def inflate_occupancy_grid(robot_size):
     global grid, grid_resolution
     inflated_grid = np.copy(grid)
-    robot_radius = int((robot_size / 2)/grid_resolution)
-
-    kernel = np.ones((robot_size, robot_size), dtype=np.int32)
 
     # Create a binary mask of occupied cells
     occupied_mask = (grid == 100).astype(np.int32)
+
+    # Create a circular kernel for inflation
+    kernel_size = int(robot_size / grid_resolution)
+    kernel = np.zeros((kernel_size * 2 + 1, kernel_size * 2 + 1), dtype=np.int32)
+    y, x = np.ogrid[-kernel_size:kernel_size + 1, -kernel_size:kernel_size + 1]
+    mask = x**2 + y**2 <= robot_size**2
+    kernel[mask] = 1
 
     # Use convolution to inflate the occupied cells
     inflated_occupied = convolve2d(occupied_mask, kernel, mode='same', boundary='fill', fillvalue=0)
@@ -204,7 +203,8 @@ def inflate_occupancy_grid(robot_size):
     # Update the inflated grid
     inflated_grid[inflated_occupied > 0] = 100
 
-    return inflated_grid
+    if not np.allclose(inflated_grid, grid):
+        grid = inflated_grid
 
 
 
@@ -300,7 +300,7 @@ def split_edge(graph,grid_edge_id,new_node,x,y):
 # Ray casting from parent node and create childs and directed edges
 def ray_casting_robot(x,y,parent):
 
-    global path_found, visited_robot, robot_graph, grid, grid_edge_id, target_graph
+    global path_found, visited_robot, robot_graph, grid, grid_edge_id, target_graph, coverage
     child_id = 1
     edge_name = ""
 
@@ -333,7 +333,7 @@ def ray_casting_robot(x,y,parent):
 
             beam_x = int(math.ceil(x + dis * np.cos(angle_rad)))
             beam_y = int(math.ceil(y + dis * np.sin(angle_rad)))
-
+            coverage += 1
             # Case 1: If beam hit wall
             if grid[beam_x,beam_y] == 100:
                 stop_beam = True          
@@ -351,7 +351,7 @@ def ray_casting_robot(x,y,parent):
 
                     visited_robot  = np.append(visited_robot,Point(prev_x,prev_y)) # Save the places that the robot has visited
             
-                    plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
+                    # plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
             elif (grid[beam_x,beam_y] == 80 or grid[beam_x-1,beam_y] == 80 or grid[beam_x+1,beam_y] == 80 or grid[beam_x,beam_y+1] == 80 or grid[beam_x,beam_y-1] == 80):
@@ -378,7 +378,7 @@ def ray_casting_robot(x,y,parent):
 
 
 
-                    plt.scatter(intersect_point_x,intersect_point_y,s = 20, color = 'purple')
+                    # plt.scatter(intersect_point_x,intersect_point_y,s = 20, color = 'purple')
                     visited_robot  = np.append(visited_robot,Point(intersect_point_x,intersect_point_y))
             
             # Case 3: If beam hits the other kind of ray (path found)
@@ -403,7 +403,7 @@ def ray_casting_robot(x,y,parent):
 
                     split_edge(target_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
 
-                    plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
+                    # plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
             else:
                 indexes_to_change.append([beam_x,beam_y])
             
@@ -422,7 +422,7 @@ def ray_casting_robot(x,y,parent):
 # Ray casting from parent node and create childs and directed edges
 def ray_casting_target(x,y,parent):
 
-    global path_found, visited_target, target_graph, grid, grid_edge_id, robot_graph
+    global path_found, visited_target, target_graph, grid, grid_edge_id, robot_graph, coverage
 
 
     child_id = 1
@@ -456,7 +456,7 @@ def ray_casting_target(x,y,parent):
 
             beam_x = int(math.ceil(x + dis * np.cos(angle_rad)))
             beam_y = int(math.ceil(y + dis * np.sin(angle_rad)))
-
+            coverage += 1
             # Case 1: If beam hit wall
             if grid[beam_x,beam_y] == 100:
                 stop_beam = True          
@@ -474,7 +474,7 @@ def ray_casting_target(x,y,parent):
 
                     visited_target  = np.append(visited_target,Point(prev_x,prev_y)) # Save the places that the robot has visited
             
-                    plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
+                    # plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
             elif (grid[beam_x,beam_y] == 40 or grid[beam_x-1,beam_y] == 40 or grid[beam_x+1,beam_y] == 40 or grid[beam_x,beam_y+1] == 40 or grid[beam_x,beam_y-1] == 40):
@@ -501,7 +501,7 @@ def ray_casting_target(x,y,parent):
 
 
 
-                    plt.scatter(intersect_point_x,intersect_point_y,s = 20, color = 'purple')
+                    # plt.scatter(intersect_point_x,intersect_point_y,s = 20, color = 'purple')
                     visited_target = np.append(visited_target, Point(intersect_point_x,intersect_point_y))
             
             # Case 3: If beam hits the other kind of ray (path found)
@@ -524,7 +524,7 @@ def ray_casting_target(x,y,parent):
 
                     split_edge(robot_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
 
-                    plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
+                    # plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
             else:
                 indexes_to_change.append([beam_x,beam_y])
             
@@ -539,228 +539,222 @@ def ray_casting_target(x,y,parent):
                     grid_edge_id[row_idx,col_idx].end_node    = child_name
 
 
-
-
-def open_grid():
-    arr = np.loadtxt(main_path + "Data/CSV/"+img_name+".csv",
-                 delimiter=",", dtype=str)
-
-    return arr, 
-
 def load_grid():
 
-    # global grid
     global grid
     grid = np.loadtxt(main_path + "Data/CSV/"+img_name+".csv",
                  delimiter=",", dtype='float32')
-    # global params
-    params = np.loadtxt(main_path + "Data/CSV/"+img_name+".txt",
-                 delimiter=",", dtype='float32')    
-    params = [ p1.item() for p1 in params]
 
-    return grid, params
+def load_params():
+    
+    global robot_size, grid_resolution, workspace_size, grid_size, wall_size, drawing_brush_size, robot_pos, target_pos
 
-def calc_dist(x_list,y_list,resolution):
+
+    # Opening JSON file
+    with open(main_path + "Data/CSV/" + img_name +".json", 'r') as openfile:
+    
+        # Reading from json file
+        json_object = json.load(openfile)
+    
+    print(json_object)
+
+    grid_resolution = json_object['grid_resolution']
+    grid_size = json_object['grid_size']
+    workspace_size = json_object['workspace_size']
+    robot_size = int(json_object['robot_size'])
+    wall_size = int(json_object['wall_size'])
+    
+    robot_pos = [json_object['robot_x'], json_object['robot_y']]
+    target_pos = [json_object['target_x'], json_object['target_y']]
+
+    drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
+
+
+def calc_dist_cell(x_list,y_list):
     d = 0
     for c1 in range(len(x_list)-1):
         d += math.sqrt( ( (x_list[c1+1]-x_list[c1]) )**2 + ( (y_list[c1+1]-y_list[c1]) )**2 )
     return d
 
-def save_solution(rx, ry, duration, distance):
-    path_point_meters = np.column_stack((rx, ry))
+def save_solution(x_path, y_path, duration, distance, coverage):
+
+    path_point_meters = np.column_stack((x_path, y_path))
     np.savetxt(main_path + "Data/Solutions/RayCaster_solution/"+img_name+"_path.txt", path_point_meters, delimiter=",")
-    np.savetxt(main_path + "Data/Solutions/RayCaster_solution/"+img_name+"_time_dist.txt", [duration, distance], delimiter=",")
-    plt.savefig(main_path +"Data/Solutions/RayCaster_solution/"+img_name+ '_plot.png', dpi=300)
+
+    solution = { 'duration' : duration, 'distance': distance,  'coverage' : coverage}
+  
+    with open(main_path + "Data/Solutions/RayCaster_solution/"+img_name+".json", 'w') as convert_file:
+        convert_file.write(json.dumps(solution))
 
 
+    global grid
+    grid = np.where((grid != 0) & (grid != 100), 0, grid) # Remove rays
+    # Create a figure
+    
+    fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
+    plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
+    # im.set_data(grid.T)
 
+    # im_grid = image.imread(main_path+'Data/GRID/'+img_name+'.png')
 
-
+    path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
+    path = np.array(path)
+    plt.plot(path[:, 0], path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
+    
+    plt.title('Smoothed Path')
+    plt.xlabel('X Coordinate')
+    plt.ylabel('Y Coordinate')
+    # plt.grid(True)
+    
+    fig2.savefig(main_path +"Data/Solutions/RayCaster_solution/"+img_name+ '.png')
 
 def main():
 
-    global img_name
-    img_name = '21'
-    grid, params = load_grid()
 
-    # start and goal position
-    robot_pos_x  = params[0]  # point []
-    robot_pos_y  = params[1]  # point []
-    target_pos_x = params[2]  # point []
-    target_pos_y = params[3]  # point []
-    resolution   = params[6]
-    img_size     = params[4] # same as params[5]->equal axis # point []
+
+    # find datataset folder
+    cur_path = os.path.dirname(os.path.realpath(__file__)) 
+
+    src_path = os.path.abspath(os.path.join(cur_path, os.pardir))
+
+    motion_path = os.path.abspath(os.path.join(src_path, os.pardir))
+
+    path_dataset = motion_path + '/Data/GRID/'
     
-    global robot_size 
-    robot_size = int(1/resolution)  # [m] TODO
-    global grid_resolution 
-    grid_resolution= resolution
-    global workspace_size
-    workspace_size = (img_size*resolution, img_size*resolution)
+    names_list = []
+    if ALL_DATASET:
 
-    global grid_size
-    grid_size = (int(workspace_size[0]/grid_resolution), int(workspace_size[1]/grid_resolution))     # Size of the occupancy grid in meters (rows, columns)
-    global wall_size
-    wall_size = 10#int(math.ceil((robot_size)/grid_resolution))
-    global drawing_brush_size
-    drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
+        # get the last data .png id
 
-    robot_pos = [robot_pos_x, robot_pos_y]
-    target_pos = (target_pos_x, target_pos_y)
+        for x in os.listdir(path_dataset):
+            if x.endswith(".png"):
+                # Prints only text file present in My Folder
+                names_list.append(x.split('.png')[0])
+    else:
+        names_list.append('3')
 
-    init_grid()
+    for x in names_list:
+        
+        global img_name, robot_size, grid_resolution, workspace_size, grid_size, wall_size, drawing_brush_size, coverage
+        
+        coverage = 0
+        img_name = str(x)
+        
+        print("Load Grid and Parameters")
+        load_grid()
+        load_params()
+        init_edge_grid()
+        
+        print("Begin Inflation")
+        inflate_occupancy_grid(robot_size)
+        print("Stop Inflation")
 
-    # needs to be in [meters]
-    sx = resolution*(robot_pos_x)  # [m]    # could have round(,1)
-    gx = resolution*(target_pos_x) # [m]    # could have round(,1)
-    sy = resolution*(robot_pos_y ) # [m]    # could have round(,1)
-    gy = resolution*(target_pos_y) # [m]    # could have round(,1)
-    print(robot_pos_x,robot_pos_y,target_pos_x,target_pos_y)
-    print(sx,sy,gx,gy)
+        # Add Robot Node to the graph
+        robot_graph.add_node("R",x=robot_pos[0],y=robot_pos[1], ray_casted = False)
+        target_graph.add_node("G",x=target_pos[0], y = target_pos[1], ray_casted = False)
 
-
-    print("Begin Inflation")
-    grid = inflate_occupancy_grid(robot_size)
-    print("Stop Inflation")
-
-
-    # Add Robot Node to the graph
-    robot_graph.add_node("R",x=robot_pos[0],y=robot_pos[1], ray_casted = False)
-    target_graph.add_node("G",x=target_pos[0], y = target_pos[1], ray_casted = False)
-
-    cant_cast_robot_count = 0
-    cant_cast_target_count = 0
+        cant_cast_robot_count = 0
+        cant_cast_target_count = 0
 
 
-    while not path_found:
+        # Start timer
+        start_time = time.time()
 
-        for node in list(robot_graph.nodes):
+        while not path_found:
 
-            if not get_casted_flag(robot_graph,node):
-                casting_x,casting_y = get_node_position(robot_graph,node)
-                ray_casting_robot(casting_x, casting_y, parent = node)
-                robot_graph.nodes[node]['ray_casted'] = True
-                cant_cast_robot_count = 0
+            for node in list(robot_graph.nodes):
 
-            else:
+                if not get_casted_flag(robot_graph,node):
+                    casting_x,casting_y = get_node_position(robot_graph,node)
+                    ray_casting_robot(casting_x, casting_y, parent = node)
+                    robot_graph.nodes[node]['ray_casted'] = True
+                    cant_cast_robot_count = 0
 
-                cant_cast_robot_count += 1
-                if cant_cast_robot_count == robot_graph.number_of_nodes():
-                    sys.exit("Valid path from robot to goal does not exist")
                 else:
-                    continue
+
+                    cant_cast_robot_count += 1
+                    if cant_cast_robot_count == robot_graph.number_of_nodes():
+                        # sys.exit("Valid path from robot to goal does not exist")
+                        print("Valid path from robot to goal does not exist")
+                        return
+                    else:
+                        continue
 
 
-        for node in list(target_graph.nodes):
+            for node in list(target_graph.nodes):
 
-            if not get_casted_flag(target_graph,node):
-                casting_x,casting_y = get_node_position(target_graph,node)
-                ray_casting_target(casting_x, casting_y, parent = node)
-                target_graph.nodes[node]['ray_casted'] = True
-                cant_cast_target_count = 0
-            else:
-
-                cant_cast_target_count += 1
-
-                if cant_cast_target_count == target_graph.number_of_nodes():
-                    sys.exit("Valid path from robot to goal does not exist")
+                if not get_casted_flag(target_graph,node):
+                    casting_x,casting_y = get_node_position(target_graph,node)
+                    ray_casting_target(casting_x, casting_y, parent = node)
+                    target_graph.nodes[node]['ray_casted'] = True
+                    cant_cast_target_count = 0
                 else:
-                    continue
 
-        if real_time_plotting:
-            target_beam_indices = np.where(grid == 40)
-            plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
+                    cant_cast_target_count += 1
 
-            robot_beam_indices = np.where(grid == 80)
-            plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
-
-            plt.pause(0.1)  # Pause to allow time for updates to be shown
-            input("Press Enter to Continue...")
+                    if cant_cast_target_count == target_graph.number_of_nodes():
+                        # sys.exit("Valid path from robot to goal does not exist")
+                        print("Valid path from robot to goal does not exist")
+                        return
+                    else:
+                        continue
 
 
-    # At this point the path is found. TODO: add what to do when there is not a valid path
+        # End timer
+        end_time = time.time()
+        # Calculate elapsed time
+        elapsed_time = end_time - start_time
+        print("Elapsed time: ", elapsed_time) 
+        
+        # At this point the path is found. TODO: add what to do when there is not a valid path
 
-    # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
+        # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
 
-
-    if not real_time_plotting:
-        target_beam_indices = np.where(grid == 40)
-        plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
-
-        robot_beam_indices = np.where(grid == 80)
-        plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
-        plt.show()
-        plt.pause(0.01)  # Pause to allow time for updates to be shown
-        input("Press Enter to Continue...")
-    
-
-
-    shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F")
-    x_path = []
-    y_path = []
-    for name in shortest_robot:
-        x_i, y_i = get_node_position(robot_graph,name)
-        x_path.append(x_i)
-        y_path.append(y_i)
+        shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F")
+        x_path = []
+        y_path = []
+        for name in shortest_robot:
+            x_i, y_i = get_node_position(robot_graph,name)
+            x_path.append(x_i)
+            y_path.append(y_i)
 
 
-    shortest_target = nx.shortest_path(target_graph,source = "G",target = "F")
-    # x_target = []
-    # y_target = []
+        shortest_target = nx.shortest_path(target_graph,source = "G",target = "F")
+        # x_target = []
+        # y_target = []
 
-    shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
-    shortest_target.pop(0)
+        shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
+        shortest_target.pop(0)
 
-    
-    # print(shortest_target)
+        # End timer
+        end_time2 = time.time()
+        # Calculate elapsed time
+        elapsed_time2 = end_time2 - start_time
+        print("Elapsed time for short path : ", elapsed_time2) 
+        
+        for name in shortest_target:
+            x_i, y_i = get_node_position(target_graph,name)
+            x_path.append(x_i)
+            y_path.append(y_i)
 
-    for name in shortest_target:
-        x_i, y_i = get_node_position(target_graph,name)
-        x_path.append(x_i)
-        y_path.append(y_i)
+        #----------------------------------------------------------
+        distance = calc_dist_cell(x_path, y_path)/grid_resolution 
+        #----------------------------------------------------------
 
-    #----------------------------------------------------------
-   
+        # DEFAULT PATH (STRAIGHT LINES)
 
-    # DEFAULT PATH (STRAIGHT LINES)
+        save_solution(x_path, y_path, elapsed_time2, distance, coverage)
+        plt.close()
+        # input("Press something to Exit")
+        #----------------------------------------------------------
 
-    grid = np.where((grid != 0) & (grid != 100), 0, grid) # Remove rays
-    # Create a figure
-    fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
-    im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
-    im.set_data(grid.T)
-    
-    
-    path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
-
-    plt.title('Smoothed Path')
-    # Convert the path to a NumPy array for easier indexing
-    plt.xlabel('X Coordinate')
-    path = np.array(path)
-    plt.ylabel('Y Coordinate')
-
-    plt.grid(True)
-    # Plot the grid
-    plt.plot(path[:, 0], path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
-    plt.show(block = False)
-
-    input("Press something to Exit")
-    #----------------------------------------------------------
-
-
-    # Despina smoother
-    # x_path_smooth = np.linspace(min(x_path), max(x_path), num=100)
-    # y_path_smooth = pchip_interpolate(x_path, y_path, x_path_smooth)
-    # plt.plot(x_path, y_path, "o", label="path nodes")
-    # plt.plot(x_path_smooth, y_path_smooth, label="Smoothed path using pchip interpolation")
-    # plt.legend()
 
 
 if __name__ == "__main__":
 
     global main_path 
     graph_path = os.path.dirname(os.path.realpath(__file__)) 
-    src_pth = os.path.abspath(os.path.join(graph_path, os.pardir)) 
-    main_path = os.path.abspath(os.path.join(src_pth, os.pardir)) + "/"
+    src_path = os.path.abspath(os.path.join(graph_path, os.pardir)) 
+    main_path = os.path.abspath(os.path.join(src_path, os.pardir)) + "/"
 
     main()
