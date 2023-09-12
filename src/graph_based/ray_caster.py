@@ -10,11 +10,13 @@ from scipy.interpolate import pchip_interpolate
 import sys
 from scipy.signal import convolve2d
 import time
+from copy import copy
+
 
 # Hyperparams
 real_time_plotting = False
 draw_edge_split = False
-random_source_dir = True
+random_source_dir = False
 
 
 robot_size = 1 # (m) Robot's diameter
@@ -251,8 +253,8 @@ def check_possible_intersection(grid,beam_x,beam_y,value):
 
 
 
-def split_edge(graph,grid_edge_id,new_node,x,y):
-    
+def split_edge(graph,new_node,x,y):
+    global grid_edge_id
     edge_ = grid_edge_id[x,y]
     # I want to remove every edge_id that is the one intersected and I want to create 2 new edges one from the parent to the new point and one from the new node to the child
     node_1 = edge_.start_node
@@ -326,12 +328,11 @@ def ray_casting_robot(x,y,parent):
 
         valid_ray = False # Flag that specifies if the ray is valid-> Not close enough to another node
         
-        # Starting distance (radius) from ray casting TODO: Make this start from robot_size
-        dis = (robot_size/2)/grid_resolution 
+        # Starting distance (radius) from ray casting 
+        dis = 2 #(robot_size/2)/grid_resolution 
+        prev_x = int(math.ceil(x))
+        prev_y = int(math.ceil(y))
 
-        beam_x = int(math.ceil(x))
-        beam_y = int(math.ceil(y))
-        
         # Propagates ray until 1. Ray hits wall 2. Ray hits another ray 3. Robot Ray and Goal ray are connected (path found)
         while not stop_beam and not path_found:
             dis += 1
@@ -342,28 +343,30 @@ def ray_casting_robot(x,y,parent):
             # Case 1: If beam hit wall
             if grid[beam_x,beam_y] == 100:
                 stop_beam = True          
+
+
                 if check_closest_node_distance(beam_x,beam_y,visited_robot,(robot_size)/grid_resolution):          
                     valid_ray = True
 
                     # Add node to graph
                     child_name = parent + str(child_id)
-                    robot_graph.add_node(child_name, x = beam_x, y = beam_y, ray_casted = False)
+                    robot_graph.add_node(child_name, x = prev_x, y = prev_y, ray_casted = False)
                     robot_graph.add_edge(parent, child_name, weight = dis)
 
                     child_id += 1 # Update index for next child
                     
                     edge_name = parent + "-" + child_name
 
-                    visited_robot  = np.append(visited_robot,Point(beam_x,beam_y)) # Save the places that the robot has visited
+                    visited_robot  = np.append(visited_robot,Point(prev_x,prev_y)) # Save the places that the robot has visited
             
-                    plt.scatter([beam_x], [beam_y], color='red', marker='o', s=20, label='Robot')
+                    plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
             elif (grid[beam_x,beam_y] == 80 or grid[beam_x-1,beam_y] == 80 or grid[beam_x+1,beam_y] == 80 or grid[beam_x,beam_y+1] == 80 or grid[beam_x,beam_y-1] == 80):
                 
                 stop_beam = True
 
-                intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,80) # where exactly the beams meet
+                intersect_point_x,intersect_point_y = check_possible_intersection(grid,beam_x,beam_y,80) # where exactly the beams intersect
                
                 if intersect_point_x is not None and intersect_point_y is not None and check_closest_node_distance(intersect_point_x, intersect_point_y, visited_robot, (robot_size)/grid_resolution):
 
@@ -379,7 +382,7 @@ def ray_casting_robot(x,y,parent):
                     edge_name = parent + "-" + child_name
 
                     # Break the edge that has the intersection in it
-                    split_edge(robot_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
+                    split_edge(robot_graph, child_name, intersect_point_x, intersect_point_y)
 
 
 
@@ -407,15 +410,14 @@ def ray_casting_robot(x,y,parent):
 
                     target_graph.add_node(child_name,x= beam_x,y=beam_y, ray_casted = False)
 
-                    split_edge(target_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
+                    split_edge(target_graph, child_name, intersect_point_x, intersect_point_y)
 
                     plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
             else:
                 indexes_to_change.append([beam_x,beam_y])
             
-            beam_x = beam_x
-            beam_y = beam_y
-            
+            prev_x = beam_x
+            prev_y = beam_y
             if valid_ray:
                 for row_idx, col_idx in indexes_to_change:
                     grid[row_idx,col_idx] = 80 # Robot ray has passed
@@ -454,8 +456,9 @@ def ray_casting_target(x,y,parent):
         valid_ray = False # Flag that specifies if the ray is valid-> Not close enough to another node
         
         # Starting distance (radius) from ray casting TODO: Make this start from robot_size
-        dis = (robot_size/2)/grid_resolution 
-
+        dis = 2#(robot_size/2)/grid_resolution 
+        prev_x = int(math.ceil(x))
+        prev_y = int(math.ceil(y))
 
         # Propagates ray until 1. Ray hits wall 2. Ray hits another ray 3. Robot Ray and Goal ray are connected (path found)
         while not stop_beam and not path_found:
@@ -472,16 +475,16 @@ def ray_casting_target(x,y,parent):
 
                     # Add node to graph
                     child_name = parent + str(child_id)
-                    target_graph.add_node(child_name, x = beam_x, y = beam_y, ray_casted = False)
+                    target_graph.add_node(child_name, x = prev_x, y = prev_y, ray_casted = False)
                     target_graph.add_edge(parent, child_name, weight = dis)
 
                     child_id += 1 # Update index for next child
                     
                     edge_name = parent + "-" + child_name
 
-                    visited_target  = np.append(visited_target,Point(beam_x,beam_y)) # Save the places that the robot has visited
+                    visited_target  = np.append(visited_target,Point(prev_x,prev_y)) # Save the places that the robot has visited
             
-                    plt.scatter([beam_x], [beam_y], color='red', marker='o', s=20, label='Robot')
+                    plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
             elif (grid[beam_x,beam_y] == 40 or grid[beam_x-1,beam_y] == 40 or grid[beam_x+1,beam_y] == 40 or grid[beam_x,beam_y+1] == 40 or grid[beam_x,beam_y-1] == 40):
@@ -504,7 +507,7 @@ def ray_casting_target(x,y,parent):
                     edge_name = parent + "-" + child_name
 
                     # Break the edge that has the intersection in it
-                    split_edge(target_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
+                    split_edge(target_graph, child_name, intersect_point_x, intersect_point_y)
 
 
 
@@ -520,7 +523,7 @@ def ray_casting_target(x,y,parent):
 
                     # Add node
                     child_name = "F"
-                    target_graph.add_node(child_name,x= beam_x, y = beam_y, ray_casted = False)
+                    target_graph.add_node(child_name,x = beam_x, y = beam_y, ray_casted = False)
                     target_graph.add_edge(parent,child_name,weight = dis)
                     child_id += 1
                     edge_name = parent + "-" + child_name
@@ -529,21 +532,21 @@ def ray_casting_target(x,y,parent):
 
                     robot_graph.add_node(child_name,x= beam_x,y=beam_y, ray_casted = False)
 
-                    split_edge(robot_graph, grid_edge_id, child_name, intersect_point_x, intersect_point_y)
+                    split_edge(robot_graph, child_name, intersect_point_x, intersect_point_y)
 
                     plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
             else:
                 indexes_to_change.append([beam_x,beam_y])
             
-            beam_x = beam_x
-            beam_y = beam_y
+            prev_x = beam_x
+            prev_y = beam_y
             
             if valid_ray:
                 for row_idx, col_idx in indexes_to_change:
                     grid[row_idx,col_idx] = 40 # Robot ray has passed
-                    grid_edge_id[row_idx,col_idx].edge_id = edge_name
+                    grid_edge_id[row_idx,col_idx].edge_id    = edge_name
                     grid_edge_id[row_idx,col_idx].start_node = parent
-                    grid_edge_id[row_idx,col_idx].end_node    = child_name
+                    grid_edge_id[row_idx,col_idx].end_node   = child_name
 
 
 
@@ -578,7 +581,55 @@ def find_shortest_path(robot_graph,target_graph):
 
 
 
+def check_collision(curr_point,next_point):
+    global grid
+    distance_between_points = math.sqrt((curr_point[0] - next_point[0])**2  + (curr_point[1] - next_point[1])**2 )
+    dis = 3
+    angle = math.atan2((curr_point[1]-next_point[1]),(next_point[0]-curr_point[0]))
+    collision_flag = False
+    while dis < distance_between_points and not collision_flag:
+        x_p = int(math.ceil(curr_point[0] + dis * np.cos(angle)))
+        y_p = int(math.ceil(curr_point[1] - dis * np.sin(angle)))
+        dis += 1
+        if grid[x_p,y_p] == 100:
+            collision_flag = True
+    if collision_flag:
+        return True
+    else:
+        return False
+
+
+def reduce_path_with_LoS(path):
+
+    reduced_path = [list(path[0])]
+    c = 0
+    p = 2
+
+    while  p < len(path):
+        curr_point = path[c]
+        next_point = path[p]
+
+        collision_flag = check_collision(curr_point,next_point)
+       
+        if collision_flag:
+            c = p - 1
+            reduced_path.append(list(path[c]))
+            p+=1 
+        else:
+            p += 1
+    reduced_path.append(list(path[-1]))
+    return reduced_path
+
+'''
+--------------------------------------------------------------------------------------------
+                                            MAIN
+--------------------------------------------------------------------------------------------
+
+'''
+
 if __name__ == "__main__":
+
+
     init_grid()
 
     draw_grid()
@@ -613,8 +664,8 @@ if __name__ == "__main__":
                 cant_cast_robot_count += 1
                 if cant_cast_robot_count == robot_graph.number_of_nodes():
                     sys.exit("Valid path from robot to goal does not exist")
-                else:
-                    continue
+                else: 
+                   continue
 
         # Casting Target Graph
         for node in list(target_graph.nodes):
@@ -634,6 +685,8 @@ if __name__ == "__main__":
                 else:
                     continue
 
+
+
         if real_time_plotting:
             target_beam_indices = np.where(grid == 40)
             plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
@@ -650,8 +703,6 @@ if __name__ == "__main__":
     # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
     path = find_shortest_path(robot_graph,target_graph)
    
-
-
 
 
     end_time = time.time()
@@ -682,7 +733,6 @@ if __name__ == "__main__":
     im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
     im.set_data(grid.T)
     
-    
 
     plt.title('Smoothed Path')
     # Convert the path to a NumPy array for easier indexing
@@ -694,6 +744,48 @@ if __name__ == "__main__":
     # Plot the grid
     plt.plot(path[:, 0], path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
     plt.show(block = False)
+
+
+    reduced_path = reduce_path_with_LoS(path)
+
+
+
+    fig3 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
+    im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
+    im.set_data(grid.T)
+    
+
+    plt.title('reduced')
+    # Convert the path to a NumPy array for easier indexing
+    plt.xlabel('X Coordinate')
+    reduced_path = np.array(reduced_path)
+    plt.ylabel('Y Coordinate')
+
+    plt.grid(True)
+    # Plot the grid
+    plt.plot(reduced_path[:, 0], reduced_path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
+    plt.show(block = False)
+
+
+    # fig3 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
+    # im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
+    # im.set_data(grid.T)
+    
+
+    # plt.title('Smoothed Path')
+    # # Convert the path to a NumPy array for easier indexing
+    # plt.xlabel('X Coordinate')
+    # path = np.array(path)
+    # plt.ylabel('Y Coordinate')
+
+    # plt.grid(True)
+    # # Plot the grid
+    # reduced_x = [point[0] for point in reduced_path]
+    # reduced_y = [point[1] for point in reduced_path]
+
+    # # Plot the reduced path
+    # plt.plot(reduced_x, reduced_y, marker='o', color='red', markersize=5)
+    # plt.show(block = False)
 
     input("Press something to Exit")
     #----------------------------------------------------------
