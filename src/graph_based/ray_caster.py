@@ -1,4 +1,5 @@
 #! /usr/bin/env python3
+from re import T
 import numpy as np
 import matplotlib
 matplotlib.use('TkAgg')
@@ -14,8 +15,7 @@ from copy import copy
 import os 
 import json
 
-
-offline_experiments = False
+offline_experiments = True
 
 # Hyperparams
 real_time_plotting = False
@@ -61,7 +61,7 @@ target_graph = nx.Graph()
 os.chdir("../../Data/")
 # print(os.getcwd())
 RUN_ALL_DATASETS = True
-file_to_test = '3.png'  # Taken into account only if RUN_ALL_DATASETS = False
+file_to_test = '4.png'  # Taken into account only if RUN_ALL_DATASETS = False
 
 
 # Objects
@@ -364,8 +364,8 @@ def ray_casting_robot(x,y,parent):
                     edge_name = parent + "-" + child_name
 
                     visited_robot  = np.append(visited_robot,Point(prev_x,prev_y)) # Save the places that the robot has visited
-            
-                    plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
+                    if not offline_experiments:
+                        plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
             elif (grid[beam_x,beam_y] == 80 or grid[beam_x-1,beam_y] == 80 or grid[beam_x+1,beam_y] == 80 or grid[beam_x,beam_y+1] == 80 or grid[beam_x,beam_y-1] == 80):
@@ -391,8 +391,9 @@ def ray_casting_robot(x,y,parent):
                     split_edge(robot_graph, child_name, intersect_point_x, intersect_point_y)
 
 
+                    if not offline_experiments:
+                        plt.scatter(intersect_point_x,intersect_point_y,s = 20, color = 'purple')
 
-                    plt.scatter(intersect_point_x,intersect_point_y,s = 20, color = 'purple')
                     visited_robot  = np.append(visited_robot,Point(intersect_point_x,intersect_point_y))
             
             # Case 3: If beam hits the other kind of ray (path found)
@@ -417,8 +418,8 @@ def ray_casting_robot(x,y,parent):
                     target_graph.add_node(child_name,x= beam_x,y=beam_y, ray_casted = False)
 
                     split_edge(target_graph, child_name, intersect_point_x, intersect_point_y)
-
-                    plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
+                    if not offline_experiments:
+                        plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
             else:
                 indexes_to_change.append([beam_x,beam_y])
             
@@ -489,8 +490,8 @@ def ray_casting_target(x,y,parent):
                     edge_name = parent + "-" + child_name
 
                     visited_target  = np.append(visited_target,Point(prev_x,prev_y)) # Save the places that the robot has visited
-            
-                    plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
+                    if not offline_experiments:
+                        plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
             elif (grid[beam_x,beam_y] == 40 or grid[beam_x-1,beam_y] == 40 or grid[beam_x+1,beam_y] == 40 or grid[beam_x,beam_y+1] == 40 or grid[beam_x,beam_y-1] == 40):
@@ -516,8 +517,9 @@ def ray_casting_target(x,y,parent):
                     split_edge(target_graph, child_name, intersect_point_x, intersect_point_y)
 
 
+                    if not offline_experiments:
+                        plt.scatter(intersect_point_x,intersect_point_y,s = 20, color = 'purple')
 
-                    plt.scatter(intersect_point_x,intersect_point_y,s = 20, color = 'purple')
                     visited_target = np.append(visited_target, Point(intersect_point_x,intersect_point_y))
             
             # Case 3: If beam hits the other kind of ray (path found)
@@ -539,8 +541,8 @@ def ray_casting_target(x,y,parent):
                     robot_graph.add_node(child_name,x= beam_x,y=beam_y, ray_casted = False)
 
                     split_edge(robot_graph, child_name, intersect_point_x, intersect_point_y)
-
-                    plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
+                    if not offline_experiments:
+                        plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
             else:
                 indexes_to_change.append([beam_x,beam_y])
             
@@ -574,7 +576,6 @@ def find_shortest_path(robot_graph,target_graph):
     shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
     shortest_target.pop(0) # Remove the common node from robot and target path
     
-    # print(shortest_target)
 
     for name in shortest_target:
         x_i, y_i = get_node_position(target_graph,name)
@@ -665,7 +666,7 @@ def online_experiments_main():
                 ray_casting_robot(casting_x, casting_y, parent = node)
                 robot_graph.nodes[node]['ray_casted'] = True
                 cant_cast_robot_count = 0
-                break
+                
 
             else:
 
@@ -683,7 +684,7 @@ def online_experiments_main():
                 ray_casting_target(casting_x, casting_y, parent = node)
                 target_graph.nodes[node]['ray_casted'] = True
                 cant_cast_target_count = 0
-                break
+                
             else:
 
                 cant_cast_target_count += 1
@@ -786,9 +787,8 @@ def online_experiments_main():
 
 
 def offline_experiments_main():
-    global grid, grid_resolution, grid_size, workspace_size, robot_size, wall_size, robot_pos, target_pos, robot_graph,target_graph, drawing_brush_size
-   
-
+    global grid, grid_resolution, grid_size, workspace_size, robot_size, wall_size, robot_pos, target_pos, robot_graph, target_graph, grid_edge_id, visited_robot, visited_target, path_found
+    
 
     print("Running offline experiments")
     
@@ -802,13 +802,14 @@ def offline_experiments_main():
 
 
     for x in name_list:
+
         # Initialize graphs
-        robot_graph  = nx.Graph()
-        target_graph = nx.Graph()
-         
+        robot_graph.clear()
+        target_graph.clear()
+       
         # Load Grid
         grid = np.loadtxt("./CSV/" + x + ".csv", delimiter=",").astype(np.int64)
-        print(os.getcwd() +"/CSV/" + x + ".json")
+        print("Running experiment: ",os.getcwd() +"/CSV/" + x + ".json")
 
         with open("CSV/" + x +".json", 'r') as openfile:
             json_object = json.load(openfile)
@@ -820,15 +821,19 @@ def offline_experiments_main():
         workspace_size = json_object['workspace_size']
         robot_size = int(json_object['robot_size'])
         wall_size = int(json_object['wall_size'])
-        
         robot_pos = [json_object['robot_x'], json_object['robot_y']]
         target_pos = [json_object['target_x'], json_object['target_y']]
+        
+        grid_edge_id = np.empty(grid_size,dtype=object) # Contains the edge id that passes through each cell
 
-        drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
-
+        visited_robot  = np.empty(0,dtype=object)
+        visited_target = np.empty(0,dtype=object)
+        
         init_grid()
 
         inflate_occupancy_grid(robot_size)
+
+
 
         coverage = 0
         
@@ -841,18 +846,18 @@ def offline_experiments_main():
         cant_cast_robot_count = 0
         cant_cast_target_count = 0
         start_time = time.time()
+        path_found = False
 
         while not path_found:
 
             # Casting Robot Graph
             for node in list(robot_graph.nodes):
-
                 if not get_casted_flag(robot_graph,node):
                     casting_x,casting_y = get_node_position(robot_graph,node)
                     ray_casting_robot(casting_x, casting_y, parent = node)
                     robot_graph.nodes[node]['ray_casted'] = True
                     cant_cast_robot_count = 0
-                    break
+                    
 
                 else:
 
@@ -870,7 +875,7 @@ def offline_experiments_main():
                     ray_casting_target(casting_x, casting_y, parent = node)
                     target_graph.nodes[node]['ray_casted'] = True
                     cant_cast_target_count = 0
-                    break
+                    
                 else:
 
                     cant_cast_target_count += 1
@@ -881,11 +886,8 @@ def offline_experiments_main():
                         continue
 
 
-        # At this point the path is found. TODO: add what to do when there is not a valid path
-
         # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
         path = find_shortest_path(robot_graph,target_graph)
-    
 
 
         end_time = time.time()
