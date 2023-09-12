@@ -11,13 +11,16 @@ import sys
 from scipy.signal import convolve2d
 import time
 from copy import copy
+import os 
+import json
 
+
+offline_experiments = False
 
 # Hyperparams
 real_time_plotting = False
 draw_edge_split = False
 random_source_dir = False
-
 
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
@@ -29,14 +32,12 @@ drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
 
 
 # Parameters
-
-
 grid_size = (int(workspace_size[0]/grid_resolution), int(workspace_size[1]/grid_resolution))     # Size of the occupancy grid in meters (rows, columns)
 wall_size = int(math.ceil((robot_size)/grid_resolution))
 
 # Initialize Global variables
-target_pos     = np.empty(0,dtype=object)
-robot_pos      = np.empty(0,dtype=object)
+target_pos     = [0,0]
+robot_pos      = [0,0]
 visited_robot  = np.empty(0,dtype=object)
 visited_target = np.empty(0,dtype=object)
 
@@ -56,13 +57,18 @@ target_graph = nx.Graph()
 
 
 
+# Offline testing parameters 
+os.chdir("../../Data/")
+# print(os.getcwd())
+RUN_ALL_DATASETS = True
+file_to_test = '3.png'  # Taken into account only if RUN_ALL_DATASETS = False
 
 
 # Objects
 class Point:
     def __init__(self,x,y):
         self.x = x
-        self.y = y
+        self.y = y  
 
 class Edge:
     def __init__(self,edge_id,start_node,end_node):
@@ -92,12 +98,12 @@ def init_grid():
         for j in range(grid_edge_id.shape[1]):
             grid_edge_id[i,j] = Edge(None,None,None)
 
-        
-    # Add walls to the boundary of the grid
-    grid[0:wall_size, :] = 100
-    grid[-wall_size:, :] = 100
-    grid[:, 0:wall_size] = 100
-    grid[:, -wall_size:] = 100
+    if not offline_experiments:
+        # Add walls to the boundary of the grid
+        grid[0:wall_size, :] = 100
+        grid[-wall_size:, :] = 100
+        grid[:, 0:wall_size] = 100
+        grid[:, -wall_size:] = 100
     
     return
 
@@ -145,14 +151,13 @@ def set_goal_robot(event):
     global robot_pos,target_pos
     if event.xdata is not None and event.ydata is not None:
         if not init_target_pos and init_robot_pos:
-            target_pos = np.append(target_pos,Point(round(event.xdata),round(event.ydata)))
+            target_pos = [round(event.xdata),round(event.ydata)]
             init_target_pos = True
-            plt.scatter([target_pos[0].x], [target_pos[0].y], color='green', marker='o', s=50, label='Target')
-
+            plt.scatter([target_pos[0]], [target_pos[1]], color='green', marker='o', s=50, label='Target')
         if not init_robot_pos:
-            robot_pos = np.append(robot_pos,Point(round(event.xdata),round(event.ydata)))
+            robot_pos = [round(event.xdata),round(event.ydata)]
             init_robot_pos = True
-            plt.scatter([robot_pos[0].x], [robot_pos[0].y], color='black', marker='o', s=50, label='Robot')
+            plt.scatter([robot_pos[0]], [robot_pos[1]], color='black', marker='o', s=50, label='Robot')
 
         plt.draw()
 
@@ -163,6 +168,7 @@ def draw_grid():
     plt.figure(figsize=(workspace_size[0], workspace_size[1]))
 
     im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
+    plt.gca().invert_yaxis()
     plt.title('Occupancy Grid (Left Mouse Button: Draw Occupied Cells)')
     plt.axis('off')  # Turn on axis for grid lines
 
@@ -627,7 +633,8 @@ def reduce_path_with_LoS(path):
 
 '''
 
-if __name__ == "__main__":
+def online_experiments_main():
+    global grid, grid_resolution, grid_size, workspace_size, robot_size, wall_size, robot_pos, target_pos, drawing_brush_size
 
 
     init_grid()
@@ -639,8 +646,8 @@ if __name__ == "__main__":
 
 
     # Add Robot Node to the graph
-    robot_graph.add_node("R",x=robot_pos[0].x, y=robot_pos[0].y, ray_casted = False)
-    target_graph.add_node("G",x=target_pos[0].x, y = target_pos[0].y, ray_casted = False)
+    robot_graph.add_node("R",x=robot_pos[0], y=robot_pos[1], ray_casted = False)
+    target_graph.add_node("G",x=target_pos[0], y = target_pos[1], ray_casted = False)
 
     cant_cast_robot_count = 0
     cant_cast_target_count = 0
@@ -772,3 +779,167 @@ if __name__ == "__main__":
     #----------------------------------------------------------
 
 
+
+
+def offline_experiments_main():
+    global grid, grid_resolution, grid_size, workspace_size, robot_size, wall_size, robot_pos, target_pos, robot_graph,target_graph, drawing_brush_size
+   
+
+
+    print("Running offline experiments")
+    
+    if RUN_ALL_DATASETS:
+        name_list = os.listdir("./GRID/")
+    else:
+        name_list = [file_to_test]
+
+    # Remove file extension from .png
+    name_list = [f.split('.')[0] for f in name_list]
+
+
+    for x in name_list:
+        # Initialize graphs
+        robot_graph  = nx.Graph()
+        target_graph = nx.Graph()
+         
+        # Load Grid
+        grid = np.loadtxt("./CSV/" + x + ".csv", delimiter=",").astype(np.int64)
+        print(os.getcwd() +"/CSV/" + x + ".json")
+
+        with open("CSV/" + x +".json", 'r') as openfile:
+            json_object = json.load(openfile)
+
+
+        # Load Params
+        grid_resolution = json_object['grid_resolution']
+        grid_size = json_object['grid_size']
+        workspace_size = json_object['workspace_size']
+        robot_size = int(json_object['robot_size'])
+        wall_size = int(json_object['wall_size'])
+        
+        robot_pos = [json_object['robot_x'], json_object['robot_y']]
+        target_pos = [json_object['target_x'], json_object['target_y']]
+
+        drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
+
+        init_grid()
+
+        inflate_occupancy_grid(robot_size)
+
+        coverage = 0
+        
+
+        # Add Robot Node to the graph
+        robot_graph.add_node("R",x=robot_pos[0], y=robot_pos[1], ray_casted = False)
+        target_graph.add_node("G",x=target_pos[0], y = target_pos[1], ray_casted = False)
+
+
+        cant_cast_robot_count = 0
+        cant_cast_target_count = 0
+        start_time = time.time()
+
+        while not path_found:
+
+            # Casting Robot Graph
+            for node in list(robot_graph.nodes):
+
+                if not get_casted_flag(robot_graph,node):
+                    casting_x,casting_y = get_node_position(robot_graph,node)
+                    ray_casting_robot(casting_x, casting_y, parent = node)
+                    robot_graph.nodes[node]['ray_casted'] = True
+                    cant_cast_robot_count = 0
+                    break
+
+                else:
+
+                    cant_cast_robot_count += 1
+                    if cant_cast_robot_count == robot_graph.number_of_nodes():
+                        sys.exit("Valid path from robot to goal does not exist")
+                    else: 
+                        continue
+
+            # Casting Target Graph
+            for node in list(target_graph.nodes):
+
+                if not get_casted_flag(target_graph,node):
+                    casting_x,casting_y = get_node_position(target_graph,node)
+                    ray_casting_target(casting_x, casting_y, parent = node)
+                    target_graph.nodes[node]['ray_casted'] = True
+                    cant_cast_target_count = 0
+                    break
+                else:
+
+                    cant_cast_target_count += 1
+
+                    if cant_cast_target_count == target_graph.number_of_nodes():
+                        sys.exit("Valid path from robot to goal does not exist")
+                    else:
+                        continue
+
+
+        # At this point the path is found. TODO: add what to do when there is not a valid path
+
+        # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
+        path = find_shortest_path(robot_graph,target_graph)
+    
+
+
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print("Elapsed Time = ",elapsed_time," (s)")
+
+
+        # --------------------- PLOTTING STAFF
+        #----------------------------------------------------------
+    
+        # PLOT PATH WITH STRAIGHT LINES
+
+        grid = np.where((grid != 0) & (grid != 100), 0, grid) # Remove rays
+        # Create a figure
+        fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
+        im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
+        im.set_data(grid.T)
+        
+
+        plt.title('Smoothed Path')
+        # Convert the path to a NumPy array for easier indexing
+        plt.xlabel('X Coordinate')
+        path = np.array(path)
+        plt.ylabel('Y Coordinate')
+
+        plt.grid(True)
+        # Plot the grid
+        plt.plot(path[:, 0], path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
+        plt.show(block = False)
+
+
+        reduced_path = reduce_path_with_LoS(path)
+
+
+
+        fig3 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
+        im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
+        im.set_data(grid.T)
+        
+
+        plt.title('reduced')
+        # Convert the path to a NumPy array for easier indexing
+        plt.xlabel('X Coordinate')
+        reduced_path = np.array(reduced_path)
+        plt.ylabel('Y Coordinate')
+
+        plt.grid(True)
+        # Plot the grid
+        plt.plot(reduced_path[:, 0], reduced_path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
+        plt.show(block = False)
+
+        input("Press something to Exit")
+
+
+       
+if __name__ == "__main__":
+
+    if offline_experiments:
+        offline_experiments_main()
+    else:
+        online_experiments_main()

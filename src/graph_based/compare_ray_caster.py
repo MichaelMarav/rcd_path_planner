@@ -738,7 +738,7 @@ def main():
             y_path.append(y_i)
 
         #----------------------------------------------------------
-        distance = calc_dist_cell(x_path, y_path)/grid_resolution 
+        distance = calc_dist_cell(x_path, y_path)*grid_resolution 
         #----------------------------------------------------------
 
         # DEFAULT PATH (STRAIGHT LINES)
