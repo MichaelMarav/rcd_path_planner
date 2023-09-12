@@ -16,7 +16,8 @@ Perform two-way ray casting in order to find a path. Cast some N rays from robot
 ## ToDos:
 
 ## Ongoing
-* Change the plots to be nicer for paper (not scatter but plots from start to end point), maybe save them in another format + make title etc bigger
+* Figure out a metric to decide which point to cast next*
+* DESP: Change the plots to be nicer for paper (not scatter but plots from start to end point), maybe save them in another format + make title etc bigger
 * Figure out a way to not stop when the first path is found, but continue
 * <del>Fix xy from upper left to lower left</del>
 * Add condition, when the path is not found to start rotating the source angles
@@ -25,7 +26,6 @@ Perform two-way ray casting in order to find a path. Cast some N rays from robot
 * <del> Create a directed weighted graph from the intesections of the ray beams </del>
 * <del> Find the shortest path between robot and goal (number of points) </del>
 * Find path from these points: Spline Smoothing or smthing 
-* Figure out a metric to decide which point to cast next*
 * <del>Make the ray beam have the size of the robot and find a way if one part of the beam is stack what happens (Change the cmap value in plt.imshow())</del>
 * <del> Add diffusion </del> 
 * <del> Add condition to stop(when robot_beam finds the goal beam) </del>
