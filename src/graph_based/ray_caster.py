@@ -40,7 +40,7 @@ target_pos     = [0,0]
 robot_pos      = [0,0]
 visited_robot  = np.empty(0,dtype=object)
 visited_target = np.empty(0,dtype=object)
-
+coverage = 0
 
 
 grid         = np.zeros(grid_size)
@@ -312,7 +312,7 @@ def split_edge(graph,new_node,x,y):
 # Ray casting from parent node and create childs and directed edges
 def ray_casting_robot(x,y,parent):
 
-    global path_found, visited_robot, robot_graph, grid, grid_edge_id, target_graph
+    global path_found, visited_robot, robot_graph, grid, grid_edge_id, target_graph,coverage
     child_id = 1
     edge_name = ""
 
@@ -342,7 +342,7 @@ def ray_casting_robot(x,y,parent):
         # Propagates ray until 1. Ray hits wall 2. Ray hits another ray 3. Robot Ray and Goal ray are connected (path found)
         while not stop_beam and not path_found:
             dis += 1
-
+            coverage += 1
             beam_x = int(math.ceil(x + dis * np.cos(angle_rad)))
             beam_y = int(math.ceil(y + dis * np.sin(angle_rad)))
 
@@ -437,7 +437,7 @@ def ray_casting_robot(x,y,parent):
 # Ray casting from parent node and create childs and directed edges
 def ray_casting_target(x,y,parent):
 
-    global path_found, visited_target, target_graph, grid, grid_edge_id, robot_graph
+    global path_found, visited_target, target_graph, grid, grid_edge_id, robot_graph,coverage
 
 
     child_id = 1
@@ -470,7 +470,7 @@ def ray_casting_target(x,y,parent):
         # Propagates ray until 1. Ray hits wall 2. Ray hits another ray 3. Robot Ray and Goal ray are connected (path found)
         while not stop_beam and not path_found:
             dis += 1
-
+            coverage += 1
             beam_x = int(math.ceil(x + dis * np.cos(angle_rad)))
             beam_y = int(math.ceil(y + dis * np.sin(angle_rad)))
 
@@ -627,9 +627,23 @@ def reduce_path_with_LoS(path):
     reduced_path.append(list(path[-1]))
     return reduced_path
 
+
+
+'''
+@ Name calculate_path_distance: Finds the distance traveled at the produced path
+
+'''
+def calculate_path_distance(path):
+    print(path)
+    distance = 0 
+    for p in range(len(path)-1):
+        distance += math.sqrt((path[p][0]-path[p+1][0])**2 +(path[p][1]-path[p+1][1])**2) 
+    return distance
+
+
 '''
 --------------------------------------------------------------------------------------------
-                                            MAIN
+                                            ONLINE MAIN
 --------------------------------------------------------------------------------------------
 
 '''
@@ -785,9 +799,15 @@ def online_experiments_main():
 
 
 
+'''
+--------------------------------------------------------------------------------------------
+                                            OFFLINE MAIN
+--------------------------------------------------------------------------------------------
+
+'''
 
 def offline_experiments_main():
-    global grid, grid_resolution, grid_size, workspace_size, robot_size, wall_size, robot_pos, target_pos, robot_graph, target_graph, grid_edge_id, visited_robot, visited_target, path_found
+    global grid, grid_resolution, grid_size, workspace_size, robot_size, wall_size, robot_pos, target_pos, robot_graph, target_graph, grid_edge_id, visited_robot, visited_target, path_found, coverage
     
 
     print("Running offline experiments")
@@ -889,13 +909,31 @@ def offline_experiments_main():
         # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
         path = find_shortest_path(robot_graph,target_graph)
 
+        reduced_path = reduce_path_with_LoS(path)
 
         end_time = time.time()
         elapsed_time = end_time - start_time
         print("Elapsed Time = ",elapsed_time," (s)")
 
 
-        # --------------------- PLOTTING STAFF
+
+
+
+        # --------------------- SAVING STAFF --------------------
+        #----------------------------------------------------------
+        # Calculate traveled distance
+        distance = calculate_path_distance(reduced_path)
+        path_in_meters =[[element * grid_resolution for element in row] for row in reduced_path]
+    
+        np.savetxt("./Solutions/RayCaster_solution/"+ x +"_path.txt", path_in_meters, delimiter=",")
+        solution = { 'duration' : elapsed_time, 'distance': distance,  'coverage' : coverage}
+    
+        with open("./Solutions/RayCaster_solution/"+ x + ".json", 'w') as convert_file:
+            convert_file.write(json.dumps(solution))
+
+        
+
+        # --------------------- PLOTTING STAFF --------------------
         #----------------------------------------------------------
     
         # PLOT PATH WITH STRAIGHT LINES
@@ -920,7 +958,6 @@ def offline_experiments_main():
         plt.show(block = False)
 
 
-        reduced_path = reduce_path_with_LoS(path)
 
 
 
@@ -941,9 +978,10 @@ def offline_experiments_main():
         # Plot the grid
         plt.plot(reduced_path[:, 0], reduced_path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
         plt.show(block = False)
+        fig3.savefig('./Solutions/RayCaster_solution/'+ x + '.png')
 
         input("Press something to Exit")
-
+        plt.close()
 
        
 if __name__ == "__main__":
