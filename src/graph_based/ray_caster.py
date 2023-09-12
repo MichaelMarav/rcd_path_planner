@@ -561,7 +561,7 @@ def ray_casting_target(x,y,parent):
 Finds the shortest path in both graphs (from R to F and from G to F) and constructs a way point path
 '''
 def find_shortest_path(robot_graph,target_graph):
-    shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F")
+    shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F", weight='weight')
     x_path = []
     y_path = []
     for name in shortest_robot:
@@ -570,7 +570,7 @@ def find_shortest_path(robot_graph,target_graph):
         y_path.append(y_i)
 
 
-    shortest_target = nx.shortest_path(target_graph,source = "G",target = "F")
+    shortest_target = nx.shortest_path(target_graph,source = "G",target = "F",weight='weight')
     shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
     shortest_target.pop(0) # Remove the common node from robot and target path
     
@@ -640,6 +640,7 @@ def online_experiments_main():
     init_grid()
 
     draw_grid()
+   
 
     inflate_occupancy_grid(robot_size)
     
@@ -739,7 +740,8 @@ def online_experiments_main():
     fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
     im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
     im.set_data(grid.T)
-    
+    plt.gca().invert_yaxis()
+
 
     plt.title('Smoothed Path')
     # Convert the path to a NumPy array for easier indexing
@@ -771,6 +773,8 @@ def online_experiments_main():
     plt.grid(True)
     # Plot the grid
     plt.plot(reduced_path[:, 0], reduced_path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
+    plt.gca().invert_yaxis()
+
     plt.show(block = False)
 
 
@@ -899,7 +903,8 @@ def offline_experiments_main():
         fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
         im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
         im.set_data(grid.T)
-        
+        plt.gca().invert_yaxis()
+
 
         plt.title('Smoothed Path')
         # Convert the path to a NumPy array for easier indexing
@@ -919,6 +924,8 @@ def offline_experiments_main():
 
         fig3 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
         im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
+        plt.gca().invert_yaxis()
+
         im.set_data(grid.T)
         
 
