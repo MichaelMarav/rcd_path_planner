@@ -13,7 +13,9 @@ import time
 
 # Hyperparams
 real_time_plotting = False
-draw_edge_split = True
+draw_edge_split = False
+random_source_dir = True
+
 
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
@@ -181,28 +183,6 @@ def draw_grid():
     return
 #----------------------------------------------------------------------
 
-# def inflate_occupancy_grid(robot_size):
-#     global wall_size, grid
-#     inflated_grid = np.copy(grid)
-#     robot_radius = int((robot_size // 2)/grid_resolution)
-
-#     height, width = grid.shape
-
-#     for x in range(wall_size, height - wall_size):
-#         for y in range(wall_size, width - wall_size):
-#             if grid[x, y] == 100:  # Check if the cell is occupied
-#                 for i in range(-robot_radius, robot_radius + 1):
-#                     for j in range(-robot_radius, robot_radius + 1):
-#                         if (
-#                             x + i >= 0
-#                             and x + i < height
-#                             and y + j >= 0
-#                             and y + j < width
-#                             and (i != 0 or j != 0)
-#                         ):
-#                             inflated_grid[x + i, y + j] = 100
-
-#     return inflated_grid
 
 
 '''
@@ -330,8 +310,9 @@ def ray_casting_robot(x,y,parent):
 
 
     angle_list = np.arange(0,360,int(360/num_beams))
-    random_rotation_bias = random.randint(0, 180) # Spin the orientation of the beams
-    angle_list += random_rotation_bias
+    if random_source_dir:
+        random_rotation_bias = random.randint(0, 180) # Spin the orientation of the beams
+        angle_list += random_rotation_bias
 
 
     for angle in angle_list: 
@@ -454,8 +435,12 @@ def ray_casting_target(x,y,parent):
     edge_name = ""
 
     angle_list = np.arange(0,360,int(360/num_beams))
-    random_rotation_bias = random.randint(0, 180) # Spin the orientation of the beams
-    angle_list += random_rotation_bias
+
+
+    if random_source_dir:
+        random_rotation_bias = random.randint(0, 180) # Spin the orientation of the beams
+        angle_list += random_rotation_bias
+
 
     for angle in angle_list: 
 
@@ -600,16 +585,10 @@ if __name__ == "__main__":
 
     inflate_occupancy_grid(robot_size)
     
-    fig2 = plt.figure(figsize=(workspace_size[0], workspace_size[1]))
-    im.set_data(grid.T)
-
-    im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
-    plt.show()
-    
 
 
     # Add Robot Node to the graph
-    robot_graph.add_node("R",x=robot_pos[0].x,y=robot_pos[0].y, ray_casted = False)
+    robot_graph.add_node("R",x=robot_pos[0].x, y=robot_pos[0].y, ray_casted = False)
     target_graph.add_node("G",x=target_pos[0].x, y = target_pos[0].y, ray_casted = False)
 
     cant_cast_robot_count = 0
@@ -627,6 +606,7 @@ if __name__ == "__main__":
                 ray_casting_robot(casting_x, casting_y, parent = node)
                 robot_graph.nodes[node]['ray_casted'] = True
                 cant_cast_robot_count = 0
+                break
 
             else:
 
@@ -644,6 +624,7 @@ if __name__ == "__main__":
                 ray_casting_target(casting_x, casting_y, parent = node)
                 target_graph.nodes[node]['ray_casted'] = True
                 cant_cast_target_count = 0
+                break
             else:
 
                 cant_cast_target_count += 1
