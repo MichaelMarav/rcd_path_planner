@@ -16,6 +16,7 @@ Perform two-way ray casting in order to find a path. Cast some N rays from robot
 ## ToDos:
 
 ## Ongoing
+* Fix the line of sight to work prorperly
 * <del> Add multiple LoS optimization of the path</del>
 * Figure out a metric to decide which point to cast next
 * DESP: Change the plots to be nicer for paper (not scatter but plots from start to end point), maybe save them in another format + make title etc bigger

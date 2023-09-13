@@ -638,7 +638,7 @@ def reduce_path_with_LoS(path):
 
     reduced_path = [list(path[0])]
     c = 0
-    p = 2
+    p = 1
 
     while  p < len(path):
         curr_point = path[c]
@@ -652,6 +652,26 @@ def reduce_path_with_LoS(path):
             p+=1 
         else:
             p += 1
+     
+        # if collision_flag:
+        #     # GO BACK
+        #     c = p - 1
+        #     colision_flag = False
+        #     while True:
+        #         curr_point = path[c]
+        #         collision_flag = check_collision(curr_point,next_point)
+        #         if collision_flag:
+        #             reduced_path.append(list(path[c+1]))
+        #             c = c + 1
+        #             p = c + 1
+        #             break
+        #         else: 
+        #             c = c - 1
+
+        # else:
+        #     p += 1
+
+
     reduced_path.append(list(path[-1]))
     return reduced_path
 
@@ -729,9 +749,6 @@ def online_experiments_main():
 
     while not path_found:
 
-
-
-
         # Do Low-Variance Resampling to figure out which node to cast next. After the path is found do low variance resampling but with diagonal - weight
 
         
@@ -748,12 +765,12 @@ def online_experiments_main():
                 
 
             else:
-
-                cant_cast_robot_count += 1
-                if cant_cast_robot_count == robot_graph.number_of_nodes():
-                    sys.exit("Valid path from robot to goal does not exist")
-                else: 
-                   continue
+                pass
+                # cant_cast_robot_count += 1
+                # if cant_cast_robot_count == robot_graph.number_of_nodes():
+                #     sys.exit("Valid path from robot to goal does not exist")
+                # else: 
+                #    continue
 
         # Casting Target Graph
         # for node in list(target_graph.nodes):   
@@ -767,15 +784,18 @@ def online_experiments_main():
                 cant_cast_target_count = 0
                 
             else:
+                pass
+                # cant_cast_target_count += 1
 
-                cant_cast_target_count += 1
+                # if cant_cast_target_count == target_graph.number_of_nodes():
+                #     sys.exit("Valid path from robot to goal does not exist")
+                # else:
+                #     continue
 
-                if cant_cast_target_count == target_graph.number_of_nodes():
-                    sys.exit("Valid path from robot to goal does not exist")
-                else:
-                    continue
-
-
+        
+        if path_found:
+            # Change every weight of the edge to max_distance - current weight
+            pass
 
         if real_time_plotting:
             target_beam_indices = np.where(grid == 40)
@@ -802,20 +822,24 @@ def online_experiments_main():
     elapsed_time = end_time - start_time
     print("Elapsed Time = ",elapsed_time," (s) | Coverage = ", coverage)
 
+    new_path = generate_samples(reduced_path)
 
-    prev_distance = calculate_path_distance(reduced_path)
+    reduced_path = reduce_path_with_LoS(new_path)
 
-    while True:
-        new_path = generate_samples(reduced_path)
 
-        reduced_path = reduce_path_with_LoS(new_path)
+    # prev_distance = calculate_path_distance(reduced_path)
 
-        curr_distance = calculate_path_distance(reduced_path)
-        if abs(curr_distance-prev_distance) < 2:
-            break
-        else:
-            prev_distance = curr_distance
-            print("Optimized path")
+    # while True:
+    #     new_path = generate_samples(reduced_path)
+
+    #     reduced_path = reduce_path_with_LoS(new_path)
+
+    #     curr_distance = calculate_path_distance(reduced_path)
+    #     if abs(curr_distance-prev_distance) < 2:
+    #         break
+    #     else:
+    #         prev_distance = curr_distance
+    #         print("Optimized path")
 
 
     # --------------------- PLOTTING STAFF
@@ -1003,8 +1027,6 @@ def offline_experiments_main():
         end_time = time.time()
         elapsed_time = end_time - start_time
         print("Elapsed Time = ",elapsed_time," (s)")
-
-
 
 
         prev_distance = calculate_path_distance(reduced_path)
