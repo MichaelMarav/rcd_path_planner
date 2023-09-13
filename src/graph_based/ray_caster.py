@@ -61,6 +61,7 @@ target_graph = nx.Graph()
 os.chdir("../../Data/")
 # print(os.getcwd())
 RUN_ALL_DATASETS = True
+SAVE_RESULTS = True
 file_to_test = '4.png'  # Taken into account only if RUN_ALL_DATASETS = False
 
 
@@ -726,7 +727,7 @@ def low_variance_resampling(graph):
 '''
 
 def online_experiments_main():
-    global grid, grid_resolution, grid_size, workspace_size, robot_size, wall_size, robot_pos, target_pos, drawing_brush_size
+    global grid, grid_resolution, grid_size, workspace_size, robot_size, wall_size, robot_pos, target_pos, path_found, drawing_brush_size
 
 
     init_grid()
@@ -792,20 +793,53 @@ def online_experiments_main():
                 # else:
                 #     continue
 
+
+            if real_time_plotting:
+                target_beam_indices = np.where(grid == 40)
+                plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
+
+                robot_beam_indices = np.where(grid == 80)
+                plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
+
+                plt.pause(0.1)  # Pause to allow time for updates to be shown
+                input("Press Enter to Continue...")
+    '''
+    This part for finding the optimal path
+    if path_found:
+        # Change every weight of the edge to max_distance - current weight
+        max_distance = math.sqrt(grid_size[0]**2 + grid_size[1]**2)
         
-        if path_found:
-            # Change every weight of the edge to max_distance - current weight
-            pass
+        # Invert the weights
+        for u, v, data in robot_graph.edges(data=True):
+            data['weight'] = max_distance - data['weight']
 
-        if real_time_plotting:
-            target_beam_indices = np.where(grid == 40)
-            plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
+        for u, v, data in target_graph.edges(data=True):
+            data['weight'] = max_distance - data['weight']
 
-            robot_beam_indices = np.where(grid == 80)
-            plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
+        path_found = False        
+        while not path_found:
 
-            plt.pause(0.1)  # Pause to allow time for updates to be shown
-            input("Press Enter to Continue...")
+            for i in range(robot_graph.number_of_nodes()):
+                node = low_variance_resampling(robot_graph)
+
+                if not get_casted_flag(robot_graph,node):
+                    casting_x,casting_y = get_node_position(robot_graph,node)
+                    ray_casting_robot(casting_x, casting_y, parent = node)
+                    robot_graph.nodes[node]['ray_casted'] = True
+                    cant_cast_robot_count = 0
+                    
+
+            # Casting Target Graph
+            # for node in list(target_graph.nodes):   
+            for i in range(target_graph.number_of_nodes()):
+                node = low_variance_resampling(target_graph)
+
+                if not get_casted_flag(target_graph,node):
+                    casting_x,casting_y = get_node_position(target_graph,node)
+                    ray_casting_target(casting_x, casting_y, parent = node)
+                    target_graph.nodes[node]['ray_casted'] = True
+                    cant_cast_target_count = 0
+    '''
 
 
     # At this point the path is found. TODO: add what to do when there is not a valid path
@@ -818,13 +852,15 @@ def online_experiments_main():
 
     reduced_path = reduce_path_with_LoS(path)
 
+    new_path = generate_samples(reduced_path)
+
+    reduced_path = reduce_path_with_LoS(new_path)
+
+    
     end_time = time.time()
     elapsed_time = end_time - start_time
     print("Elapsed Time = ",elapsed_time," (s) | Coverage = ", coverage)
 
-    new_path = generate_samples(reduced_path)
-
-    reduced_path = reduce_path_with_LoS(new_path)
 
 
     # prev_distance = calculate_path_distance(reduced_path)
@@ -979,7 +1015,9 @@ def offline_experiments_main():
         while not path_found:
 
             # Casting Robot Graph
-            for node in list(robot_graph.nodes):
+            for i in range(robot_graph.number_of_nodes()):
+                node = low_variance_resampling(robot_graph)
+
                 if not get_casted_flag(robot_graph,node):
                     casting_x,casting_y = get_node_position(robot_graph,node)
                     ray_casting_robot(casting_x, casting_y, parent = node)
@@ -988,15 +1026,16 @@ def offline_experiments_main():
                     
 
                 else:
-
-                    cant_cast_robot_count += 1
-                    if cant_cast_robot_count == robot_graph.number_of_nodes():
-                        sys.exit("Valid path from robot to goal does not exist")
-                    else: 
-                        continue
+                    pass
+                    # cant_cast_robot_count += 1
+                    # if cant_cast_robot_count == robot_graph.number_of_nodes():
+                    #     sys.exit("Valid path from robot to goal does not exist")
+                    # else: 
+                    #     continue
 
             # Casting Target Graph
-            for node in list(target_graph.nodes):
+            for i in range(target_graph.number_of_nodes()):
+                node = low_variance_resampling(target_graph)
 
                 if not get_casted_flag(target_graph,node):
                     casting_x,casting_y = get_node_position(target_graph,node)
@@ -1005,13 +1044,13 @@ def offline_experiments_main():
                     cant_cast_target_count = 0
                     
                 else:
+                    pass
+                    # cant_cast_target_count += 1
 
-                    cant_cast_target_count += 1
-
-                    if cant_cast_target_count == target_graph.number_of_nodes():
-                        sys.exit("Valid path from robot to goal does not exist")
-                    else:
-                        continue
+                    # if cant_cast_target_count == target_graph.number_of_nodes():
+                    #     sys.exit("Valid path from robot to goal does not exist")
+                    # else:
+                    #     continue
 
 
         # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
@@ -1023,38 +1062,27 @@ def offline_experiments_main():
         reduced_path = reduce_path_with_LoS(path)
 
 
+        new_path = generate_samples(reduced_path)
+
+        reduced_path = reduce_path_with_LoS(new_path)
 
         end_time = time.time()
         elapsed_time = end_time - start_time
         print("Elapsed Time = ",elapsed_time," (s)")
 
 
-        prev_distance = calculate_path_distance(reduced_path)
-
-        while True:
-            new_path = generate_samples(reduced_path)
-
-            reduced_path = reduce_path_with_LoS(new_path)
-
-            curr_distance = calculate_path_distance(reduced_path)
-            if abs(curr_distance-prev_distance) < 2:
-                break
-            else:
-                prev_distance = curr_distance
-                print("Optimized path")
-
-
         # --------------------- SAVING STAFF --------------------
         #----------------------------------------------------------
         # Calculate traveled distance
-        distance = calculate_path_distance(reduced_path)
-        path_in_meters =[[element * grid_resolution for element in row] for row in reduced_path]
-    
-        np.savetxt("./Solutions/RayCaster_solution/"+ x +"_path.txt", path_in_meters, delimiter=",")
-        solution = { 'duration' : elapsed_time, 'distance': distance,  'coverage' : coverage}
-    
-        with open("./Solutions/RayCaster_solution/"+ x + ".json", 'w') as convert_file:
-            convert_file.write(json.dumps(solution))
+        if SAVE_RESULTS:
+            distance = calculate_path_distance(reduced_path)
+            path_in_meters =[[element * grid_resolution for element in row] for row in reduced_path]
+        
+            np.savetxt("./Solutions/RayCaster_solution/"+ x +"_path.txt", path_in_meters, delimiter=",")
+            solution = { 'duration' : elapsed_time, 'distance': distance,  'coverage' : coverage}
+        
+            with open("./Solutions/RayCaster_solution/"+ x + ".json", 'w') as convert_file:
+                convert_file.write(json.dumps(solution))
 
         
 
