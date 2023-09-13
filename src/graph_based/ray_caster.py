@@ -592,7 +592,7 @@ def find_shortest_path(robot_graph,target_graph):
 Generates samples on the initial path in order to perform LoS next
 '''
 def generate_samples(path):
-    global robot_size, grid_resolution
+    global robot_size, grid_resolution, grid
     generated_path = []
     for p in range(len(path)-1):
         new_point = list(path[p])
@@ -607,7 +607,9 @@ def generate_samples(path):
         while dis < distance_between_points:
             x_p = int(math.ceil(curr_point[0] + dis * np.cos(angle)))
             y_p = int(math.ceil(curr_point[1] + dis * np.sin(angle)))
-            dis += robot_size/grid_resolution
+            dis += 2
+            if (grid[x_p,y_p] == 100):
+                continue
             generated_path.append([x_p,y_p])
 
     return generated_path
@@ -636,7 +638,7 @@ def reduce_path_with_LoS(path):
 
     reduced_path = [list(path[0])]
     c = 0
-    p = 2
+    p = 1
 
     while  p < len(path):
         curr_point = path[c]
@@ -659,7 +661,6 @@ def reduce_path_with_LoS(path):
 
 '''
 def calculate_path_distance(path):
-    print(path)
     distance = 0 
     for p in range(len(path)-1):
         distance += math.sqrt((path[p][0]-path[p+1][0])**2 +(path[p][1]-path[p+1][1])**2) 
@@ -750,10 +751,6 @@ def online_experiments_main():
 
     # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
     path = find_shortest_path(robot_graph,target_graph)
-   
-
-    # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
-    path = find_shortest_path(robot_graph,target_graph)
 
     # Generate new samples
     path = generate_samples(path)
@@ -762,9 +759,22 @@ def online_experiments_main():
 
     end_time = time.time()
     elapsed_time = end_time - start_time
-    print("Elapsed Time = ",elapsed_time," (s)")
+    print("Elapsed Time = ",elapsed_time," (s) | Coverage = ", coverage)
 
 
+    prev_distance = calculate_path_distance(reduced_path)
+
+    while True:
+        new_path = generate_samples(reduced_path)
+
+        reduced_path = reduce_path_with_LoS(new_path)
+
+        curr_distance = calculate_path_distance(reduced_path)
+        if abs(curr_distance-prev_distance) < 2:
+            break
+        else:
+            prev_distance = curr_distance
+            print("Optimized path")
 
 
     # --------------------- PLOTTING STAFF
@@ -947,12 +957,28 @@ def offline_experiments_main():
 
         reduced_path = reduce_path_with_LoS(path)
 
+
+
         end_time = time.time()
         elapsed_time = end_time - start_time
         print("Elapsed Time = ",elapsed_time," (s)")
 
 
 
+
+        prev_distance = calculate_path_distance(reduced_path)
+
+        while True:
+            new_path = generate_samples(reduced_path)
+
+            reduced_path = reduce_path_with_LoS(new_path)
+
+            curr_distance = calculate_path_distance(reduced_path)
+            if abs(curr_distance-prev_distance) < 2:
+                break
+            else:
+                prev_distance = curr_distance
+                print("Optimized path")
 
 
         # --------------------- SAVING STAFF --------------------

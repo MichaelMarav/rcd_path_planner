@@ -16,7 +16,8 @@ Perform two-way ray casting in order to find a path. Cast some N rays from robot
 ## ToDos:
 
 ## Ongoing
-* Figure out a metric to decide which point to cast next*
+* <del> Add multiple LoS optimization of the path</del>
+* Figure out a metric to decide which point to cast next
 * DESP: Change the plots to be nicer for paper (not scatter but plots from start to end point), maybe save them in another format + make title etc bigger
 * Figure out a way to not stop when the first path is found, but continue
 * <del>Fix xy from upper left to lower left</del>
