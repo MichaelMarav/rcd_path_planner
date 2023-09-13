@@ -638,7 +638,7 @@ def reduce_path_with_LoS(path):
 
     reduced_path = [list(path[0])]
     c = 0
-    p = 1
+    p = 2
 
     while  p < len(path):
         curr_point = path[c]
@@ -665,6 +665,37 @@ def calculate_path_distance(path):
     for p in range(len(path)-1):
         distance += math.sqrt((path[p][0]-path[p+1][0])**2 +(path[p][1]-path[p+1][1])**2) 
     return distance
+
+
+def low_variance_resampling(graph):
+    # Create a dictionary to store cumulative weights for each node
+    cumulative_weights = {}
+    
+    # Calculate cumulative weights for all nodes
+    for node in graph.nodes():
+        neighbors = list(graph.neighbors(node))
+        if not neighbors:
+            cumulative_weights[node] = 0.0
+        else:
+            cumulative_weights[node] = sum(graph[node][neighbor]['weight'] for neighbor in neighbors)
+    
+    # Calculate the total weight of the entire graph
+    total_weight = sum(cumulative_weights.values())
+    
+    # Generate a random number between 0 and the total weight
+    random_value = random.uniform(0, total_weight)
+    
+    # Find the node whose cumulative weight encompasses the random value
+    selected_node = None
+    cumulative_weight_sum = 0.0
+    for node, cumulative_weight in cumulative_weights.items():
+        cumulative_weight_sum += cumulative_weight
+        if random_value <= cumulative_weight_sum:
+            selected_node = node
+            break
+    
+    return selected_node
+
 
 
 '''
@@ -698,8 +729,16 @@ def online_experiments_main():
 
     while not path_found:
 
+
+
+
+        # Do Low-Variance Resampling to figure out which node to cast next. After the path is found do low variance resampling but with diagonal - weight
+
+        
         # Casting Robot Graph
-        for node in list(robot_graph.nodes):
+        # for node in list(robot_graph.nodes):
+        for i in range(robot_graph.number_of_nodes()):
+            node = low_variance_resampling(robot_graph)
 
             if not get_casted_flag(robot_graph,node):
                 casting_x,casting_y = get_node_position(robot_graph,node)
@@ -717,7 +756,9 @@ def online_experiments_main():
                    continue
 
         # Casting Target Graph
-        for node in list(target_graph.nodes):
+        # for node in list(target_graph.nodes):   
+        for i in range(target_graph.number_of_nodes()):
+            node = low_variance_resampling(target_graph)
 
             if not get_casted_flag(target_graph,node):
                 casting_x,casting_y = get_node_position(target_graph,node)
