@@ -3,6 +3,8 @@ from re import T
 import numpy as np
 import matplotlib
 matplotlib.use('TkAgg')
+matplotlib.rcParams['font.size'] = 16  # Choose your desired font size
+
 import matplotlib.pyplot as plt
 import math
 import networkx as nx
@@ -19,8 +21,8 @@ offline_experiments = False
 
 # Hyperparams
 real_time_plotting = False
-draw_edge_split = False
-random_source_dir = False
+draw_edge_split    = False
+random_source_dir  = False
 
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
@@ -63,7 +65,6 @@ os.chdir("../../Data/")
 RUN_ALL_DATASETS = True
 SAVE_RESULTS = True
 file_to_test = '4.png'  # Taken into account only if RUN_ALL_DATASETS = False
-
 
 # Objects
 class Point:
@@ -154,11 +155,11 @@ def set_goal_robot(event):
         if not init_target_pos and init_robot_pos:
             target_pos = [round(event.xdata),round(event.ydata)]
             init_target_pos = True
-            plt.scatter([target_pos[0]], [target_pos[1]], color='green', marker='o', s=50, label='Target')
+            plt.scatter([target_pos[0]], [target_pos[1]], color='green', marker='o', s=80, label='Target', zorder=2)
         if not init_robot_pos:
             robot_pos = [round(event.xdata),round(event.ydata)]
             init_robot_pos = True
-            plt.scatter([robot_pos[0]], [robot_pos[1]], color='black', marker='o', s=50, label='Robot')
+            plt.scatter([robot_pos[0]], [robot_pos[1]], color='black', marker='o', s=80, label='Robot', zorder=2)
 
         plt.draw()
 
@@ -170,7 +171,7 @@ def draw_grid():
 
     im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
     plt.gca().invert_yaxis()
-    plt.title('Occupancy Grid (Left Mouse Button: Draw Occupied Cells)')
+    plt.title('Occupancy Grid')
     plt.axis('off')  # Turn on axis for grid lines
 
     # # Connect the mouse events
@@ -366,7 +367,8 @@ def ray_casting_robot(x,y,parent):
 
                     visited_robot  = np.append(visited_robot,Point(prev_x,prev_y)) # Save the places that the robot has visited
                     if not offline_experiments:
-                        plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
+                        plt.scatter([beam_x], [beam_y], color='red', marker='o', s=30, label='Collision Points', zorder =2 )
+                        # plt.plot([robot_pos[0],visited_robot[-1].x],[robot_pos[1],visited_robot[-1].y] , color='b', label = "Robot Rays",zorder = 1)
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
             elif (grid[beam_x,beam_y] == 80 or grid[beam_x-1,beam_y] == 80 or grid[beam_x+1,beam_y] == 80 or grid[beam_x,beam_y+1] == 80 or grid[beam_x,beam_y-1] == 80):
@@ -492,7 +494,10 @@ def ray_casting_target(x,y,parent):
 
                     visited_target  = np.append(visited_target,Point(prev_x,prev_y)) # Save the places that the robot has visited
                     if not offline_experiments:
-                        plt.scatter([prev_x], [prev_y], color='red', marker='o', s=20, label='Robot')
+                        plt.scatter([beam_x], [beam_y], color='red', marker='o', s=30, label='Collision Points', zorder =2 )
+                        # plt.plot([target_pos[0],visited_target[-1].x],[target_pos[1],visited_target[-1].y] , color='purple',label ="Target rays",zorder=1)
+
+
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
             elif (grid[beam_x,beam_y] == 40 or grid[beam_x-1,beam_y] == 40 or grid[beam_x+1,beam_y] == 40 or grid[beam_x,beam_y+1] == 40 or grid[beam_x,beam_y-1] == 40):
@@ -795,12 +800,13 @@ def online_experiments_main():
 
 
             if real_time_plotting:
+
                 target_beam_indices = np.where(grid == 40)
+
                 plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
 
                 robot_beam_indices = np.where(grid == 80)
                 plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
-
                 plt.pause(0.1)  # Pause to allow time for updates to be shown
                 input("Press Enter to Continue...")
     '''
@@ -848,13 +854,13 @@ def online_experiments_main():
     path = find_shortest_path(robot_graph,target_graph)
 
     # Generate new samples
-    path = generate_samples(path)
-
-    reduced_path = reduce_path_with_LoS(path)
-
-    new_path = generate_samples(reduced_path)
+    new_path = generate_samples(path)
 
     reduced_path = reduce_path_with_LoS(new_path)
+
+    # new_path = generate_samples(reduced_path)
+
+    # reduced_path = reduce_path_with_LoS(new_path)
 
     
     end_time = time.time()
