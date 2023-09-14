@@ -20,7 +20,7 @@ import json
 offline_experiments = False
 
 # Hyperparams
-real_time_plotting = False
+real_time_plotting = True
 draw_edge_split    = False
 random_source_dir  = False
 
@@ -119,12 +119,25 @@ Utility functions for drawing
 def draw_obstacles(grid, position, drawing_brush_size):
     cell_position = (round(position[0]),round(position[1]))
     half_brush = drawing_brush_size // 2
-    for i in range(-half_brush, half_brush + 1):
-        for j in range(-half_brush, half_brush + 1):
-            x = int(cell_position[0] + i)
-            y = int(cell_position[1] + j)
-            if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                grid[x, y] = 100
+
+    # for testing 
+    
+    for x in range(10,400):
+        for y in range(140,160):
+            for i in range(-half_brush, half_brush + 1):
+                for j in range(-half_brush, half_brush + 1):
+                    # x = int(cell_position[0] + i)
+                    # y = int(cell_position[1] + j)
+                    if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                        grid[x, y] = 100
+    for x in range(240,260):
+            for y in range(210,290):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
 
 
 def on_press(event):
@@ -153,13 +166,13 @@ def set_goal_robot(event):
     global robot_pos,target_pos
     if event.xdata is not None and event.ydata is not None:
         if not init_target_pos and init_robot_pos:
-            target_pos = [round(event.xdata),round(event.ydata)]
+            target_pos = [93,80]#[round(event.xdata),round(event.ydata)]
             init_target_pos = True
             plt.scatter([target_pos[0]], [target_pos[1]], color='green', marker='o', s=80, label='Target', zorder=2)
         if not init_robot_pos:
-            robot_pos = [round(event.xdata),round(event.ydata)]
+            robot_pos = [93,223]#[round(event.xdata),round(event.ydata)]
             init_robot_pos = True
-            plt.scatter([robot_pos[0]], [robot_pos[1]], color='black', marker='o', s=80, label='Robot', zorder=2)
+            plt.scatter([robot_pos[0]], [robot_pos[1]], color='blue', marker='o', s=80, label='Robot', zorder=2)
 
         plt.draw()
 
@@ -367,7 +380,9 @@ def ray_casting_robot(x,y,parent):
 
                     visited_robot  = np.append(visited_robot,Point(prev_x,prev_y)) # Save the places that the robot has visited
                     if not offline_experiments:
-                        plt.scatter([beam_x], [beam_y], color='red', marker='o', s=30, label='Collision Points', zorder =2 )
+                        plt.plot([x,prev_x], [y,prev_y], c = 'b',zorder = 1)
+
+                        plt.scatter([prev_x], [prev_y], color='red', marker='o', s=50, label='Collision Points', zorder =2 )
                         # plt.plot([robot_pos[0],visited_robot[-1].x],[robot_pos[1],visited_robot[-1].y] , color='b', label = "Robot Rays",zorder = 1)
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
@@ -395,7 +410,9 @@ def ray_casting_robot(x,y,parent):
 
 
                     if not offline_experiments:
-                        plt.scatter(intersect_point_x,intersect_point_y,s = 20, color = 'purple')
+                        plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'b', zorder  = 1)
+
+                        plt.scatter(intersect_point_x,intersect_point_y,s = 50, color = 'purple', zorder = 3)
 
                     visited_robot  = np.append(visited_robot,Point(intersect_point_x,intersect_point_y))
             
@@ -422,7 +439,8 @@ def ray_casting_robot(x,y,parent):
 
                     split_edge(target_graph, child_name, intersect_point_x, intersect_point_y)
                     if not offline_experiments:
-                        plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
+                        plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'b', zorder = 1)
+                        plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'black',zorder = 2)
             else:
                 indexes_to_change.append([beam_x,beam_y])
             
@@ -494,7 +512,9 @@ def ray_casting_target(x,y,parent):
 
                     visited_target  = np.append(visited_target,Point(prev_x,prev_y)) # Save the places that the robot has visited
                     if not offline_experiments:
-                        plt.scatter([beam_x], [beam_y], color='red', marker='o', s=30, label='Collision Points', zorder =2 )
+                        plt.plot([x,prev_x], [y,prev_y], c = 'g', zorder = 1)
+
+                        plt.scatter([prev_x], [prev_y], color='red', marker='o', s=50, label='Collision Points', zorder = 3 )
                         # plt.plot([target_pos[0],visited_target[-1].x],[target_pos[1],visited_target[-1].y] , color='purple',label ="Target rays",zorder=1)
 
 
@@ -524,7 +544,8 @@ def ray_casting_target(x,y,parent):
 
 
                     if not offline_experiments:
-                        plt.scatter(intersect_point_x,intersect_point_y,s = 20, color = 'purple')
+                        plt.scatter(intersect_point_x,intersect_point_y,s = 50, color = 'purple')
+                        plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'g', zorder = 1)
 
                     visited_target = np.append(visited_target, Point(intersect_point_x,intersect_point_y))
             
@@ -548,13 +569,15 @@ def ray_casting_target(x,y,parent):
 
                     split_edge(robot_graph, child_name, intersect_point_x, intersect_point_y)
                     if not offline_experiments:
-                        plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'green')
+                        plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'black', zorder = 3)
+                        plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'g', zorder = 1)
+
             else:
                 indexes_to_change.append([beam_x,beam_y])
             
             prev_x = beam_x
             prev_y = beam_y
-            
+
             if valid_ray:
                 for row_idx, col_idx in indexes_to_change:
                     grid[row_idx,col_idx] = 40 # Robot ray has passed
@@ -759,9 +782,9 @@ def online_experiments_main():
 
         
         # Casting Robot Graph
-        # for node in list(robot_graph.nodes):
-        for i in range(robot_graph.number_of_nodes()):
-            node = low_variance_resampling(robot_graph)
+        for node in list(robot_graph.nodes):
+        # for i in range(robot_graph.number_of_nodes()):
+        #     node = low_variance_resampling(robot_graph)
 
             if not get_casted_flag(robot_graph,node):
                 casting_x,casting_y = get_node_position(robot_graph,node)
@@ -777,11 +800,22 @@ def online_experiments_main():
                 #     sys.exit("Valid path from robot to goal does not exist")
                 # else: 
                 #    continue
+            
+            if real_time_plotting:
+                plt.show(block = False)
+                # target_beam_indices = np.where(grid == 40)
+
+                # plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
+
+                # robot_beam_indices = np.where(grid == 80)
+                # plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
+                plt.pause(0.1)  # Pause to allow time for updates to be shown
+                input("Press Enter to Continue...")
 
         # Casting Target Graph
-        # for node in list(target_graph.nodes):   
-        for i in range(target_graph.number_of_nodes()):
-            node = low_variance_resampling(target_graph)
+        for node in list(target_graph.nodes):   
+        # for i in range(target_graph.number_of_nodes()):
+        #     node = low_variance_resampling(target_graph)
 
             if not get_casted_flag(target_graph,node):
                 casting_x,casting_y = get_node_position(target_graph,node)
@@ -800,13 +834,13 @@ def online_experiments_main():
 
 
             if real_time_plotting:
+                plt.show(block = False)
+                # target_beam_indices = np.where(grid == 40)
 
-                target_beam_indices = np.where(grid == 40)
+                # plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
 
-                plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
-
-                robot_beam_indices = np.where(grid == 80)
-                plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
+                # robot_beam_indices = np.where(grid == 80)
+                # plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
                 plt.pause(0.1)  # Pause to allow time for updates to be shown
                 input("Press Enter to Continue...")
     '''
