@@ -20,9 +20,9 @@ import json
 offline_experiments = False
 
 # Hyperparams
-real_time_plotting = True
+real_time_plotting = False
 draw_edge_split    = False
-random_source_dir  = False
+random_source_dir  = True
 
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
@@ -130,8 +130,80 @@ def draw_obstacles(grid, position, drawing_brush_size):
                     # y = int(cell_position[1] + j)
                     if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
                         grid[x, y] = 100
+
+
+
+    for x in range(80,100):
+            for y in range(210,290):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
+
+
+    for x in range(160,180):
+        for y in range(160,240):
+            for i in range(-half_brush, half_brush + 1):
+                for j in range(-half_brush, half_brush + 1):
+                    # x = int(cell_position[0] + i)
+                    # y = int(cell_position[1] + j)
+                    if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                        grid[x, y] = 100
+
     for x in range(240,260):
             for y in range(210,290):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
+
+    
+    for x in range(380,400):
+            for y in range(160,240):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
+
+
+   # DOWN ----------------------------------------------------------
+    for x in range(80,100):
+            for y in range(60,140):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
+
+
+    for x in range(160,180):
+        for y in range(10,90):
+            for i in range(-half_brush, half_brush + 1):
+                for j in range(-half_brush, half_brush + 1):
+                    # x = int(cell_position[0] + i)
+                    # y = int(cell_position[1] + j)
+                    if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                        grid[x, y] = 100
+
+    for x in range(240,260):
+            for y in range(60,140):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
+
+    
+    for x in range(380,400):
+            for y in range(10,90):
                 for i in range(-half_brush, half_brush + 1):
                     for j in range(-half_brush, half_brush + 1):
                         # x = int(cell_position[0] + i)
@@ -166,11 +238,11 @@ def set_goal_robot(event):
     global robot_pos,target_pos
     if event.xdata is not None and event.ydata is not None:
         if not init_target_pos and init_robot_pos:
-            target_pos = [93,80]#[round(event.xdata),round(event.ydata)]
+            target_pos = [43,70]#[round(event.xdata),round(event.ydata)]
             init_target_pos = True
             plt.scatter([target_pos[0]], [target_pos[1]], color='green', marker='o', s=80, label='Target', zorder=2)
         if not init_robot_pos:
-            robot_pos = [93,223]#[round(event.xdata),round(event.ydata)]
+            robot_pos = [43,230]#[round(event.xdata),round(event.ydata)]
             init_robot_pos = True
             plt.scatter([robot_pos[0]], [robot_pos[1]], color='blue', marker='o', s=80, label='Robot', zorder=2)
 
@@ -184,7 +256,7 @@ def draw_grid():
 
     im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
     plt.gca().invert_yaxis()
-    plt.title('Occupancy Grid')
+    plt.title('Ray Casting and Diffusion Model')
     plt.axis('off')  # Turn on axis for grid lines
 
     # # Connect the mouse events
@@ -782,9 +854,9 @@ def online_experiments_main():
 
         
         # Casting Robot Graph
-        for node in list(robot_graph.nodes):
-        # for i in range(robot_graph.number_of_nodes()):
-        #     node = low_variance_resampling(robot_graph)
+        # for node in list(robot_graph.nodes):
+        for i in range(robot_graph.number_of_nodes()):
+            node = low_variance_resampling(robot_graph)
 
             if not get_casted_flag(robot_graph,node):
                 casting_x,casting_y = get_node_position(robot_graph,node)
@@ -813,9 +885,9 @@ def online_experiments_main():
                 input("Press Enter to Continue...")
 
         # Casting Target Graph
-        for node in list(target_graph.nodes):   
-        # for i in range(target_graph.number_of_nodes()):
-        #     node = low_variance_resampling(target_graph)
+        # for node in list(target_graph.nodes):   
+        for i in range(target_graph.number_of_nodes()):
+            node = low_variance_resampling(target_graph)
 
             if not get_casted_flag(target_graph,node):
                 casting_x,casting_y = get_node_position(target_graph,node)
@@ -920,15 +992,15 @@ def online_experiments_main():
 
     # --------------------- PLOTTING STAFF
     # Plots the ray casting result
-    if not real_time_plotting:
-        target_beam_indices = np.where(grid == 40)
-        plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
+    # if not real_time_plotting:
+    #     target_beam_indices = np.where(grid == 40)
+    #     plt.scatter(target_beam_indices[0], target_beam_indices[1], color='red', s=2, label='TargetVirtual Beams')
 
-        robot_beam_indices = np.where(grid == 80)
-        plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
+    #     robot_beam_indices = np.where(grid == 80)
+    #     plt.scatter(robot_beam_indices[0], robot_beam_indices[1], color='blue', s=2, label='RobotVirtual Beams')
 
-        plt.pause(0.01)  # Pause to allow time for updates to be shown
-        input("Press Enter to Continue...")
+    #     plt.pause(0.01)  # Pause to allow time for updates to be shown
+    #     input("Press Enter to Continue...")
     
 
     #----------------------------------------------------------
@@ -941,15 +1013,13 @@ def online_experiments_main():
     im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
     im.set_data(grid.T)
     plt.gca().invert_yaxis()
+    plt.axis('off')  # Turn on axis for grid lines
 
 
-    plt.title('Smoothed Path')
+    plt.title('Graph-based Shortest path')
     # Convert the path to a NumPy array for easier indexing
-    plt.xlabel('X Coordinate')
     path = np.array(path)
-    plt.ylabel('Y Coordinate')
 
-    plt.grid(True)
     # Plot the grid
     plt.plot(path[:, 0], path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
     plt.show(block = False)
@@ -963,13 +1033,11 @@ def online_experiments_main():
     im.set_data(grid.T)
     
 
-    plt.title('reduced')
+    plt.title('Final path')
     # Convert the path to a NumPy array for easier indexing
-    plt.xlabel('X Coordinate')
     reduced_path = np.array(reduced_path)
-    plt.ylabel('Y Coordinate')
+    plt.axis('off')  # Turn on axis for grid lines
 
-    plt.grid(True)
     # Plot the grid
     plt.plot(reduced_path[:, 0], reduced_path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
     plt.gca().invert_yaxis()
@@ -1145,7 +1213,6 @@ def offline_experiments_main():
         path = np.array(path)
         plt.ylabel('Y Coordinate')
 
-        plt.grid(True)
         # Plot the grid
         plt.plot(path[:, 0], path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
         plt.show(block = False)
@@ -1161,13 +1228,12 @@ def offline_experiments_main():
         im.set_data(grid.T)
         
 
-        plt.title('reduced')
+        plt.title('Final Path')
         # Convert the path to a NumPy array for easier indexing
         plt.xlabel('X Coordinate')
         reduced_path = np.array(reduced_path)
         plt.ylabel('Y Coordinate')
 
-        plt.grid(True)
         # Plot the grid
         plt.plot(reduced_path[:, 0], reduced_path[:, 1], marker='o', color='red', markersize=5)  # Adjust color and marker size as needed
         plt.show(block = False)
