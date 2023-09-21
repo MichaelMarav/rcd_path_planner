@@ -27,8 +27,8 @@ random_source_dir  = True
 robot_size = 1 # (m) Robot's diameter
 grid_resolution = 0.1 # (m)
 workspace_size = (50,30) # (m) Size of the workspace/room where the robot needs to navigate
-num_beams = 6
-drawing_brush_size = int(3/grid_resolution)  # Size of the brush (in grid cells)
+num_beams = 8
+drawing_brush_size = 10#int(3/grid_resolution)  # Size of the brush (in grid cells)
 
 
 
@@ -119,97 +119,103 @@ Utility functions for drawing
 def draw_obstacles(grid, position, drawing_brush_size):
     cell_position = (round(position[0]),round(position[1]))
     half_brush = drawing_brush_size // 2
+    for i in range(-half_brush, half_brush + 1):
+        for j in range(-half_brush, half_brush + 1):
+            x = int(cell_position[0] + i)
+            y = int(cell_position[1] + j)
+            if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                grid[x, y] = 100
 
     # for testing 
     
-    for x in range(10,400):
-        for y in range(140,160):
-            for i in range(-half_brush, half_brush + 1):
-                for j in range(-half_brush, half_brush + 1):
-                    # x = int(cell_position[0] + i)
-                    # y = int(cell_position[1] + j)
-                    if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                        grid[x, y] = 100
+#     for x in range(10,400):
+#         for y in range(140,160):
+#             for i in range(-half_brush, half_brush + 1):
+#                 for j in range(-half_brush, half_brush + 1):
+#                     # x = int(cell_position[0] + i)
+#                     # y = int(cell_position[1] + j)
+#                     if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+#                         grid[x, y] = 100
 
 
 
-    for x in range(80,100):
-            for y in range(210,290):
-                for i in range(-half_brush, half_brush + 1):
-                    for j in range(-half_brush, half_brush + 1):
-                        # x = int(cell_position[0] + i)
-                        # y = int(cell_position[1] + j)
-                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                            grid[x, y] = 100
+#     for x in range(80,100):
+#             for y in range(210,290):
+#                 for i in range(-half_brush, half_brush + 1):
+#                     for j in range(-half_brush, half_brush + 1):
+#                         # x = int(cell_position[0] + i)
+#                         # y = int(cell_position[1] + j)
+#                         if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+#                             grid[x, y] = 100
 
 
-    for x in range(160,180):
-        for y in range(160,240):
-            for i in range(-half_brush, half_brush + 1):
-                for j in range(-half_brush, half_brush + 1):
-                    # x = int(cell_position[0] + i)
-                    # y = int(cell_position[1] + j)
-                    if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                        grid[x, y] = 100
+#     for x in range(160,180):
+#         for y in range(160,240):
+#             for i in range(-half_brush, half_brush + 1):
+#                 for j in range(-half_brush, half_brush + 1):
+#                     # x = int(cell_position[0] + i)
+#                     # y = int(cell_position[1] + j)
+#                     if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+#                         grid[x, y] = 100
 
-    for x in range(240,260):
-            for y in range(210,290):
-                for i in range(-half_brush, half_brush + 1):
-                    for j in range(-half_brush, half_brush + 1):
-                        # x = int(cell_position[0] + i)
-                        # y = int(cell_position[1] + j)
-                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                            grid[x, y] = 100
-
-    
-    for x in range(380,400):
-            for y in range(160,240):
-                for i in range(-half_brush, half_brush + 1):
-                    for j in range(-half_brush, half_brush + 1):
-                        # x = int(cell_position[0] + i)
-                        # y = int(cell_position[1] + j)
-                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                            grid[x, y] = 100
-
-
-   # DOWN ----------------------------------------------------------
-    for x in range(80,100):
-            for y in range(60,140):
-                for i in range(-half_brush, half_brush + 1):
-                    for j in range(-half_brush, half_brush + 1):
-                        # x = int(cell_position[0] + i)
-                        # y = int(cell_position[1] + j)
-                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                            grid[x, y] = 100
-
-
-    for x in range(160,180):
-        for y in range(10,90):
-            for i in range(-half_brush, half_brush + 1):
-                for j in range(-half_brush, half_brush + 1):
-                    # x = int(cell_position[0] + i)
-                    # y = int(cell_position[1] + j)
-                    if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                        grid[x, y] = 100
-
-    for x in range(240,260):
-            for y in range(60,140):
-                for i in range(-half_brush, half_brush + 1):
-                    for j in range(-half_brush, half_brush + 1):
-                        # x = int(cell_position[0] + i)
-                        # y = int(cell_position[1] + j)
-                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                            grid[x, y] = 100
+#     for x in range(240,260):
+#             for y in range(210,290):
+#                 for i in range(-half_brush, half_brush + 1):
+#                     for j in range(-half_brush, half_brush + 1):
+#                         # x = int(cell_position[0] + i)
+#                         # y = int(cell_position[1] + j)
+#                         if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+#                             grid[x, y] = 100
 
     
-    for x in range(380,400):
-            for y in range(10,90):
-                for i in range(-half_brush, half_brush + 1):
-                    for j in range(-half_brush, half_brush + 1):
-                        # x = int(cell_position[0] + i)
-                        # y = int(cell_position[1] + j)
-                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                            grid[x, y] = 100
+#     for x in range(380,400):
+#             for y in range(160,240):
+#                 for i in range(-half_brush, half_brush + 1):
+#                     for j in range(-half_brush, half_brush + 1):
+#                         # x = int(cell_position[0] + i)
+#                         # y = int(cell_position[1] + j)
+#                         if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+#                             grid[x, y] = 100
+
+
+#    # DOWN ----------------------------------------------------------
+#     for x in range(80,100):
+#             for y in range(60,140):
+#                 for i in range(-half_brush, half_brush + 1):
+#                     for j in range(-half_brush, half_brush + 1):
+#                         # x = int(cell_position[0] + i)
+#                         # y = int(cell_position[1] + j)
+#                         if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+#                             grid[x, y] = 100
+
+
+#     for x in range(160,180):
+#         for y in range(10,90):
+#             for i in range(-half_brush, half_brush + 1):
+#                 for j in range(-half_brush, half_brush + 1):
+#                     # x = int(cell_position[0] + i)
+#                     # y = int(cell_position[1] + j)
+#                     if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+#                         grid[x, y] = 100
+
+#     for x in range(240,260):
+#             for y in range(60,140):
+#                 for i in range(-half_brush, half_brush + 1):
+#                     for j in range(-half_brush, half_brush + 1):
+#                         # x = int(cell_position[0] + i)
+#                         # y = int(cell_position[1] + j)
+#                         if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+#                             grid[x, y] = 100
+
+    
+#     for x in range(380,400):
+#             for y in range(10,90):
+#                 for i in range(-half_brush, half_brush + 1):
+#                     for j in range(-half_brush, half_brush + 1):
+#                         # x = int(cell_position[0] + i)
+#                         # y = int(cell_position[1] + j)
+#                         if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+#                             grid[x, y] = 100
 
 
 def on_press(event):
@@ -238,11 +244,11 @@ def set_goal_robot(event):
     global robot_pos,target_pos
     if event.xdata is not None and event.ydata is not None:
         if not init_target_pos and init_robot_pos:
-            target_pos = [43,70]#[round(event.xdata),round(event.ydata)]
+            target_pos = [round(event.xdata),round(event.ydata)] # [43,70] ICRA
             init_target_pos = True
             plt.scatter([target_pos[0]], [target_pos[1]], color='green', marker='o', s=80, label='Target', zorder=2)
         if not init_robot_pos:
-            robot_pos = [43,230]#[round(event.xdata),round(event.ydata)]
+            robot_pos = [round(event.xdata),round(event.ydata)] # ICRA [43,230]
             init_robot_pos = True
             plt.scatter([robot_pos[0]], [robot_pos[1]], color='blue', marker='o', s=80, label='Robot', zorder=2)
 
@@ -455,8 +461,8 @@ def ray_casting_robot(x,y,parent):
                         plt.plot([x,prev_x], [y,prev_y], c = 'b',zorder = 1)
 
                         plt.scatter([prev_x], [prev_y], color='red', marker='o', s=50, label='Collision Points', zorder =2 )
+                        plt.show(block = False)
                         # plt.plot([robot_pos[0],visited_robot[-1].x],[robot_pos[1],visited_robot[-1].y] , color='b', label = "Robot Rays",zorder = 1)
-
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
             elif (grid[beam_x,beam_y] == 80 or grid[beam_x-1,beam_y] == 80 or grid[beam_x+1,beam_y] == 80 or grid[beam_x,beam_y+1] == 80 or grid[beam_x,beam_y-1] == 80):
                 
@@ -485,7 +491,7 @@ def ray_casting_robot(x,y,parent):
                         plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'b', zorder  = 1)
 
                         plt.scatter(intersect_point_x,intersect_point_y,s = 50, color = 'purple', zorder = 3)
-
+                        plt.show(block = False)
                     visited_robot  = np.append(visited_robot,Point(intersect_point_x,intersect_point_y))
             
             # Case 3: If beam hits the other kind of ray (path found)
@@ -513,6 +519,7 @@ def ray_casting_robot(x,y,parent):
                     if not offline_experiments:
                         plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'b', zorder = 1)
                         plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'black',zorder = 2)
+                        plt.show(block = False)
             else:
                 indexes_to_change.append([beam_x,beam_y])
             
@@ -525,8 +532,9 @@ def ray_casting_robot(x,y,parent):
                     grid_edge_id[row_idx,col_idx].start_node = parent
                     grid_edge_id[row_idx,col_idx].end_node    = child_name
 
-
-
+            plt.pause(0.1)  # Adjust the pause duration as needed
+            plt.draw()
+        
 # Ray casting from parent node and create childs and directed edges
 def ray_casting_target(x,y,parent):
 
@@ -586,9 +594,11 @@ def ray_casting_target(x,y,parent):
                     if not offline_experiments:
                         plt.plot([x,prev_x], [y,prev_y], c = 'g', zorder = 1)
 
+
                         plt.scatter([prev_x], [prev_y], color='red', marker='o', s=50, label='Collision Points', zorder = 3 )
                         # plt.plot([target_pos[0],visited_target[-1].x],[target_pos[1],visited_target[-1].y] , color='purple',label ="Target rays",zorder=1)
-
+                        plt.show(block = False)
+                        time.sleep(0.5)
 
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
@@ -618,7 +628,8 @@ def ray_casting_target(x,y,parent):
                     if not offline_experiments:
                         plt.scatter(intersect_point_x,intersect_point_y,s = 50, color = 'purple')
                         plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'g', zorder = 1)
-
+                        plt.show(block = False)
+                        time.sleep(0.5)
                     visited_target = np.append(visited_target, Point(intersect_point_x,intersect_point_y))
             
             # Case 3: If beam hits the other kind of ray (path found)
@@ -643,6 +654,8 @@ def ray_casting_target(x,y,parent):
                     if not offline_experiments:
                         plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'black', zorder = 3)
                         plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'g', zorder = 1)
+                        plt.show(block = False)
+                        time.sleep(0.5)
 
             else:
                 indexes_to_change.append([beam_x,beam_y])

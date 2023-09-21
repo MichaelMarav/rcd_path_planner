@@ -115,17 +115,101 @@ def init_grid():
 Utility functions for drawing 
 ----------------------------------------------------------------------
 '''
-
 # Adds obstacles by drawing at the plot
 def draw_obstacles(grid, position, drawing_brush_size):
     cell_position = (round(position[0]),round(position[1]))
     half_brush = drawing_brush_size // 2
-    for i in range(-half_brush, half_brush + 1):
-        for j in range(-half_brush, half_brush + 1):
-            x = int(cell_position[0] + i)
-            y = int(cell_position[1] + j)
-            if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                grid[x, y] = 100
+
+    # for testing 
+    
+    for x in range(10,400):
+        for y in range(140,160):
+            for i in range(-half_brush, half_brush + 1):
+                for j in range(-half_brush, half_brush + 1):
+                    # x = int(cell_position[0] + i)
+                    # y = int(cell_position[1] + j)
+                    if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                        grid[x, y] = 100
+
+
+
+    for x in range(80,100):
+            for y in range(210,290):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
+
+
+    for x in range(160,180):
+        for y in range(160,240):
+            for i in range(-half_brush, half_brush + 1):
+                for j in range(-half_brush, half_brush + 1):
+                    # x = int(cell_position[0] + i)
+                    # y = int(cell_position[1] + j)
+                    if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                        grid[x, y] = 100
+
+    for x in range(240,260):
+            for y in range(210,290):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
+
+    
+    for x in range(380,400):
+            for y in range(160,240):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
+
+
+   # DOWN ----------------------------------------------------------
+    for x in range(80,100):
+            for y in range(60,140):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
+
+
+    for x in range(160,180):
+        for y in range(10,90):
+            for i in range(-half_brush, half_brush + 1):
+                for j in range(-half_brush, half_brush + 1):
+                    # x = int(cell_position[0] + i)
+                    # y = int(cell_position[1] + j)
+                    if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                        grid[x, y] = 100
+
+    for x in range(240,260):
+            for y in range(60,140):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
+
+    
+    for x in range(380,400):
+            for y in range(10,90):
+                for i in range(-half_brush, half_brush + 1):
+                    for j in range(-half_brush, half_brush + 1):
+                        # x = int(cell_position[0] + i)
+                        # y = int(cell_position[1] + j)
+                        if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                            grid[x, y] = 100
 
 
 def on_press(event):
@@ -154,13 +238,13 @@ def set_goal_robot(event):
     global robot_pos,target_pos
     if event.xdata is not None and event.ydata is not None:
         if not init_target_pos and init_robot_pos:
-            target_pos = [round(event.xdata),round(event.ydata)]
+            target_pos = [43,70]#[round(event.xdata),round(event.ydata)]
             init_target_pos = True
-            plt.scatter([target_pos[0]], [target_pos[1]], color='green', marker='o', s=50, label='Target')
+            plt.scatter([target_pos[0]], [target_pos[1]], color='green', marker='o', s=80, label='Target', zorder=2)
         if not init_robot_pos:
-            robot_pos = [round(event.xdata),round(event.ydata)]
+            robot_pos = [43,230]#[round(event.xdata),round(event.ydata)]
             init_robot_pos = True
-            plt.scatter([robot_pos[0]], [robot_pos[1]], color='black', marker='o', s=50, label='Robot')
+            plt.scatter([robot_pos[0]], [robot_pos[1]], color='blue', marker='o', s=80, label='Robot', zorder=2)
 
         plt.draw()
 
@@ -172,7 +256,7 @@ def draw_grid():
 
     im = plt.imshow(grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
     plt.gca().invert_yaxis()
-    plt.title('Occupancy Grid (Left Mouse Button: Draw Occupied Cells)')
+    plt.title('Ray Casting and Diffusion Model')
     plt.axis('off')  # Turn on axis for grid lines
 
     # # Connect the mouse events
@@ -967,6 +1051,7 @@ def online_experiments_main():
     # Convert the path to a NumPy array for easier indexing
     plt.xlabel('X Coordinate')
     reduced_path = np.array(reduced_path)
+    print(reduced_path.shape)
     plt.ylabel('Y Coordinate')
 
     plt.grid(True)
