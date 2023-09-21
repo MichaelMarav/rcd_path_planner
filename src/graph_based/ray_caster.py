@@ -532,8 +532,8 @@ def ray_casting_robot(x,y,parent):
                     grid_edge_id[row_idx,col_idx].start_node = parent
                     grid_edge_id[row_idx,col_idx].end_node    = child_name
 
-            plt.pause(0.1)  # Adjust the pause duration as needed
-            plt.draw()
+    plt.show(block = False)
+    input("Enter to continue")
         
 # Ray casting from parent node and create childs and directed edges
 def ray_casting_target(x,y,parent):
@@ -598,7 +598,6 @@ def ray_casting_target(x,y,parent):
                         plt.scatter([prev_x], [prev_y], color='red', marker='o', s=50, label='Collision Points', zorder = 3 )
                         # plt.plot([target_pos[0],visited_target[-1].x],[target_pos[1],visited_target[-1].y] , color='purple',label ="Target rays",zorder=1)
                         plt.show(block = False)
-                        time.sleep(0.5)
 
 
             # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
@@ -629,7 +628,6 @@ def ray_casting_target(x,y,parent):
                         plt.scatter(intersect_point_x,intersect_point_y,s = 50, color = 'purple')
                         plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'g', zorder = 1)
                         plt.show(block = False)
-                        time.sleep(0.5)
                     visited_target = np.append(visited_target, Point(intersect_point_x,intersect_point_y))
             
             # Case 3: If beam hits the other kind of ray (path found)
@@ -655,7 +653,6 @@ def ray_casting_target(x,y,parent):
                         plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'black', zorder = 3)
                         plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'g', zorder = 1)
                         plt.show(block = False)
-                        time.sleep(0.5)
 
             else:
                 indexes_to_change.append([beam_x,beam_y])
@@ -669,7 +666,8 @@ def ray_casting_target(x,y,parent):
                     grid_edge_id[row_idx,col_idx].edge_id    = edge_name
                     grid_edge_id[row_idx,col_idx].start_node = parent
                     grid_edge_id[row_idx,col_idx].end_node   = child_name
-
+    plt.show(block = False)
+    input("Enter to continue")
 
 
 
