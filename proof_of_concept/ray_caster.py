@@ -80,14 +80,6 @@ class Edge:
 
 
 
-class Final_Node:
-    def __init__(self,robot_found_path,x,y):
-        self.robot_found_path    = False # Unique String for specifing which edge is this
-        self.x = x
-        self.y = y
-
-
-
 '''
 Initializes the occupancy grid
 '''

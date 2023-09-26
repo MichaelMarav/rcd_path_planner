@@ -1,0 +1,3 @@
+workspace_size: (50,30) # (m) Size of the workspace/room where the robot needs to navigate
+grid_resolution: 0.1    # (m) The distance between two neighboring cells 
+drawing_brush_size: 1  # (m) How big the drawing brash will be
