@@ -8,11 +8,11 @@ class interactive_grid_generator:
         # Read data from the YAML file
         with open(self.file_path, "r") as file:
             config_options = yaml.load(file, Loader=yaml.FullLoader)
-
+        
 
         return None
 
-offline_experiments = False
+# offline_experiments = False
 
 # # Hyperparams
 # real_time_plotting = False
