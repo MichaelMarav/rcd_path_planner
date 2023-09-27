@@ -60,7 +60,7 @@ target_graph = nx.Graph()
 
 
 # Offline testing parameters 
-os.chdir("../../Data/")
+os.chdir("../Data/")
 # print(os.getcwd())
 RUN_ALL_DATASETS = True
 SAVE_RESULTS = True
@@ -525,7 +525,7 @@ def ray_casting_robot(x,y,parent):
                     grid_edge_id[row_idx,col_idx].end_node    = child_name
 
     plt.show(block = False)
-    input("Enter to continue")
+    # input("Enter to continue")
         
 # Ray casting from parent node and create childs and directed edges
 def ray_casting_target(x,y,parent):
@@ -659,7 +659,7 @@ def ray_casting_target(x,y,parent):
                     grid_edge_id[row_idx,col_idx].start_node = parent
                     grid_edge_id[row_idx,col_idx].end_node   = child_name
     plt.show(block = False)
-    input("Enter to continue")
+    # input("Enter to continue")
 
 
 
