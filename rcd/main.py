@@ -8,7 +8,10 @@ from rcd.utilities import user_input_mode
 
 def main():
     if user_input_mode() == 1: # Online Mode
-        grid = interactive_grid_generator()
+        grid_generator = interactive_grid_generator() # Draw grid and insert robot and goal poses 
+        # print(grid_generator.grid)
+        # print(grid_generator.robot_pos)
+        # print(grid_generator.target_pos)
     else:                      # Offline Mode
         pass
 
