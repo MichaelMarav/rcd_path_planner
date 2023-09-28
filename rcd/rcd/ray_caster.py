@@ -31,9 +31,9 @@ class RCD:
     num_beams = None
     real_time_plotting = None
     
-    
-    
+    path = None
     def __init__(self):
+        # Load rcd parameters
         self.load_grid_params()
 
         grid_generator = InteractiveGridGenerator()
@@ -57,15 +57,76 @@ class RCD:
             for i in range(self.robot_graph.number_of_nodes()):
                 node = self.low_variance_resampling(self.robot_graph)
 
-        
-            if not self.get_casted_flag(self.robot_graph,node):
-                casting_x,casting_y = self.get_node_position(self.robot_graph,node)
-                self.ray_casting_robot(casting_x, casting_y, parent = node)
-                self.robot_graph.nodes[node]['ray_casted'] = True
-                cant_cast_robot_count = 0
+                if not self.get_casted_flag(self.robot_graph,node):
+                    casting_x,casting_y = self.get_node_position(self.robot_graph,node)
+                    self.ray_casting_robot(casting_x, casting_y, parent = node)
+                    self.robot_graph.nodes[node]['ray_casted'] = True
+                    if self.path_found:
+                        break
+
+                    cant_cast_robot_count = 0
+                    if self.real_time_plotting:
+                        input("Press something to continue")
+                    
+                    
+                    
+            for i in range(self.target_graph.number_of_nodes()):
+                node = self.low_variance_resampling(self.target_graph)
+
+                if not self.get_casted_flag(self.target_graph,node):
+                    casting_x,casting_y = self.get_node_position(self.target_graph,node)
+                    self.ray_casting_target(casting_x, casting_y, parent = node)
+                    self.target_graph.nodes[node]['ray_casted'] = True
+                    cant_cast_target_count = 0
+                    if self.path_found:
+                        break
                 if self.real_time_plotting:
-                    input("Press something to continue")
-    
+                            input("Press something to continue")
+        
+        
+
+        # At this point the path is found. TODO: add what to do when there is not a valid path
+
+        # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
+        init_path = self.find_shortest_path(self.robot_graph,self.target_graph)
+
+        # Generate new samples
+        enriched_path = self.generate_samples(init_path)
+
+        self.path = self.reduce_path_with_LoS(enriched_path)
+        
+        self.plot_path()
+                   
+                   
+                   
+                   
+                   
+    def plot_path(self):
+        # PLOT PATH WITH STRAIGHT LINES
+
+        self.grid = np.where((self.grid != 0) & (self.grid != 100), 0, self.grid) # Remove rays
+
+        fig2 = plt.figure(figsize=(self.grid_size[0]*self.grid_resolution, self.grid_size[1]*self.grid_resolution))
+        im = plt.imshow(self.grid.T, cmap='binary', origin='upper', vmin=0, vmax=100)
+        im.set_data(self.grid.T)
+        
+
+        plt.title('Path')
+        # Convert the path to a NumPy array for easier indexing
+        self.path = np.array(self.path)
+        plt.axis('off')  # Turn on axis for grid lines
+
+        # Plot the grid
+        plt.plot(self.path[:, 0], self.path[:, 1], marker='o', color='red', markersize=5,zorder = 1)  # Adjust color and marker size as needed
+        plt.scatter(self.path[0, 0], self.path[0, 1], s = 50,  color='blue',zorder=2)  # ROBOT
+        plt.scatter(self.path[-1, 0], self.path[-1, 1], s = 50,  color='green',zorder=2)  # Target
+
+        
+        plt.gca().invert_yaxis()
+
+        plt.show(block = False)
+
+
     
     # Loads config Parameters from the .yaml file 
     def load_grid_params(self):
@@ -318,3 +379,247 @@ class RCD:
                 break
         
         return selected_node
+    
+    '''
+    Finds the shortest path in both graphs (from R to F and from G to F) and constructs a way point path
+    '''
+    def find_shortest_path(self,robot_graph,target_graph):
+        shortest_robot = nx.shortest_path(robot_graph,source = "R",target = "F", weight='weight')
+        x_path = []
+        y_path = []
+        for name in shortest_robot:
+            x_i, y_i = self.get_node_position(robot_graph,name)
+            x_path.append(x_i)
+            y_path.append(y_i)
+
+
+        shortest_target = nx.shortest_path(target_graph,source = "G",target = "F",weight='weight')
+        shortest_target = shortest_target[::-1]    # shortest_target.pop(0)
+        shortest_target.pop(0) # Remove the common node from robot and target path
+        
+
+        for name in shortest_target:
+            x_i, y_i = self.get_node_position(target_graph,name)
+            x_path.append(x_i)
+            y_path.append(y_i)
+
+        path = [(x_path[i], y_path[i]) for i in range(len(x_path))]
+        return path
+        
+    '''
+    Generates samples on the initial path in order to perform LoS next
+    '''
+    def generate_samples(self,path):
+        generated_path = []
+        for p in range(len(path)-1):
+            new_point = list(path[p])
+            generated_path.append(new_point)
+
+            curr_point = path[p]
+            next_point = path[p+1]
+            distance_between_points = math.sqrt((curr_point[0] - next_point[0])**2  + (curr_point[1] - next_point[1])**2 )
+            angle = math.atan2((next_point[1]-curr_point[1]),(next_point[0]-curr_point[0]))
+
+            dis = self.robot_size/self.grid_resolution
+            while dis < distance_between_points:
+                x_p = int(math.ceil(curr_point[0] + dis * np.cos(angle)))
+                y_p = int(math.ceil(curr_point[1] + dis * np.sin(angle)))
+                dis += 2
+                if (self.grid[x_p,y_p] == 100):
+                    continue
+                generated_path.append([x_p,y_p])
+
+        return generated_path
+    
+    
+    
+    def reduce_path_with_LoS(self,path):
+
+        reduced_path = [list(path[0])]
+        c = 0
+        p = 1
+
+        while  p < len(path):
+            curr_point = path[c]
+            next_point = path[p]
+
+            collision_flag = self.check_collision(curr_point,next_point)
+        
+            if collision_flag:
+                c = p - 1
+                reduced_path.append(list(path[c]))
+                p+=1 
+            else:
+                p += 1
+        
+            # if collision_flag:
+            #     # GO BACK
+            #     c = p - 1
+            #     colision_flag = False
+            #     while True:
+            #         curr_point = path[c]
+            #         collision_flag = check_collision(curr_point,next_point)
+            #         if collision_flag:
+            #             reduced_path.append(list(path[c+1]))
+            #             c = c + 1
+            #             p = c + 1
+            #             break
+            #         else: 
+            #             c = c - 1
+
+            # else:
+            #     p += 1
+
+
+        reduced_path.append(list(path[-1]))
+        return reduced_path
+    
+    
+    
+    
+    
+    
+    
+    
+    def check_collision(self,curr_point,next_point):
+        distance_between_points = math.sqrt((curr_point[0] - next_point[0])**2  + (curr_point[1] - next_point[1])**2 )
+        dis = 3
+        angle = math.atan2((next_point[1]-curr_point[1]),(next_point[0]-curr_point[0]))
+        collision_flag = False
+        while dis < distance_between_points and not collision_flag:
+            x_p = int(math.ceil(curr_point[0] + dis * np.cos(angle)))
+            y_p = int(math.ceil(curr_point[1] + dis * np.sin(angle)))
+            dis += 1
+            if self.grid[x_p,y_p] == 100:
+                collision_flag = True
+        if collision_flag:
+            return True
+        else:
+            return False
+
+
+    # Ray casting from parent node and create childs and directed edges
+    def ray_casting_target(self,x,y,parent):
+        child_id = 1
+        edge_name = ""
+
+        angle_list = np.arange(0,360,int(360/self.num_beams))
+
+
+        if self.random_source_dir:
+            random_rotation_bias = random.randint(0, 180) # Spin the orientation of the beams
+            angle_list += random_rotation_bias
+
+
+        for angle in angle_list: 
+
+            # Saves the indices to change in the grid
+            indexes_to_change = [] 
+
+            angle_rad = np.radians(angle)
+
+            stop_beam = False # Stop ray casting flag for this angle
+
+            valid_ray = False # Flag that specifies if the ray is valid-> Not close enough to another node
+            
+            # Starting distance (radius) from ray casting TODO: Make this start from robot_size
+            dis = 2#(robot_size/2)/grid_resolution 
+            prev_x = int(math.ceil(x))
+            prev_y = int(math.ceil(y))
+
+            # Propagates ray until 1. Ray hits wall 2. Ray hits another ray 3. Robot Ray and Goal ray are connected (path found)
+            while not stop_beam and not self.path_found:
+                dis += 1
+                beam_x = int(math.ceil(x + dis * np.cos(angle_rad)))
+                beam_y = int(math.ceil(y + dis * np.sin(angle_rad)))
+
+                # Case 1: If beam hit wall
+                if self.grid[beam_x,beam_y] == 100:
+                    stop_beam = True          
+                    if self.check_closest_node_distance(beam_x,beam_y,self.visited_target,(self.robot_size)/self.grid_resolution):          
+                        valid_ray = True
+
+                        # Add node to graph
+                        child_name = parent + str(child_id)
+                        self.target_graph.add_node(child_name, x = prev_x, y = prev_y, ray_casted = False)
+                        self.target_graph.add_edge(parent, child_name, weight = dis)
+
+                        child_id += 1 # Update index for next child
+                        
+                        edge_name = parent + "-" + child_name
+
+                        self.visited_target  = np.append(self.visited_target,Point(prev_x,prev_y)) # Save the places that the robot has visited
+                        plt.plot([x,prev_x], [y,prev_y], c = 'g', zorder = 1)
+
+
+                        plt.scatter([prev_x], [prev_y], color='red', marker='o', s=50, label='Collision Points', zorder = 3 )
+                        # plt.plot([target_pos[0],visited_target[-1].x],[target_pos[1],visited_target[-1].y] , color='purple',label ="Target rays",zorder=1)
+                        plt.show(block = False)
+
+
+                # Case 2: If beam hits same kind of ray. (Checks in a cross-like manner)
+                elif (self.grid[beam_x,beam_y] == 40 or self.grid[beam_x-1,beam_y] == 40 or self.grid[beam_x+1,beam_y] == 40 or self.grid[beam_x,beam_y+1] == 40 or self.grid[beam_x,beam_y-1] == 40):
+                    
+                    stop_beam = True
+
+                    intersect_point_x,intersect_point_y = self.check_possible_intersection(self.grid,beam_x,beam_y,40) # where exactly the beams meet
+                
+                    if intersect_point_x is not None and intersect_point_y is not None and self.check_closest_node_distance(intersect_point_x, intersect_point_y, self.visited_target,(self.robot_size)/self.grid_resolution):
+
+
+                        valid_ray = True
+
+                        # Add node
+                        child_name = parent+str(child_id)
+                        self.target_graph.add_node(child_name,x = intersect_point_x, y =intersect_point_y, ray_casted = False)
+                        self.target_graph.add_edge(parent,child_name,weight = dis)
+
+                        child_id += 1
+                        edge_name = parent + "-" + child_name
+
+                        # Break the edge that has the intersection in it
+                        self.split_edge(self.target_graph, child_name, intersect_point_x, intersect_point_y)
+
+
+                        plt.scatter(intersect_point_x,intersect_point_y,s = 50, color = 'purple')
+                        plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'g', zorder = 1)
+                        plt.show(block = False)
+                        self.visited_target = np.append(self.visited_target, Point(intersect_point_x,intersect_point_y))
+                
+                # Case 3: If beam hits the other kind of ray (path found)
+                elif (self.grid[beam_x,beam_y] == 80 or self.grid[beam_x-1,beam_y] == 80 or self.grid[beam_x+1,beam_y] == 80 or self.grid[beam_x,beam_y+1] == 80 or self.grid[beam_x,beam_y-1] == 80):
+                        self.path_found = True
+                        valid_ray = True
+
+                        print("FOUND PATH by Target")
+
+                        # Add node
+                        child_name = "F"
+                        self.target_graph.add_node(child_name,x = beam_x, y = beam_y, ray_casted = False)
+                        self.target_graph.add_edge(parent,child_name,weight = dis)
+                        child_id += 1
+                        edge_name = parent + "-" + child_name
+
+                        intersect_point_x,intersect_point_y = self.check_possible_intersection(self.grid,beam_x,beam_y,80)
+
+                        self.robot_graph.add_node(child_name,x= beam_x,y=beam_y, ray_casted = False)
+
+                        self.split_edge(self.robot_graph, child_name, intersect_point_x, intersect_point_y)
+                        plt.scatter(intersect_point_x,intersect_point_y,s = 120, color = 'black', zorder = 3)
+                        plt.plot([x,intersect_point_x], [y,intersect_point_y], c = 'g', zorder = 1)
+                        plt.show(block = False)
+
+                else:
+                    indexes_to_change.append([beam_x,beam_y])
+                
+                prev_x = beam_x
+                prev_y = beam_y
+
+                if valid_ray:
+                    for row_idx, col_idx in indexes_to_change:
+                        self.grid[row_idx,col_idx] = 40 # Robot ray has passed
+                        self.grid_edge_id[row_idx,col_idx].edge_id    = edge_name
+                        self.grid_edge_id[row_idx,col_idx].start_node = parent
+                        self.grid_edge_id[row_idx,col_idx].end_node   = child_name
+        plt.show(block = False)
+        # input("Enter to continue")

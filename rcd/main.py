@@ -9,6 +9,8 @@ def main():
     user_input = user_input_mode()
     if  user_input == 1: # Online Mode
         ray_caster = RCD()
+        input("Press something to Exit")     
+
     elif (user_input == 2): 
         pass # Under construction
     else:
