@@ -1,20 +1,23 @@
-from rcd.interactive_grid import interactive_grid_generator
-from rcd import ray_caster
-from rcd.utilities import user_input_mode 
-
+from rcd.ray_caster import RCD
+from rcd.utilities import user_input_mode, print_red, print_green
+import sys
 
 
 
 
 def main():
-    if user_input_mode() == 1: # Online Mode
-        grid_generator = interactive_grid_generator() # Draw grid and insert robot and goal poses 
-        # print(grid_generator.grid)
-        # print(grid_generator.robot_pos)
-        # print(grid_generator.target_pos)
-    else:                      # Offline Mode
-        pass
-
+    user_input = user_input_mode()
+    if  user_input == 1: # Online Mode
+        ray_caster = RCD()
+    elif (user_input == 2): 
+        pass # Under construction
+    else:
+        print_red("Please enter a valid mode number. Exiting.")
+        sys.exit()
+        
+    print_green("Exiting successfuly")
+    return
+    
 if __name__ == "__main__":
     main()
     

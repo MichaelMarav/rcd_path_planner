@@ -11,7 +11,9 @@ def print_red(text):
     
 
 def user_input_mode():
-    print_green(" \n\n - Ray Casting and Diffusion Path Planning (RCD) -\n\n")
+    
+    print(" \n\n -- \033[31mR\033[0may \033[31mC\033[0masting and \033[31mD\033[0miffusion Path Planning Algorithm (RCD --\n\n")    
+    
     while True:
         print("Choose the RCD mode:\n 1. Interactive mode \n 2. Offline Datasets")
         mode_input = int(input("Enter the number for the option and press enter\nInput:"))
@@ -23,3 +25,19 @@ def user_input_mode():
             return 2
         else:
             print_red("Invalid input, try again")
+
+
+
+# Utility objects Objects
+class Point:
+    def __init__(self,x,y):
+        self.x = x
+        self.y = y  
+
+class Edge:
+    def __init__(self,edge_id,start_node,end_node):
+        self.edge_id    = edge_id # Unique String for specifing which edge is this
+        self.start_node = start_node
+        self.end_node   = end_node
+
+

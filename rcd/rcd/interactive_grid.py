@@ -2,31 +2,32 @@ from rcd.setup import *
 from rcd.utilities import print_red 
 
 
-class interactive_grid_generator:
+class InteractiveGridGenerator:
+    # Initialization of parameters
     file_path = "../config/grid_params.yaml"
-    workspace_size     = [0,0]
-    grid_resolution    = 0
-    drawing_brush_size = 0
-    robot_size = 0
+    workspace_size     = [None,None]
+    grid_resolution    = None
+    drawing_brush_size = None
+    robot_size = None
     grid = np.zeros(())
     robot_pos   = None
-    target_pos = None
-    
+    target_pos  = None
+    grid_size   = None
     # Private Params 
-    __im = 0#plt.imshow(np.zeros((3,3)))
-    __drawing = False
-    __init_robot_pos= False
+    __im = 0           # Image object
+    __drawing         = False
+    __init_robot_pos  = False
     __init_target_pos = False
     
     
     
     def __init__(self):
         self.load_grid_params()
-        grid_size = [int(self.workspace_size[0]/self.grid_resolution) , int(self.workspace_size[1]/self.grid_resolution)]
+        self.grid_size = [int(self.workspace_size[0]/self.grid_resolution) , int(self.workspace_size[1]/self.grid_resolution)]
         wall_size = int(math.ceil((self.robot_size)/self.grid_resolution))
 
         # Initialize Occupancy grid
-        self.grid = np.zeros(grid_size)
+        self.grid = np.zeros(self.grid_size)
 
         # Add walls
         self.add_walls(wall_size)
