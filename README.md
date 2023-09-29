@@ -8,7 +8,7 @@ RCD is a global path planner that given a binary occupancy grid, the target's an
 ## Interactive occupancy grid path planning
 In order to test RCD you simply clone the package and:
 ```
-$ python3 rcd/main.py
+$ python3 rcd/rcd.py
 ```
 
 For now, only the interactive occupancy grid is released. This means that by pressing left mouse button, you can draw an occupancy grid and place the robot and target (by pressing any button) wherever you want. 
