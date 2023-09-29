@@ -85,7 +85,6 @@ class RCD:
         
         
 
-        # At this point the path is found. TODO: add what to do when there is not a valid path
 
         # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
         init_path = self.find_shortest_path(self.robot_graph,self.target_graph)

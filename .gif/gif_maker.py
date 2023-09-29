@@ -1,5 +1,5 @@
 from moviepy.editor import VideoFileClip
 
 
-videoClip = VideoFileClip("RCD.mp4")
-videoClip.write_gif("RCD.gif")
+videoClip = VideoFileClip("/home/michael/Videos/RCD.mp4")
+videoClip.write_gif("RCD.gif",fps = 60)

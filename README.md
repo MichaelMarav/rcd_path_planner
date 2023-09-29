@@ -4,6 +4,8 @@ Submitted for review at ICRA 2024
 ## Overview
 RCD is a global path planner that given a binary occupancy grid, the target's and the robot's position produces a collision free path.
 
+## Dependencies 
+
 
 ## Interactive occupancy grid path planning
 In order to test RCD you simply clone the package and:
