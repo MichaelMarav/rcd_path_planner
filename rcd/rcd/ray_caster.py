@@ -1,6 +1,8 @@
 from rcd.interactive_grid import InteractiveGridGenerator
 from rcd.utilities import *
 from rcd.setup import *
+import sys
+
 
 class RCD:
     
@@ -24,7 +26,7 @@ class RCD:
     robot_pos  = None 
     target_pos = None
     robot_size = None
-    
+    cant_cast_robot_count = None 
     
     path_found = False
     
@@ -44,7 +46,8 @@ class RCD:
         self.grid_size  = grid_generator.grid_size 
         self.grid_edge_id = np.empty(self.grid_size,dtype=object) # Contains the edge id that passes through each cell
         self.grid_resolution  = grid_generator.grid_resolution 
-
+        self.cant_cast_robot_count = 0
+        self.cant_cast_target_count = 0
         # Add Robot Node to the graph
         self.robot_graph.add_node( "R", x=self.robot_pos[0] , y = self.robot_pos[1] , ray_casted = False)
         self.target_graph.add_node("G", x=self.target_pos[0], y = self.target_pos[1], ray_casted = False)
@@ -64,11 +67,13 @@ class RCD:
                     if self.path_found:
                         break
 
-                    cant_cast_robot_count = 0
+                    self.cant_cast_robot_count = 0
                     if self.real_time_plotting:
                         input("Press something to continue")
                     
-                    
+                else:
+                    self.cant_cast_robot_count += 1
+                
                     
             for i in range(self.target_graph.number_of_nodes()):
                 node = self.low_variance_resampling(self.target_graph)
@@ -77,13 +82,18 @@ class RCD:
                     casting_x,casting_y = self.get_node_position(self.target_graph,node)
                     self.ray_casting_target(casting_x, casting_y, parent = node)
                     self.target_graph.nodes[node]['ray_casted'] = True
-                    cant_cast_target_count = 0
+                    self.cant_cast_target_count = 0
                     if self.path_found:
                         break
-                if self.real_time_plotting:
-                            input("Press something to continue")
-        
-        
+                    if self.real_time_plotting:
+                        input("Press something to continue")
+                else:
+                    self.cant_cast_target_count += 1
+            # print(self.cant_cast_target_count,self.cant_cast_robot_count)
+            print("Number of nodes : ", self.robot_graph.number_of_nodes())
+            if (self.cant_cast_robot_count > self.robot_graph.number_of_nodes()-1 or self.cant_cast_target_count > self.target_graph.number_of_nodes()-1):
+                sys.exit("Path does not exist")
+                
 
 
         # Find the shortest path (Node points) from robot and target to intersection then combine them and plot them
