@@ -1,14 +1,14 @@
 from rcd.interactive_grid import InteractiveGridGenerator
 from rcd.utilities import *
 from rcd.setup import *
-import sys
-
 
 class RCD:
-    
+    start = time.time()
     random_source_dir  = True    
     
-    file_path = "../config/rcd_params.yaml"
+    rcd_param_file = "../config/rcd_params.yaml"
+    offline_mode = None
+    real_time_plotting = None    
 
     grid_generator = None
     robot_graph  = nx.Graph()
@@ -31,23 +31,26 @@ class RCD:
     path_found = False
     
     num_beams = None
-    real_time_plotting = None
-    
     path = None
-    def __init__(self):
+    def __init__(self,offline_mode,map_file_name):
+
         # Load rcd parameters
         self.load_grid_params()
-
-        grid_generator = InteractiveGridGenerator()
+        grid_generator = InteractiveGridGenerator(offline_mode,map_file_name)
         self.grid       = grid_generator.grid
         self.robot_size = grid_generator.robot_size
         self.robot_pos  = grid_generator.robot_pos
         self.target_pos = grid_generator.target_pos
-        self.grid_size  = grid_generator.grid_size 
+        self.grid_size  = grid_generator.grid_size
+
         self.grid_edge_id = np.empty(self.grid_size,dtype=object) # Contains the edge id that passes through each cell
         self.grid_resolution  = grid_generator.grid_resolution 
+
         self.cant_cast_robot_count = 0
         self.cant_cast_target_count = 0
+
+        start = time.time()
+
         # Add Robot Node to the graph
         self.robot_graph.add_node( "R", x=self.robot_pos[0] , y = self.robot_pos[1] , ray_casted = False)
         self.target_graph.add_node("G", x=self.target_pos[0], y = self.target_pos[1], ray_casted = False)
@@ -90,7 +93,7 @@ class RCD:
                 else:
                     self.cant_cast_target_count += 1
             # print(self.cant_cast_target_count,self.cant_cast_robot_count)
-            print("Number of nodes : ", self.robot_graph.number_of_nodes())
+            # print("Number of nodes : ", self.robot_graph.number_of_nodes())
             if (self.cant_cast_robot_count > self.robot_graph.number_of_nodes()-1 or self.cant_cast_target_count > self.target_graph.number_of_nodes()-1):
                 sys.exit("Path does not exist")
                 
@@ -103,7 +106,8 @@ class RCD:
         enriched_path = self.generate_samples(init_path)
 
         self.path = self.reduce_path_with_LoS(enriched_path)
-        
+        end = time.time()
+        print("Elapsed time: ", end-start, " s")
         self.plot_path()
                    
                    
@@ -140,7 +144,7 @@ class RCD:
     # Loads config Parameters from the .yaml file 
     def load_grid_params(self):
         # Read data from the YAML file
-        with open(self.file_path, "r") as file:
+        with open(self.rcd_param_file, "r") as file:
             config_options = yaml.load(file, Loader=yaml.FullLoader)
         
         self.num_beams          = config_options["num_beams"]
@@ -268,7 +272,7 @@ class RCD:
                         self.path_found = True
                         valid_ray = True
 
-                        print("FOUND PATH by robot")
+                        # print("FOUND PATH by robot")
                         intersect_point_x, intersect_point_y = self.check_possible_intersection(self.grid,beam_x,beam_y,40) # where exactly the beams meet
 
                         # Add node

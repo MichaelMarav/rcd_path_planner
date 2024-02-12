@@ -4,7 +4,7 @@ from rcd.utilities import print_red
 
 class InteractiveGridGenerator:
     # Initialization of parameters
-    file_path = "../config/grid_params.yaml"
+    grid_param_file_path = "../config/grid_params.yaml"
     workspace_size     = [None,None]
     grid_resolution    = None
     drawing_brush_size = None
@@ -21,31 +21,36 @@ class InteractiveGridGenerator:
     
     
     
-    def __init__(self):
+    def __init__(self,offline_mode, custom_grid_path_file):
+        if custom_grid_path_file is not None:
+            self.grid_param_file_path = custom_grid_path_file
+
         self.load_grid_params()
+
         self.grid_size = [int(self.workspace_size[0]/self.grid_resolution) , int(self.workspace_size[1]/self.grid_resolution)]
         wall_size = int(math.ceil((self.robot_size)/self.grid_resolution))
 
         # Initialize Occupancy grid
         self.grid = np.zeros(self.grid_size)
 
-        # Add walls
-        self.add_walls(wall_size)
-    
-        # Draw the occupancy grid 
-        self.draw_grid()
+        if (not offline_mode):
+            # Add walls
+            self.add_walls(wall_size)
         
-        while self.robot_pos == None or self.target_pos == None:
-            print_red("You need to enter both robot and target positions in order to continue. Point the cursor in the occupancy grid and press any key. One for the robot and one more for the target")
-            plt.close('all')
-            self.__init_target_pos = False
-            self.__init_robot_pos  = False
-            self.robot_pos   = None
-            self.target_pos = None
-            
+            # Draw the occupancy grid 
             self.draw_grid()
             
-            
+            while self.robot_pos == None or self.target_pos == None:
+                print_red("You need to enter both robot and target positions in order to continue. Point the cursor in the occupancy grid and press any key. One for the robot and one more for the target")
+                plt.close('all')
+                self.__init_target_pos = False
+                self.__init_robot_pos  = False
+                self.robot_pos   = None
+                self.target_pos = None
+                
+                self.draw_grid()    
+        else:
+            print('hi')
         # Inflate the occupancy grid
         self.inflate_occupancy_grid()
         
@@ -53,7 +58,7 @@ class InteractiveGridGenerator:
     # Loads config Parameters from the .yaml file 
     def load_grid_params(self):
         # Read data from the YAML file
-        with open(self.file_path, "r") as file:
+        with open(self.grid_param_file_path, "r") as file:
             config_options = yaml.load(file, Loader=yaml.FullLoader)
         
         self.workspace_size     = config_options["workspace_size"]
