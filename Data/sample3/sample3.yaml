@@ -1,0 +1,7 @@
+robot_position_x: 44
+robot_position_y: 210
+target_position_x: 65
+target_position_y: 72
+workspace_dimension_x: 50
+workspace_dimension_y: 30
+grid_resolution: 0.1

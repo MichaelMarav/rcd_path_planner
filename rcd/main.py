@@ -12,8 +12,9 @@ def main():
         input("Press something to Exit")     
 
     elif (user_input == 2): 
-        filename = str(input("Enter the name of the .ppm map file in maps/ folder (e.g. my_map.ppm) \n"))
-        ray_caster = RCD(True, filename)
+        print("Usage: provide the prefix to the sample you want to run RCD. e.g. enter my_sample1 for running Data/my_sample1/my_sample1.ppm with parameters specified at Data/my_sample1/my_sample1.yaml")
+        prefix = str(input("Enter the prefix: \n"))
+        ray_caster = RCD(True, prefix)
     else:
         print_red("Please enter a valid mode number. Exiting.")
         sys.exit()
