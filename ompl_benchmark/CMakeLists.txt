@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.0.0)
+project(ompl_benchmark)
+set(CMAKE_CXX_STANDARD 20)
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+find_package(ompl REQUIRED)
+include_directories(${OMPL_INCLUDE_DIRS})
+add_executable(ompl_benchmark src/main.cpp)
+target_link_libraries(ompl_benchmark PRIVATE ${OMPL_LIBRARIES} Eigen3::Eigen)
