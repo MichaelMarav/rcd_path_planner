@@ -11,10 +11,13 @@ from scipy.signal import convolve2d
 import datetime
 import yaml
 import os
+from PIL import Image
+
+
 
 class InteractiveGridGenerator:
     # Initialization of parameters
-    file_path = "../config/grid_params.yaml"
+    grid_params_path = "../config/grid_params.yaml"
     workspace_size     = [None,None]
     grid_resolution    = None
     drawing_brush_size = None
@@ -32,7 +35,7 @@ class InteractiveGridGenerator:
     
     
     def __init__(self):
-        self.load_grid_params()
+        self.load_interactive_plot_params()
         self.grid_size = [int(self.workspace_size[0]/self.grid_resolution) , int(self.workspace_size[1]/self.grid_resolution)]
         wall_size = int(math.ceil((self.robot_size)/self.grid_resolution))
         self.user_input_mode()
@@ -58,32 +61,32 @@ class InteractiveGridGenerator:
             
         # Inflate the occupancy grid
         self.inflate_occupancy_grid()
-        
     
-        cmap = plt.cm.colors.ListedColormap(['white', 'black'])
-
-        # Display the array as an image using matplotlib
-        plt.imshow(self.grid.T, cmap=cmap, interpolation='none')
-
+        # Configure map's filename
         time = datetime.datetime.now()
         base_name = "occ_" + str(time.hour)+ "_" + str(time.minute)+ "_" + str(time.second) 
+        file_path = f"../maps/{base_name}/{base_name}.png"
         os.makedirs("../maps/" + base_name, exist_ok=True)
 
+        inverted_array = 100 - self.grid.T[::-1]
+        # Save the 2D array as png
+        normalized_array = (inverted_array / 100) * 255
+        # Convert the array to uint8 for PIL compatibility
+        image_data = np.uint8(normalized_array)
+        # Create an image from the array data
+        image = Image.fromarray(image_data, mode='L')  # 'L' mode for grayscale
+        # Save the image as PNG
+        image.save(file_path)
 
-
-
-        # Save the figure as a PNG file
-        plt.savefig("../maps/" +base_name + "/"+ base_name  + ".png", format='png', bbox_inches='tight', pad_inches=0)
         
-        # Show the plot (optional)
-        plt.show()
+
         self.print_green("Map saved as " + base_name + ".png" + " at maps/ folder")
         # TODO: add the txt + yaml params inside a file in the folder.
-        with open("/home/michael/github/rcd_path_planner/maps/"+base_name+"/"+base_name+".yaml",'w') as file:
+        with open(f"/home/michael/github/rcd_path_planner/maps/{base_name}/{base_name}.yaml",'w') as file:
             file.write("robot_position_x: " +  str(self.robot_pos[0] ) + '\n')
-            file.write("robot_position_y: " +  str(self.robot_pos[1] ) + '\n')
+            file.write("robot_position_y: " +  str(self.grid_size[1] - self.robot_pos[1] ) + '\n')
             file.write("target_position_x: " + str(self.target_pos[0]) + '\n')
-            file.write("target_position_y: " + str(self.target_pos[1]) + '\n')
+            file.write("target_position_y: " + str(self.grid_size[1] - self.target_pos[1]) + '\n')
             file.write("workspace_dimension_x: " + str(self.workspace_size[0]) + '\n')
             file.write("workspace_dimension_y: " + str(self.workspace_size[1]) + '\n')
             file.write("grid_resolution: "+str(self.grid_resolution) + '\n')         
@@ -114,9 +117,9 @@ class InteractiveGridGenerator:
         return
 
     # Loads config Parameters from the .yaml file 
-    def load_grid_params(self):
+    def load_interactive_plot_params(self):
         # Read data from the YAML file
-        with open(self.file_path, "r") as file:
+        with open(self.grid_params_path, "r") as file:
             config_options = yaml.load(file, Loader=yaml.FullLoader)
         
         self.workspace_size     = config_options["workspace_size"]
