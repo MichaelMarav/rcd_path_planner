@@ -35,9 +35,9 @@ class RCD:
     def __init__(self,offline_mode,map_file_name):
 
         # Load rcd parameters
-        self.load_grid_params()
+        self.load_rcd_params()
         grid_generator = InteractiveGridGenerator(offline_mode,map_file_name)
-        self.grid       = grid_generator.grid
+        self.grid       = grid_generator.grid.T
         self.robot_size = grid_generator.robot_size
         self.robot_pos  = grid_generator.robot_pos
         self.target_pos = grid_generator.target_pos
@@ -45,20 +45,19 @@ class RCD:
 
         self.grid_edge_id = np.empty(self.grid_size,dtype=object) # Contains the edge id that passes through each cell
         self.grid_resolution  = grid_generator.grid_resolution 
-
         self.cant_cast_robot_count = 0
         self.cant_cast_target_count = 0
 
         start = time.time()
 
+        self.grid = self.grid.T
         # Add Robot Node to the graph
         self.robot_graph.add_node( "R", x=self.robot_pos[0] , y = self.robot_pos[1] , ray_casted = False)
         self.target_graph.add_node("G", x=self.target_pos[0], y = self.target_pos[1], ray_casted = False)
         
         self.initialize_edges()
-        
+
         while not self.path_found:
-            
             # Robot Cast
             for i in range(self.robot_graph.number_of_nodes()):
                 node = self.low_variance_resampling(self.robot_graph)
@@ -95,7 +94,7 @@ class RCD:
             # print(self.cant_cast_target_count,self.cant_cast_robot_count)
             # print("Number of nodes : ", self.robot_graph.number_of_nodes())
             if (self.cant_cast_robot_count > self.robot_graph.number_of_nodes()-1 or self.cant_cast_target_count > self.target_graph.number_of_nodes()-1):
-                sys.exit("Path does not exist")
+                sys.exit("A valid path does not exists")
                 
 
 
@@ -104,10 +103,16 @@ class RCD:
 
         # Generate new samples
         enriched_path = self.generate_samples(init_path)
+        generated = time.time()
+        print("Time to generate samples: ", generated- start, " s")
 
         self.path = self.reduce_path_with_LoS(enriched_path)
+        los_time = time.time()
+        print("Time to generate samples: ", los_time - generated, " s")
+
+
         end = time.time()
-        print("Elapsed time: ", end-start, " s")
+        print("TOTAL time: ", end-start, " s")
         self.plot_path()
                    
                    
@@ -137,12 +142,12 @@ class RCD:
         
         plt.gca().invert_yaxis()
 
-        plt.show(block = False)
+        plt.show()
 
 
     
     # Loads config Parameters from the .yaml file 
-    def load_grid_params(self):
+    def load_rcd_params(self):
         # Read data from the YAML file
         with open(self.rcd_param_file, "r") as file:
             config_options = yaml.load(file, Loader=yaml.FullLoader)

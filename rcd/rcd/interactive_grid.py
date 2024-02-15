@@ -1,6 +1,6 @@
 from rcd.setup import *
 from rcd.utilities import print_red, print_green
-
+import imageio
 
 class InteractiveGridGenerator:
     # Initialization of parameters
@@ -28,7 +28,7 @@ class InteractiveGridGenerator:
         if offline_mode:
             if prefix is not None:
                 self.offline_params_filename =  f"../Data/{prefix}/{prefix}.yaml"
-                self.offline_map_filename += prefix +"/"+prefix+".ppm"
+                self.offline_map_filename += prefix +"/"+prefix+".png"
             else:
                 print_red("Error: Please enter a prefix. \nExiting..")
                 sys.exit()
@@ -45,20 +45,27 @@ class InteractiveGridGenerator:
                 self.robot_pos       = [config_options["robot_position_x"] , config_options["robot_position_y"]]
                 self.target_pos      = [config_options["target_position_x"] , config_options["target_position_y"]]
 
-            # Load Map
-            with open(self.offline_map_filename, 'rb') as f:
-                self.grid = np.zeros(self.grid_size, dtype=np.uint8)
 
-                # Read the pixel data
-                pixels = np.fromfile(f, dtype=np.uint8, count=self.grid_size[0]*self.grid_size[1])
+            self.grid = np.zeros(self.grid_size, dtype=np.uint8)
 
-                # Reshape the pixel data into a 2D array 
-                self.grid = np.reshape(pixels, (self.grid_size[1], self.grid_size[0]))
+            im = Image.open(self.offline_map_filename)
+            
+            # Convert the image to a numpy array
+            image_array = np.array(im)
 
-                # Convert white pixels to 0 and black pixels to 100
-                self.grid = np.where(self.grid == 255, 0, 100)
+            # Invert the values in the array (replace 255 with 0 and 0 with 100)
+            new_array = np.where(image_array == 255, 0, 100)
 
-           
+            # Convert to np.uint32 as per your original code
+            new_array = new_array.astype(np.uint8)
+
+            # Assign the new array to self.grid
+            self.grid = new_array
+
+
+            wall_size = int(math.ceil((self.robot_size)/self.grid_resolution))
+            self.add_walls(wall_size)
+
             # Inflate the occupancy grid
             self.inflate_occupancy_grid()
 
@@ -70,7 +77,7 @@ class InteractiveGridGenerator:
             wall_size = int(math.ceil((self.robot_size)/self.grid_resolution))
 
             # Initialize Occupancy grid
-            self.grid = np.zeros(self.grid_size,dtype=np.uint32)
+            self.grid = np.zeros(self.grid_size,dtype=np.uint8)
 
             print("Draw the map and enter the position of robot and target")
             # Add walls
@@ -95,16 +102,17 @@ class InteractiveGridGenerator:
 
             # Save Map option
             save_prefix = str(input("Enter prefix to save the map at Data/prefix/prefix.ppm or enter to continue\n")) 
-            if (save_prefix is not None):
+            if (save_prefix != ''):
                 os.makedirs(f"../Data/{save_prefix}", exist_ok=True)
                 test = self.grid.T[::-1]
                 image_data = np.where(test == 0, 255, 0).astype(np.uint8)
 
                 image = Image.fromarray(image_data)
 
-                image.save(f"../Data/{save_prefix}/{save_prefix}.ppm")
-                # imageio.imwrite(f"../Data/{save_prefix}/{save_prefix}.ppm", test, format='PPM-PIL')
-                # plt.savefig("../Data/" + save_prefix + "/"+ save_prefix  + ".ppm", format='ppm')#, bbox_inches='tight', pad_inches=0)
+                image.save(f"../Data/{save_prefix}/{save_prefix}.png")
+
+                print_green("Map saved at: " + f"Data/{save_prefix}/{save_prefix}.png")
+
                 print_green("Map saved at: " + f"Data/{save_prefix}/{save_prefix}.ppm")
                 with open("../Data/"+save_prefix+"/"+save_prefix+".yaml",'w') as file:
                     file.write("robot_position_x: " +  str(self.robot_pos[0] ) + '\n')
