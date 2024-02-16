@@ -17,7 +17,7 @@ from PIL import Image
 
 class InteractiveGridGenerator:
     # Initialization of parameters
-    grid_params_path = "../config/grid_params.yaml"
+    grid_params_path = "../config/interactive_grid_params.yaml"
     workspace_size     = [None,None]
     grid_resolution    = None
     drawing_brush_size = None

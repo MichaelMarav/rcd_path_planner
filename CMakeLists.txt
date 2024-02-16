@@ -10,11 +10,11 @@ set(rcd_sources ${rcd_sources}
 
 
 find_package(Eigen3 REQUIRED NO_MODULE)
-find_package(Boost  REQUIRED NO_MODULE)
+# find_package(Boost  REQUIRED NO_MODULE)
 
-include_directories(${Boost_INCLUDE_DIR})
-include_directories(${Eigen_INCLUDE_DIR} )
+# include_directories(${Boost_INCLUDE_DIR})
+# include_directories(${EIGEN_INCLUDE_DIR})
 
 # Add executable target
 add_executable(rcd "src/main.cpp" ${rcd_sources})
-target_include_directories(rcd PRIVATE Eigen3::Eigen)
+target_link_libraries(rcd PRIVATE Eigen3::Eigen)

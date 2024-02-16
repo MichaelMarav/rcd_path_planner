@@ -1,11 +1,19 @@
 #pragma once
 #include <iostream>
-class rcd
-{
+// #include <Eigen/Dense>
+#include <vector>
+#include <fstream>
 
+class RCD
+{
   private:
-    int my_var;
+    const std::string rcd_params{"../config/rcd_params.yaml"};
+    std::vector<std::vector<bool>> grid;
+    std::vector<int> robot_pos;
+    std::vector<int> target_pos;
+
+    
   public:
-    rcd();
+    RCD();
 
 };

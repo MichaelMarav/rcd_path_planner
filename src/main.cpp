@@ -4,7 +4,7 @@
 
 int main()
 {
-    std::cout << "Initialized files \n";
-    rcd rcd_ob;
+    std::cout << "Ray Casting and Diffusion model for path plannig \n";
+    RCD planner;
     return 0;
 }
