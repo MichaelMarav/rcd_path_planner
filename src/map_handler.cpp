@@ -3,15 +3,22 @@
 /*
   Loads map and initializes 
 */
-MapHandler::MapHandler(const std::string & ppm_filename)
+MapHandler::MapHandler(const std::string & map_file): ppm_filename(map_file)
 {
   std::cout << "Initializing Occupancy Grid..\n";
   std::cout << "Loading file: " << ppm_filename <<'\n';
+  
   loadOccupancyGrid(ppm_filename);
+
+  yaml_filename = ppm_filename.substr(0, ppm_filename.find_last_of('.')) + ".yaml";
+  
+  loadOccupancyParams(yaml_filename);
 
 }
 
-
+/*
+  Loads Occupancy grid from .ppm file
+*/
 void MapHandler::loadOccupancyGrid(const std::string & ppm_filename)
 {
   std::ifstream file(ppm_filename,std::ios::binary);
@@ -62,15 +69,35 @@ void MapHandler::loadOccupancyGrid(const std::string & ppm_filename)
   file.close();
 }
 
-  // // Function to resize the grid
-  void MapHandler::initializeGrid(unsigned int width, unsigned int height) {
-    grid.resize(height, std::vector<Cell>(width));
 
-    for (int i = 0; i < this->height; ++i) {
-      for (int j = 0; j < this->width; ++j) {
-        grid[i][j].isOccupied = false;
-        grid[i][j].robotPass  = false;
-        this->grid[i][j].targetPass = false;
-      }
+/*
+Loads occupancy grid params
+*/
+void MapHandler::loadOccupancyParams(const std::string & yaml_file)
+{
+  YAML::Node config = YAML::LoadFile(yaml_file);
+
+  this->robot_pos.x     = config["robot_position_x"].as<unsigned int>();
+  this->robot_pos.y     = config["robot_position_y"].as<unsigned int>();
+  this->target_pos.x    = config["target_position_x"].as<unsigned int>();
+  this->target_pos.y    = config["target_position_y"].as<unsigned int>();
+  this->grid_size_x     = config["workspace_dimension_x"].as<float>();
+  this->grid_size_y     = config["workspace_dimension_y"].as<float>();
+  this->grid_resolution = config["grid_resolution"].as<float>(); 
+}
+
+/*
+Initilizes memory and attributes for the occupancy grid
+*/
+void MapHandler::initializeGrid(unsigned int width, unsigned int height) 
+{
+  grid.resize(height, std::vector<Cell>(width));
+
+  for (int i = 0; i < this->height; ++i) {
+    for (int j = 0; j < this->width; ++j) {
+      grid[i][j].isOccupied = false;
+      grid[i][j].robotPass  = false;
+      this->grid[i][j].targetPass = false;
     }
   }
+}

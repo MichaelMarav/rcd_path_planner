@@ -3,7 +3,12 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <yaml-cpp/yaml.h>
 
+/*
+  Stores the Occupancy Grid and other parameters for the map. It gets updated
+  as the RCD runs
+*/
 template<typename T>
 using OccupancyGrid = std::vector<std::vector<T>>;
 
@@ -17,16 +22,30 @@ class MapHandler
       bool targetPass;
     };
 
+    struct Point
+    {
+      unsigned int x;
+      unsigned int y;
+    };
     OccupancyGrid<Cell> grid;  // 2D occupancy grid
     
     unsigned int width;
     unsigned int height;
-    unsigned int robot_pos;
-    unsigned int target_pos;
 
-    MapHandler(const std::string & ppm_filemame);
+    Point robot_pos;
+    Point target_pos;
+    float grid_size_x;
+    float grid_size_y;
+    float grid_resolution;
+
+
+
+    MapHandler(const std::string & map_file);
 
   private:
-    void loadOccupancyGrid(const std::string & ppm_filemame);
+    std::string yaml_filename;
+    std::string ppm_filename;
+    void loadOccupancyGrid(const std::string & map_file);
+    void loadOccupancyParams(const std::string & yaml_file);
     void initializeGrid(unsigned int width, unsigned int height);
 };
