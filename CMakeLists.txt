@@ -7,21 +7,21 @@ set(rcd_sources ${rcd_sources}
     src/path_optimizer.cpp
     src/rcd.cpp
     src/visualizer.cpp
-    src/map_handler
+    src/map_handler.cpp
 )
 
 
 find_package(Eigen3 REQUIRED NO_MODULE)
 find_package(OpenCV REQUIRED)
 find_package(yaml-cpp REQUIRED)
-# find_package(Boost  REQUIRED NO_MODULE)
+find_package(Boost  REQUIRED NO_MODULE)
 
-# include_directories(${Boost_INCLUDE_DIR})
-# include_directories(${EIGEN_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIR})
 
 # Add executable target
 add_executable(rcd "src/main.cpp" ${rcd_sources}) 
 include_directories(${YAML_CPP_INCLUDE_DIR})
+
 target_include_directories(rcd
  PRIVATE
   src/

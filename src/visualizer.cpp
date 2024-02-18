@@ -25,12 +25,15 @@ void Visualizer::visualizeOccupancyGrid()
       }
   }
   printInfo("Loaded Occupancy Grid");
-  printInfo("Confirm tha the greed dot is the initial position the red one is the target");
-  cv::Point center(38, 163); // Center coordinates
+  printInfo("Confirm that the dots are the initial and target positions");
+  cv::Point robot(map.robot_pos.x, map.robot_pos.y); // Center coordinates
+  cv::Point target(map.target_pos.x, map.target_pos.y); // Center coordinates
+
   int radius = 10; // Radius of the dot
 
   // Draw a blue filled circle (dot)
-  cv::circle(image, center, radius, cv::Scalar(0, 0, 255), -1); // Color: Blue (BGR), -1 for filled circle
+  cv::circle(image, robot, radius, cv::Scalar(0, 0, 255), -1); // Color: Blue (BGR), -1 for filled circle
+  cv::circle(image, target, radius, cv::Scalar(0, 255, 0), -1); // Color: Blue (BGR), -1 for filled circle
 
 
 
