@@ -1,6 +1,5 @@
 file(REMOVE_RECURSE
   "CMakeFiles/ompl_benchmark.dir/src/main.cpp.o"
-  "CMakeFiles/ompl_benchmark.dir/src/main.cpp.o.d"
   "ompl_benchmark"
   "ompl_benchmark.pdb"
 )
