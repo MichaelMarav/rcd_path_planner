@@ -8,6 +8,7 @@ set(rcd_sources ${rcd_sources}
     src/rcd.cpp
     src/visualizer.cpp
     src/map_handler.cpp
+    src/rcd_graph.cpp
 )
 
 

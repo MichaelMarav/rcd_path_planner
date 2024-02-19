@@ -2,6 +2,7 @@
 #include "rcd.hpp"
 #include "map_handler.hpp"
 #include "visualizer.hpp"
+#include "rcd_graph.hpp"
 
 
 int main()
@@ -14,11 +15,12 @@ int main()
     Visualizer plotter(grid);
 
     // Robot Caster
-    RCD RobotCaster(true);
+    RCD::Core RobotCaster(true);
 
     // Target Caster
-    RCD TargetCaster(false);
+    RCD::Core TargetCaster(false);
 
+    // RCD::Graph my_graph;
     // Main loop
     // while (!RobotCaster.pathFound && !RobotCaster.pathFound){
     //     RobotCaster.cast(grid); //use mutex

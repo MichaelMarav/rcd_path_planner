@@ -1,24 +1,24 @@
 #pragma once
 #include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <fstream>
 
 #include "rcd_graph.hpp"
+#include "map_handler.hpp"
 
-class RCD
+namespace RCD
 {
-  private:
-    const int N_rays{6}; // Number of rays to be casted
-    bool isRobot;
+  class Core
+  {
+    private:
+      const int N_rays{6}; // Number of rays to be casted
+      bool isRobot;
+      RGraph::Node node_;
+      RGraph::Edge edge_;
 
-  public:
-    bool pathFound{false}; // Flag set to true if the path is found
+      RGraph graph;
 
-    RCD(bool robot_flag);
-    // void cast(MapHandler & grid);
-
-
-
-};
+    public:
+      bool pathFound{false}; // Flag set to true if the path is found
+      Core(bool robot_flag);
+      // void cast(MapHandler & grid);
+  };
+}

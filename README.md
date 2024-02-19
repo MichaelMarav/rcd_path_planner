@@ -4,9 +4,17 @@
 RCD is a global path planner that given a binary occupancy grid, the target's and the robot's position produces a collision free path.
 
 ## Dependencies 
+
 ```
-$ sudo apt-get install python3-tk
+sudo apt-get install python3-tk
 ```
+Install opencv
+```
+sudo apt install libopencv-dev python3-opencv
+```
+Get eigen3 and Boost
+
+
 ## Interactive occupancy grid path planning
 In order to test RCD you simply clone the package and:
 1. tkinter 
