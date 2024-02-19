@@ -1,17 +1,21 @@
 #include "rcd_graph.hpp"
 
 
+using namespace RCD;
 
+RGraph::RGraph()
+{
 
-namespace RCD {
-    void RGraph::AddNode(const Node& node) {
-        boost::add_vertex(node, G);
-    }
-
-    void RGraph::AddEdge(const G::vertex_descriptor& father, const G::vertex_descriptor& child, float weight) {
-        boost::add_edge(father, child, Edge{weight}, G);
-    }
 }
+
+void RGraph::AddNode(const Node& node) {
+  boost::add_vertex(node, G);
+}
+
+void RGraph::AddEdge(const BoostGraph::vertex_descriptor& father, const BoostGraph::vertex_descriptor& child, float weight) {
+  boost::add_edge(father, child, Edge{weight}, G);
+}
+
 
 // using namespace RCD;
 

@@ -11,10 +11,10 @@ namespace RCD
     private:
       const int N_rays{6}; // Number of rays to be casted
       bool isRobot;
-      RGraph::Node node_;
-      RGraph::Edge edge_;
+      RCD::RGraph::Node node_;
+      RCD::RGraph::Edge edge_;
 
-      RGraph graph;
+      RCD::RGraph graph;
 
     public:
       bool pathFound{false}; // Flag set to true if the path is found

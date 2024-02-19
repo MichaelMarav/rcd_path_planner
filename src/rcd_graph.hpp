@@ -30,11 +30,13 @@ namespace RCD
       // float ??
     };
 
-    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Node, Edge> G;
+    typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Node, Edge> BoostGraph;
 
+    BoostGraph G;
+    
 
-    RGraph(){};
+    RGraph();
     void AddNode(const RGraph::Node & node);
-    void AddEdge(const G::vertex_descriptor & father, const G::vertex_descriptor & child, float weight);
+    void AddEdge(const BoostGraph::vertex_descriptor & father, const BoostGraph::vertex_descriptor & child, float weight);
     };
  }
