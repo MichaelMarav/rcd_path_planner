@@ -2,7 +2,7 @@
 
 
 using namespace RCD;
-
+// Initializes graph
 RGraph::RGraph()
 {
 

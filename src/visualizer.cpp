@@ -42,7 +42,9 @@ void Visualizer::visualizeOccupancyGrid()
   cv::waitKey(0);
 }
 
+
 void Visualizer::printInfo(const std::string & message)
 {
   std::cout << "[INFO]  " << message << '\n';
 }
+

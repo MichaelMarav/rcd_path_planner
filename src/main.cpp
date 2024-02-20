@@ -8,17 +8,22 @@
 int main()
 {
     std::cout << "Ray Casting and Diffusion model for Path Plannig \n";
-    // RCD planner;
-    MapHandler grid("/home/michael/github/rcd_path_planner/maps/occ_2_30_0/occ_2_30_0.ppm");
 
-
-    Visualizer plotter(grid);
+    // Initializes the map and the relevant parameters
+    MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_2_30_0/occ_2_30_0.ppm");
+    
+    // Visualization of the imported grid
+    Visualizer plotter(handler);
 
     // Robot Caster
-    RCD::Core RobotCaster(true);
+    RCD::Core RobotCaster(true, &handler);
+
+    std::cout << handler.grid[3][3].isOccupied << '\n';
 
     // Target Caster
-    RCD::Core TargetCaster(false);
+    // RCD::Core TargetCaster(false, handler.robot_pos,handler.target_pos);
+
+    // RobotCaster.Cast();
 
     // RCD::Graph my_graph;
     // Main loop

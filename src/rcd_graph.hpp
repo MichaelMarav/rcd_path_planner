@@ -1,5 +1,6 @@
 #pragma once 
 #include <boost/graph/adjacency_list.hpp>
+#include "utilities.hpp"
 
 
 namespace RCD
@@ -7,11 +8,6 @@ namespace RCD
   class RGraph
   {
   public:
-    struct Point
-    {
-      unsigned int x;
-      unsigned int y;
-    };
     // Use namespace to avoid errors
     struct Node
     {

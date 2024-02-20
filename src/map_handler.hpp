@@ -1,10 +1,6 @@
 #pragma once
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <yaml-cpp/yaml.h>
 
+#include "utilities.hpp"
 /*
   Stores the Occupancy Grid and other parameters for the map. It gets updated
   as the RCD runs
@@ -22,11 +18,6 @@ class MapHandler
       bool targetPass;
     };
 
-    struct Point
-    {
-      unsigned int x;
-      unsigned int y;
-    };
     OccupancyGrid<Cell> grid;  // 2D occupancy grid
     
     unsigned int width;
