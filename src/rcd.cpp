@@ -3,7 +3,7 @@
 using namespace RCD;
 
 
-Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag)
+Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag), casting_angles(N_rays)
 {
   this->map = map_;
   if (isRobot){
@@ -31,7 +31,7 @@ Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag)
     // Total weight
     node_.cast_w   = 0.; // To do compute the weight with a function f(p,e,o)
   }
-  // G.AddNode(node_);
+  G.AddNode(node_);
 }
 
 
@@ -40,24 +40,27 @@ Performs low-variance resampling  and decides which node to cast next
 */
 RGraph::Node Core::CastDecision()
 {
+
   // TODO: add low variance resampling based on the weight of each node
+
 }
 
 /*
-Casts N_Rays
+  Updated Graph and compute properties. (Gets object ready before cast)
 */
-void Core::Cast(MapHandler & handler)
+void Core::Update()
+{
+  casting_dir = rand() % (360/N_rays + 1);  // Random  casting angle 
+  for (int i = 0 ; i < N_rays ; ++i){
+    casting_angles[i] = casting_dir + i*angle_increment;
+  }
+}
+
+/*
+Casts N_Rays into map_->grid
+-->!!! This is the only method that changes the values of the grid!!!<--
+*/
+void Core::CastRays(MapHandler & handler)
 {
 
 }
-
-
-
-
-/*
-Updates the grid by performing the casting procedure
-*/
-// void RCD::cast(MapHandler & grid)
-// {
-  
-// } 

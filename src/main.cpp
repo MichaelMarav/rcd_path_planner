@@ -18,17 +18,20 @@ int main()
     // Robot Caster
     RCD::Core RobotCaster(true, &handler);
 
-    std::cout << handler.grid[3][3].isOccupied << '\n';
-
     // Target Caster
-    // RCD::Core TargetCaster(false, handler.robot_pos,handler.target_pos);
+    RCD::Core TargetCaster(false, &handler);
 
+    // RobotCaster.Update()
     // RobotCaster.Cast();
 
     // RCD::Graph my_graph;
     // Main loop
     // while (!RobotCaster.pathFound && !RobotCaster.pathFound){
-    //     RobotCaster.cast(grid); //use mutex
+    // RobotCaster.Update()
+    // TargetCaster.Update()
+    // TargetCaster.CastRays() 
+    // TargetCaster.CastRays()
+    // 
     //     RobotCaster.updateGraph();
     //     TargetCaster.cast(grid);
     //     RobotCaster.updateGraph()
