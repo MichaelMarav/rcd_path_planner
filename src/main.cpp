@@ -21,8 +21,8 @@ int main()
     // Target Caster
     RCD::Core TargetCaster(false, &handler);
 
-    // RobotCaster.Update()
-    // RobotCaster.Cast();
+    RobotCaster.Update();
+    RobotCaster.CastRays();
 
     // RCD::Graph my_graph;
     // Main loop

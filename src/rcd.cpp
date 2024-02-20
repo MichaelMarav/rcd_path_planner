@@ -9,29 +9,29 @@ Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag), casting_angle
   if (isRobot){
     std::cout << "Initialized Robot Graph \n";
 
-    node_.pos = map_->robot_pos;
+    node2add.pos = map_->robot_pos;
     // Proximity
-    node_.p   = std::sqrt(std::pow(map_->robot_pos.x - map_->target_pos.x,2) + std::pow(map_->robot_pos.y - map_->target_pos.y,2) );
+    node2add.p   = std::sqrt(std::pow(map_->robot_pos.x - map_->target_pos.x,2) + std::pow(map_->robot_pos.y - map_->target_pos.y,2) );
     // Explorability (distance from parent)
-    node_.e   = 0.;
+    node2add.e   = 0.;
     // Occurence 
-    node_.o   = 0;
+    node2add.o   = 0;
     // Total weight
-    node_.cast_w   = 0.; // To do compute the weight with a function f(p,e,o)
+    node2add.cast_w   = 0.; // To do compute the weight with a function f(p,e,o)
   }else{
     std::cout << "Initialized Target Graph \n";
 
-    node_.pos = map_->target_pos;
+    node2add.pos = map_->target_pos;
     // Proximity
-    node_.p   = std::sqrt(std::pow(map_->robot_pos.x - map_->target_pos.x,2) + std::pow(map_->robot_pos.y -map_->target_pos.y,2) );
+    node2add.p   = std::sqrt(std::pow(map_->robot_pos.x - map_->target_pos.x,2) + std::pow(map_->robot_pos.y -map_->target_pos.y,2) );
     // Explorability (distance from parent)
-    node_.e   = 0.;
+    node2add.e   = 0.;
     // Occurence 
-    node_.o   = 0;
+    node2add.o   = 0;
     // Total weight
-    node_.cast_w   = 0.; // To do compute the weight with a function f(p,e,o)
+    node2add.cast_w   = 0.; // To do compute the weight with a function f(p,e,o)
   }
-  G.AddNode(node_);
+  G.AddNode(node2add);
 }
 
 
@@ -42,7 +42,7 @@ RGraph::Node Core::CastDecision()
 {
 
   // TODO: add low variance resampling based on the weight of each node
-
+  
 }
 
 /*
@@ -50,17 +50,42 @@ RGraph::Node Core::CastDecision()
 */
 void Core::Update()
 {
-  casting_dir = rand() % (360/N_rays + 1);  // Random  casting angle 
+  // Find in which directions RCD is going to cast
+  casting_dir = (static_cast<float>(rand() % (360/N_rays + 1)) )*PI/180.;  // Random casting direction
   for (int i = 0 ; i < N_rays ; ++i){
-    casting_angles[i] = casting_dir + i*angle_increment;
+    casting_angles[i] = casting_dir + i*angle_increment; // Casting angles
   }
+
+
+  node2cast = node2add;
 }
+
 
 /*
 Casts N_Rays into map_->grid
 -->!!! This is the only method that changes the values of the grid!!!<--
 */
-void Core::CastRays(MapHandler & handler)
+void Core::CastRays()
 {
+  // For every casting direction
+  for (const auto& angle : casting_angles)
+  {
+    cos = std::cos(angle);
+    sin = std::sin(angle);
+    
+    ray_dis = 2.0;
+    while (!pathFound)
+    {
+      beam.x = std::round(node2cast.pos.x + ray_dis*cos);
+      beam.y = std::round(node2cast.pos.y + ray_dis*sin);
+      std::cout << map->grid[beam.x][beam.y].isOccupied<< '\n';
 
+
+      if (map->grid[beam.x][beam.y].isOccupied) break;
+      if (isRobot && map->grid[beam.x][beam.y].robotPass) break;
+      // if (!isRobot && )
+      ray_dis += 1.0;
+    }      
+  
+  }
 }
