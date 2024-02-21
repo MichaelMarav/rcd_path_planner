@@ -18,6 +18,7 @@ class Visualizer
 
     void printInfo(const std::string & message);
 
+    void VisualzeRays(const MapHandler & updatedMap);
 
   private:
     const MapHandler & map;

@@ -28,9 +28,10 @@ int main()
     while (!RobotCaster.pathFound && !RobotCaster.pathFound){
         RobotCaster.Update();
         RobotCaster.CastRays();
-
-        TargetCaster.Update();
-        TargetCaster.CastRays();
+        plotter.VisualzeRays(handler);
+        std::cout << "Updating \n";
+        // TargetCaster.Update();
+        // TargetCaster.CastRays();
     }
     // Use path optimizer to fix the path
     // Use visualizer to save the path for paper TODO: Implement it with color

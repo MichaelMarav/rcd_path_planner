@@ -1,4 +1,5 @@
 #include "rcd.hpp"
+#include <typeinfo>
 
 using namespace RCD;
 
@@ -29,7 +30,7 @@ Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag), casting_angle
     // Occurence 
     node2add.o   = 1;
     // Total weight
-    node2add.cast_w   = node2add.o; // To do compute the weight with a function f(p,e,o)
+    node2add.cast_w   = 1.; // To do compute the weight with a function f(p,e,o)
   }
   father = G.AddNode(node2add); // Add root to the graph
 }
@@ -56,6 +57,7 @@ RGraph::Node Core::CastDecision()
       maxWeight = node.cast_w;
       maxWeightNode = &node;
       father = *it; // The father will be the node to be casted
+      std::cout << typeid(*it).name() << '\n';
     }
   }
 
@@ -90,18 +92,19 @@ void Core::CastRays()
     cos_cast = std::cos(angle);
     sin_cast = std::sin(angle);
     
-    ray_dis = 2.0;
+    ray_dis = 5.0;
     while (!pathFound)
     {
-      beam.x = std::round(node2cast.pos.x + ray_dis*cos_cast);
-      beam.y = std::round(node2cast.pos.y + ray_dis*sin_cast);
-
+      beam.x = std::round(node2cast.pos.x + ray_dis*sin_cast);
+      beam.y = std::round(node2cast.pos.y + ray_dis*cos_cast);
 
 
 
       // Don't do that here (store it in a vector and the nodes in update)
       if (map->grid[beam.x][beam.y].isOccupied && ray_dis > 3)// hit wall and it is not next to the node
       { 
+        // std::cout << "beam x " << beam.x << " beam y " << beam.y << '\n';
+
         // Proximity
         node2add.p   = 0.;
         // Explorability (distance from parent)
@@ -113,6 +116,7 @@ void Core::CastRays()
   
         child = G.AddNode(node2add);
         G.AddEdge(father,child,ray_dis);
+       
         break;
       }
 
@@ -166,7 +170,7 @@ void Core::CastRays()
         G.AddEdge(father,child,ray_dis);
         pathFound = true;
 
-        break;
+        return;
 
         //TODO: break the edge
       }
@@ -186,12 +190,17 @@ void Core::CastRays()
         child = G.AddNode(node2add);
         G.AddEdge(father,child,ray_dis);
         pathFound = true;
-        break;
+        return;
         
         //TODO: break the edge
       }
+      
+      if (isRobot){
+        map->grid[beam.x][beam.y].robotPass = true;
+      }else{
+        map->grid[beam.x][beam.y].targetPass = true;
+      }
 
-      // if (!isRobot && )
       ray_dis += 1.0;
     }      
   

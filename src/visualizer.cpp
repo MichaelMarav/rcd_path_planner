@@ -4,7 +4,6 @@ Visualizer::Visualizer(const MapHandler & map): map(map)
 {
   std::cout << "Visualizing Occupancy Grid \n";
   visualizeOccupancyGrid();
-
 }
 
 
@@ -48,3 +47,39 @@ void Visualizer::printInfo(const std::string & message)
   std::cout << "[INFO]  " << message << '\n';
 }
 
+/*
+Visualizes the casted rays
+*/
+void Visualizer::VisualzeRays(const MapHandler & updatedMap)
+{
+  
+  // Create an image to visualize the grid
+  cv::Mat image(updatedMap.height, updatedMap.width, CV_8UC1);
+
+  // Fill the image with appropriate colors based on the grid
+  for (int i = 0; i < updatedMap.height; ++i) {
+      for (int j = 0; j < updatedMap.width; ++j) {
+          if (updatedMap.grid[i][j].robotPass) {
+              image.at<uchar>(i, j) = 0; // White for occupied cells
+          } else {
+              image.at<uchar>(i, j) = 255;   // Black for unoccupied cells
+          }
+      }
+  }
+  printInfo("Loaded Occupancy Grid");
+  printInfo("Confirm that the dots are the initial and target positions");
+  cv::Point robot(updatedMap.robot_pos.x, updatedMap.robot_pos.y); // Center coordinates
+  // cv::Point target(updatedMap.target_pos.x, updatedMap.target_pos.y); // Center coordinates
+
+  int radius = 5; // Radius of the dot
+
+  // Draw a blue filled circle (dot)
+  cv::circle(image, robot, radius, cv::Scalar(0, 0, 255), -1); // Color: Blue (BGR), -1 for filled circle
+  // cv::circle(image, target, radius, cv::Scalar(0, 255, 0), -1); // Color: Blue (BGR), -1 for filled circle
+
+
+
+  // Display the image using OpenCV
+  cv::imshow("Occupancy Grid", image);
+  cv::waitKey(0);
+}
