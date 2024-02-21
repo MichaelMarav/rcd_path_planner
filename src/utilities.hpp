@@ -12,7 +12,8 @@ Contains generic data structures and libraries
 #include <vector>
 #include <string>
 #include <yaml-cpp/yaml.h>
-
+#include <queue> // For fast storing of weight
+#include <unordered_map>
 struct Point
 {
   unsigned int x;

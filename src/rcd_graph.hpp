@@ -17,7 +17,6 @@ namespace RCD
       float p;        // Proximity     -> How close this Node is to target
       float e;        // Explorability -> Distance between this node and its father
       unsigned int o; // Occurence     -> How many times this node has already been casted
-
     };
 
     struct Edge
@@ -29,10 +28,9 @@ namespace RCD
     typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, Node, Edge> BoostGraph;
 
     BoostGraph G;
-    
 
     RGraph();
-    void AddNode(const RGraph::Node & node);
+    RGraph::BoostGraph::vertex_descriptor AddNode(const RGraph::Node & node);
     void AddEdge(const BoostGraph::vertex_descriptor & father, const BoostGraph::vertex_descriptor & child, float weight);
     };
  }

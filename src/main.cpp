@@ -21,21 +21,17 @@ int main()
     // Target Caster
     RCD::Core TargetCaster(false, &handler);
 
-    RobotCaster.Update();
-    RobotCaster.CastRays();
+    // RobotCaster.Update(); // Prepare for casting
+    // RobotCaster.CastRays();
 
-    // RCD::Graph my_graph;
     // Main loop
-    // while (!RobotCaster.pathFound && !RobotCaster.pathFound){
-    // RobotCaster.Update()
-    // TargetCaster.Update()
-    // TargetCaster.CastRays() 
-    // TargetCaster.CastRays()
-    // 
-    //     RobotCaster.updateGraph();
-    //     TargetCaster.cast(grid);
-    //     RobotCaster.updateGraph()
-    // }
+    while (!RobotCaster.pathFound && !RobotCaster.pathFound){
+        RobotCaster.Update();
+        RobotCaster.CastRays();
+
+        TargetCaster.Update();
+        TargetCaster.CastRays();
+    }
     // Use path optimizer to fix the path
     // Use visualizer to save the path for paper TODO: Implement it with color
     return 0;

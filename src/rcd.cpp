@@ -15,7 +15,7 @@ Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag), casting_angle
     // Explorability (distance from parent)
     node2add.e   = 0.;
     // Occurence 
-    node2add.o   = 0;
+    node2add.o   = 1;
     // Total weight
     node2add.cast_w   = 0.; // To do compute the weight with a function f(p,e,o)
   }else{
@@ -27,11 +27,11 @@ Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag), casting_angle
     // Explorability (distance from parent)
     node2add.e   = 0.;
     // Occurence 
-    node2add.o   = 0;
+    node2add.o   = 1;
     // Total weight
-    node2add.cast_w   = 0.; // To do compute the weight with a function f(p,e,o)
+    node2add.cast_w   = node2add.o; // To do compute the weight with a function f(p,e,o)
   }
-  G.AddNode(node2add);
+  father = G.AddNode(node2add); // Add root to the graph
 }
 
 
@@ -42,8 +42,25 @@ RGraph::Node Core::CastDecision()
 {
 
   // TODO: add low variance resampling based on the weight of each node
-  
-}
+  // Placeholder: for testing purposes, the next node to cast will be the one with more explorability
+  RGraph::Node* maxWeightNode = nullptr;
+  float maxWeight = std::numeric_limits<float>::lowest(); // Initialize to lowest possible value
+
+  // Iterate through all nodes in the graph
+  auto vertices = boost::vertices(G.G);
+  for (auto it = vertices.first; it != vertices.second; ++it)
+  {
+    RGraph::Node& node = G.G[*it];
+    if (node.cast_w > maxWeight)
+    {
+      maxWeight = node.cast_w;
+      maxWeightNode = &node;
+      father = *it; // The father will be the node to be casted
+    }
+  }
+
+  return *maxWeightNode;
+} 
 
 /*
   Updated Graph and compute properties. (Gets object ready before cast)
@@ -56,9 +73,9 @@ void Core::Update()
     casting_angles[i] = casting_dir + i*angle_increment; // Casting angles
   }
 
-
-  node2cast = node2add;
+  node2cast = CastDecision();
 }
+
 
 
 /*
@@ -70,19 +87,110 @@ void Core::CastRays()
   // For every casting direction
   for (const auto& angle : casting_angles)
   {
-    cos = std::cos(angle);
-    sin = std::sin(angle);
+    cos_cast = std::cos(angle);
+    sin_cast = std::sin(angle);
     
     ray_dis = 2.0;
     while (!pathFound)
     {
-      beam.x = std::round(node2cast.pos.x + ray_dis*cos);
-      beam.y = std::round(node2cast.pos.y + ray_dis*sin);
-      std::cout << map->grid[beam.x][beam.y].isOccupied<< '\n';
+      beam.x = std::round(node2cast.pos.x + ray_dis*cos_cast);
+      beam.y = std::round(node2cast.pos.y + ray_dis*sin_cast);
 
 
-      if (map->grid[beam.x][beam.y].isOccupied) break;
-      if (isRobot && map->grid[beam.x][beam.y].robotPass) break;
+
+
+      // Don't do that here (store it in a vector and the nodes in update)
+      if (map->grid[beam.x][beam.y].isOccupied && ray_dis > 3)// hit wall and it is not next to the node
+      { 
+        // Proximity
+        node2add.p   = 0.;
+        // Explorability (distance from parent)
+        node2add.e   = 0.;
+        // Occurence 
+        node2add.o   = 0;
+        // Total weight
+        node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
+  
+        child = G.AddNode(node2add);
+        G.AddEdge(father,child,ray_dis);
+        break;
+      }
+
+      if (isRobot && map->grid[beam.x][beam.y].robotPass)
+      {
+        // Proximity
+        node2add.p   = 0.;
+        // Explorability (distance from parent)
+        node2add.e   = 0.;
+        // Occurence 
+        node2add.o   = 0;
+        // Total weight
+        node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
+  
+        child = G.AddNode(node2add);
+        G.AddEdge(father,child,ray_dis);
+        break;
+        //TODO: break the edge
+      }
+
+
+      if (!isRobot && map->grid[beam.x][beam.y].targetPass)
+      {
+        // Proximity
+        node2add.p   = 0.;
+        // Explorability (distance from parent)
+        node2add.e   = 0.;
+        // Occurence 
+        node2add.o   = 0;
+        // Total weight
+        node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
+  
+        child = G.AddNode(node2add);
+        G.AddEdge(father,child,ray_dis);
+        break;
+        //TODO: break the edge
+      }
+
+      if (isRobot && map->grid[beam.x][beam.y].targetPass)
+      {
+        // Proximity
+        node2add.p   = 0.;
+        // Explorability (distance from parent)
+        node2add.e   = 0.;
+        // Occurence 
+        node2add.o   = 0;
+        // Total weight
+        node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
+  
+        child = G.AddNode(node2add);
+        G.AddEdge(father,child,ray_dis);
+        pathFound = true;
+
+        break;
+
+        //TODO: break the edge
+      }
+
+
+      if (!isRobot && map->grid[beam.x][beam.y].robotPass)
+      {
+        // Proximity
+        node2add.p   = 0.;
+        // Explorability (distance from parent)
+        node2add.e   = 0.;
+        // Occurence 
+        node2add.o   = 0;
+        // Total weight
+        node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
+  
+        child = G.AddNode(node2add);
+        G.AddEdge(father,child,ray_dis);
+        pathFound = true;
+        break;
+        
+        //TODO: break the edge
+      }
+
       // if (!isRobot && )
       ray_dis += 1.0;
     }      
