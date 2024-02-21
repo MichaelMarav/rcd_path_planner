@@ -59,11 +59,15 @@ void Visualizer::VisualzeRays(const MapHandler & updatedMap)
   // Fill the image with appropriate colors based on the grid
   for (int i = 0; i < updatedMap.height; ++i) {
       for (int j = 0; j < updatedMap.width; ++j) {
-          if (updatedMap.grid[i][j].robotPass) {
+         if (map.grid[i][j].isOccupied) {
               image.at<uchar>(i, j) = 0; // White for occupied cells
           } else {
               image.at<uchar>(i, j) = 255;   // Black for unoccupied cells
           }
+
+          if (updatedMap.grid[i][j].robotPass) {
+              image.at<uchar>(i, j) = 150; // White for occupied cells
+          } 
       }
   }
   printInfo("Loaded Occupancy Grid");

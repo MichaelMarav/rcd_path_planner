@@ -34,18 +34,18 @@ namespace RCD
       float sin_cast; // sin of casting angle
 
       // ray's position during casting
-      Point beam; 
+      Point ray_pos; 
       
       RCD::RGraph::Node node2cast; // Node structure to be casted next
       RCD::RGraph::Node node2add;  // Node structure to be added to the graph
       RCD::RGraph::Edge edge2add;  // Edge structure to connect two nodes 
 
-      RGraph::BoostGraph::vertex_descriptor father;
-      RGraph::BoostGraph::vertex_descriptor child;
+      RCD::RGraph::BoostGraph::vertex_descriptor father;
+      RCD::RGraph::BoostGraph::vertex_descriptor child;
       RCD::RGraph G; // Graph structure for this Core object
       
       // Returns which node to cast next based on the weights 
-      RGraph::Node CastDecision();
+      RGraph::Node& CastDecision();
       //TODO: Add heap or set or queue for stroring the pointers to the new nodes and update the weights
     public:
       Core(bool robot_flag,MapHandler *map_); // Constructor

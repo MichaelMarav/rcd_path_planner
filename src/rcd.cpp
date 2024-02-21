@@ -6,7 +6,7 @@ using namespace RCD;
 
 Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag), casting_angles(N_rays)
 {
-  this->map = map_;
+  map = map_;
   if (isRobot){
     std::cout << "Initialized Robot Graph \n";
 
@@ -18,8 +18,9 @@ Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag), casting_angle
     // Occurence 
     node2add.o   = 1;
     // Total weight
-    node2add.cast_w   = 0.; // To do compute the weight with a function f(p,e,o)
-  }else{
+    node2add.cast_w   = 1. ; // To do compute the weight with a function f(p,e,o)
+  
+    }else{
     std::cout << "Initialized Target Graph \n";
 
     node2add.pos = map_->target_pos;
@@ -32,50 +33,58 @@ Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag), casting_angle
     // Total weight
     node2add.cast_w   = 1.; // To do compute the weight with a function f(p,e,o)
   }
-  father = G.AddNode(node2add); // Add root to the graph
+
+  G.AddNode(node2add,G.G); // Add root to the graph
+  father = node2add.descriptor;
 }
 
 
 /*
 Performs low-variance resampling  and decides which node to cast next
 */
-RGraph::Node Core::CastDecision()
+RGraph::Node& Core::CastDecision()
 {
-
-  // TODO: add low variance resampling based on the weight of each node
-  // Placeholder: for testing purposes, the next node to cast will be the one with more explorability
-  RGraph::Node* maxWeightNode = nullptr;
-  float maxWeight = std::numeric_limits<float>::lowest(); // Initialize to lowest possible value
-
-  // Iterate through all nodes in the graph
-  auto vertices = boost::vertices(G.G);
-  for (auto it = vertices.first; it != vertices.second; ++it)
-  {
-    RGraph::Node& node = G.G[*it];
-    if (node.cast_w > maxWeight)
-    {
-      maxWeight = node.cast_w;
-      maxWeightNode = &node;
-      father = *it; // The father will be the node to be casted
-      std::cout << typeid(*it).name() << '\n';
+    if (boost::num_vertices(G.G) == 0) {
+        throw std::runtime_error("Graph is empty");
     }
-  }
 
-  return *maxWeightNode;
-} 
+    RGraph::Node* maxWeightNode = nullptr;
+    float maxWeight = -std::numeric_limits<float>::infinity(); // Initialize to negative infinity
 
+    // Iterate through all nodes in the graph
+    auto vertices = boost::vertices(G.G);
+    for (auto it = vertices.first; it != vertices.second; ++it)
+    {
+        RGraph::Node& node = G.G[*it];
+        if (node.cast_w > maxWeight)
+        {
+            maxWeight = node.cast_w;
+            maxWeightNode = &node;
+
+        }
+    }
+
+    if (maxWeightNode == nullptr) {
+        throw std::logic_error("Failed to find node with maximum weight");
+    }
+
+    std::cout << "Best weight " << (*maxWeightNode).pos.x << "  " <<  (*maxWeightNode).pos.y << '\n';
+
+    return *maxWeightNode;
+}
 /*
   Updated Graph and compute properties. (Gets object ready before cast)
 */
 void Core::Update()
 {
-  // Find in which directions RCD is going to cast
+  // Find in which directions RCD is going to cast // BUG: rand() gives the same initial at every run
   casting_dir = (static_cast<float>(rand() % (360/N_rays + 1)) )*PI/180.;  // Random casting direction
   for (int i = 0 ; i < N_rays ; ++i){
     casting_angles[i] = casting_dir + i*angle_increment; // Casting angles
   }
 
   node2cast = CastDecision();
+  father = node2cast.descriptor;
 }
 
 
@@ -91,19 +100,17 @@ void Core::CastRays()
   {
     cos_cast = std::cos(angle);
     sin_cast = std::sin(angle);
-    
     ray_dis = 5.0;
     while (!pathFound)
     {
-      beam.x = std::round(node2cast.pos.x + ray_dis*sin_cast);
-      beam.y = std::round(node2cast.pos.y + ray_dis*cos_cast);
-
-
-
+      ray_pos.x = std::round(node2cast.pos.x + ray_dis*sin_cast);
+      ray_pos.y = std::round(node2cast.pos.y + ray_dis*cos_cast);
       // Don't do that here (store it in a vector and the nodes in update)
-      if (map->grid[beam.x][beam.y].isOccupied && ray_dis > 3)// hit wall and it is not next to the node
+      if (map->grid[ray_pos.x][ray_pos.y].isOccupied && ray_dis > 10)// hit wall and it is not next to the node
       { 
-        // std::cout << "beam x " << beam.x << " beam y " << beam.y << '\n';
+        // std::cout << "ray_pos x " << ray_pos.x << " ray_pos y " << ray_pos.y << '\n';
+        node2add.pos.x  = ray_pos.x;
+        node2add.pos.y  = ray_pos.y;
 
         // Proximity
         node2add.p   = 0.;
@@ -113,15 +120,19 @@ void Core::CastRays()
         node2add.o   = 0;
         // Total weight
         node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
-  
-        child = G.AddNode(node2add);
-        G.AddEdge(father,child,ray_dis);
+
+        G.AddNode(node2add,G.G);
+        child = node2add.descriptor;
+        G.AddEdge(father,child,G.G,ray_dis);
        
         break;
       }
 
-      if (isRobot && map->grid[beam.x][beam.y].robotPass)
-      {
+      if (isRobot && map->grid[ray_pos.x][ray_pos.y].robotPass && ray_dis > 10)
+      {        
+        node2add.pos.x  = ray_pos.x;
+        node2add.pos.y  = ray_pos.y;
+
         // Proximity
         node2add.p   = 0.;
         // Explorability (distance from parent)
@@ -129,17 +140,21 @@ void Core::CastRays()
         // Occurence 
         node2add.o   = 0;
         // Total weight
-        node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
+        node2add.cast_w  = ray_dis; // To do compute the weight with a function f(p,e,o)
   
-        child = G.AddNode(node2add);
-        G.AddEdge(father,child,ray_dis);
+        G.AddNode(node2add,G.G);
+        child = node2add.descriptor;
+        G.AddEdge(father,child,G.G,ray_dis);
         break;
         //TODO: break the edge
       }
 
 
-      if (!isRobot && map->grid[beam.x][beam.y].targetPass)
+      if (!isRobot && map->grid[ray_pos.x][ray_pos.y].targetPass  && ray_dis > 10)
       {
+        node2add.pos.x  = ray_pos.x;
+        node2add.pos.y  = ray_pos.y;
+
         // Proximity
         node2add.p   = 0.;
         // Explorability (distance from parent)
@@ -148,15 +163,19 @@ void Core::CastRays()
         node2add.o   = 0;
         // Total weight
         node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
-  
-        child = G.AddNode(node2add);
-        G.AddEdge(father,child,ray_dis);
+        G.AddNode(node2add,G.G);
+        child = node2add.descriptor;
+        G.AddEdge(father,child,G.G,ray_dis);
         break;
         //TODO: break the edge
       }
 
-      if (isRobot && map->grid[beam.x][beam.y].targetPass)
+      if (isRobot && map->grid[ray_pos.x][ray_pos.y].targetPass)
       {
+
+        node2add.pos.x  = ray_pos.x;
+        node2add.pos.y  = ray_pos.y;
+
         // Proximity
         node2add.p   = 0.;
         // Explorability (distance from parent)
@@ -166,8 +185,9 @@ void Core::CastRays()
         // Total weight
         node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
   
-        child = G.AddNode(node2add);
-        G.AddEdge(father,child,ray_dis);
+        G.AddNode(node2add,G.G);
+        child = node2add.descriptor;
+        G.AddEdge(father,child,G.G,ray_dis);
         pathFound = true;
 
         return;
@@ -176,8 +196,12 @@ void Core::CastRays()
       }
 
 
-      if (!isRobot && map->grid[beam.x][beam.y].robotPass)
+      if (!isRobot && map->grid[ray_pos.x][ray_pos.y].robotPass)
       {
+
+        node2add.pos.x  = ray_pos.x;
+        node2add.pos.y  = ray_pos.y;
+
         // Proximity
         node2add.p   = 0.;
         // Explorability (distance from parent)
@@ -187,8 +211,9 @@ void Core::CastRays()
         // Total weight
         node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
   
-        child = G.AddNode(node2add);
-        G.AddEdge(father,child,ray_dis);
+        G.AddNode(node2add,G.G);
+        child = node2add.descriptor;
+        G.AddEdge(father,child,G.G,ray_dis);
         pathFound = true;
         return;
         
@@ -196,9 +221,9 @@ void Core::CastRays()
       }
       
       if (isRobot){
-        map->grid[beam.x][beam.y].robotPass = true;
+        map->grid[ray_pos.x][ray_pos.y].robotPass = true;
       }else{
-        map->grid[beam.x][beam.y].targetPass = true;
+        map->grid[ray_pos.x][ray_pos.y].targetPass = true;
       }
 
       ray_dis += 1.0;
