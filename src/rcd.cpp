@@ -7,6 +7,7 @@ using namespace RCD;
 Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag), casting_angles(N_rays)
 {
   map = map_;
+  std::cout << "Robot --> " << map->robot_pos.x << "  " <<map->robot_pos.y << '\n';
   if (isRobot){
     std::cout << "Initialized Robot Graph \n";
 
@@ -36,6 +37,7 @@ Core::Core(bool robot_flag, MapHandler *map_):isRobot(robot_flag), casting_angle
 
   G.AddNode(node2add,G.G); // Add root to the graph
   father = node2add.descriptor;
+  std::cout << "Constructor node --> " << node2add.pos.x << "  " <<node2add.pos.y << '\n';
 }
 
 
@@ -95,6 +97,7 @@ Casts N_Rays into map_->grid
 */
 void Core::CastRays()
 {
+  std::cout <<"Cast this node: "<< node2cast.pos.x << "  " << node2cast.pos.y << '\n';
   // For every casting direction
   for (const auto& angle : casting_angles)
   {
@@ -103,8 +106,9 @@ void Core::CastRays()
     ray_dis = 5.0;
     while (!pathFound)
     {
-      ray_pos.x = std::round(node2cast.pos.x + ray_dis*sin_cast);
-      ray_pos.y = std::round(node2cast.pos.y + ray_dis*cos_cast);
+      ray_pos.x = std::round(node2cast.pos.x + ray_dis*cos_cast);
+      ray_pos.y = std::round(node2cast.pos.y + ray_dis*sin_cast);
+      std::cout << ray_pos.x << "  " << ray_pos.y << '\n';
       // Don't do that here (store it in a vector and the nodes in update)
       if (map->grid[ray_pos.x][ray_pos.y].isOccupied && ray_dis > 10)// hit wall and it is not next to the node
       { 
@@ -172,7 +176,6 @@ void Core::CastRays()
 
       if (isRobot && map->grid[ray_pos.x][ray_pos.y].targetPass)
       {
-
         node2add.pos.x  = ray_pos.x;
         node2add.pos.y  = ray_pos.y;
 
