@@ -22,5 +22,6 @@ class Visualizer
 
   private:
     const MapHandler & map;
+    cv::Mat image; // 3 channels for RGB
 
 };

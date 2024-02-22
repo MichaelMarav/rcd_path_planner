@@ -25,11 +25,10 @@ int main()
     // RobotCaster.CastRays();
 
     // Main loop
-    while (!RobotCaster.pathFound && !RobotCaster.pathFound){
+    while (!RobotCaster.pathFound){//&& !TargetCaster.pathFound){
         RobotCaster.Update();
         RobotCaster.CastRays();
         plotter.VisualzeRays(handler);
-        std::cout << "Updating \n";
         // TargetCaster.Update();
         // TargetCaster.CastRays();
     }

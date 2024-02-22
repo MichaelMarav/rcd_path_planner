@@ -51,8 +51,8 @@ void MapHandler::loadOccupancyGrid(const std::string & ppm_filename)
   file.get();
 
 
-  for (int x = 0; x < height; ++x) {
-      for (int y = 0; y < width; ++y) {
+  for (int y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
           unsigned char r, g, b;
           file.read(reinterpret_cast<char*>(&r), 1);
           file.read(reinterpret_cast<char*>(&g), 1);
@@ -63,7 +63,7 @@ void MapHandler::loadOccupancyGrid(const std::string & ppm_filename)
           // You may adjust this based on your definition of black
           bool isBlack = (r + g + b) / 3 < 128;
 
-          grid[x][y].isOccupied = isBlack;
+          grid[y][x].isOccupied = isBlack;
       }
   }
   file.close();
