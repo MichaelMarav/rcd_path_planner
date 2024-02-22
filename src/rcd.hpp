@@ -40,8 +40,7 @@ namespace RCD
       RCD::RGraph::Node node2add;  // Node structure to be added to the graph
       RCD::RGraph::Edge edge2add;  // Edge structure to connect two nodes 
 
-      RCD::RGraph::BoostGraph::vertex_descriptor father;
-      RCD::RGraph::BoostGraph::vertex_descriptor child;
+
       RCD::RGraph G; // Graph structure for this Core object
       
       // Returns which node to cast next based on the weights 
@@ -52,8 +51,8 @@ namespace RCD
 
       bool pathFound{false}; // Flag set to true if the path is found
       void CastRays();
-      void Update();
-
+      void PrepareCasting();
+      void UpdateGrid();
       MapHandler* map; // pointer to the map object
 
   };

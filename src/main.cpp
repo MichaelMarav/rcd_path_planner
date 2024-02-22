@@ -19,18 +19,20 @@ int main()
     RCD::Core RobotCaster(true, &handler);
 
     // Target Caster
-    // RCD::Core TargetCaster(false, &handler);
+    RCD::Core TargetCaster(false, &handler);
 
     // RobotCaster.Update(); // Prepare for casting
     // RobotCaster.CastRays();
 
     // Main loop
     while (!RobotCaster.pathFound){//&& !TargetCaster.pathFound){
-        RobotCaster.Update();
+        RobotCaster.PrepareCasting();
         RobotCaster.CastRays();
+        TargetCaster.PrepareCasting();
+        TargetCaster.CastRays();
+
         plotter.VisualzeRays(handler);
-        // TargetCaster.Update();
-        // TargetCaster.CastRays();
+
     }
     // Use path optimizer to fix the path
     // Use visualizer to save the path for paper TODO: Implement it with color
