@@ -10,7 +10,6 @@ RGraph::RGraph()
 void RGraph::AddNode(Node& node, BoostGraph & G)
 {
   node.descriptor = boost::add_vertex(node, G); // Add the node to the graph and return the vertex descriptor
-  std::cout << "when i insert it " << node.descriptor << '\n';
 }
 
 void RGraph::AddEdge(const BoostGraph::vertex_descriptor& father, const BoostGraph::vertex_descriptor& child, BoostGraph & G,float weight)

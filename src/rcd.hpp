@@ -10,13 +10,13 @@ namespace RCD
   {
     private:
       // Number of rays to be casted
-      const int N_rays{6}; 
+      const int NUM_RAYS{6}; 
     
       // Float PI
       const float PI{static_cast<float>(M_PI)}; 
     
       // Symmetric angle increment dependent on number of rays (e.g. 6 rays = 60 deg., 3 rays 120 deg.) 
-      const float angle_increment = static_cast<float>(2.0 * static_cast<float>(PI) / static_cast<float>(N_rays));
+      const float angle_increment = static_cast<float>(2.0 * static_cast<float>(PI) / static_cast<float>(NUM_RAYS));
     
       // Casted ray travelling distance
       float ray_dis; 
@@ -26,6 +26,7 @@ namespace RCD
       
       // List with the casting angles -> casting_dir + angle_increment * i
       std::vector<float> casting_angles;  
+
 
       // Flag for describing the rcd object, Either robot casting or target 
       bool isRobot;
@@ -40,6 +41,7 @@ namespace RCD
       RCD::RGraph::Node node2add;  // Node structure to be added to the graph
       RCD::RGraph::Edge edge2add;  // Edge structure to connect two nodes 
 
+      std::vector<RCD::RGraph::Node> addNodeList; // Temp Node list that will be added to the graph at each iteration
 
       RCD::RGraph G; // Graph structure for this Core object
       

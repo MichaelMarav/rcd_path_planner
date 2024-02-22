@@ -19,7 +19,7 @@ int main()
     RCD::Core RobotCaster(true, &handler);
 
     // Target Caster
-    RCD::Core TargetCaster(false, &handler);
+    // RCD::Core TargetCaster(false, &handler);
 
     // RobotCaster.Update(); // Prepare for casting
     // RobotCaster.CastRays();
@@ -28,8 +28,8 @@ int main()
     while (!RobotCaster.pathFound){//&& !TargetCaster.pathFound){
         RobotCaster.PrepareCasting();
         RobotCaster.CastRays();
-        TargetCaster.PrepareCasting();
-        TargetCaster.CastRays();
+        // TargetCaster.PrepareCasting();
+        // TargetCaster.CastRays();
 
         plotter.VisualzeRays(handler);
 
