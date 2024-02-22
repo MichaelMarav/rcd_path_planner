@@ -73,6 +73,9 @@ void Core::PrepareCasting()
   }
 
   node2cast = CastDecision(); // Extract the node to be casted
+  G.G[node2cast.descriptor].o += 1;
+  G.G[node2cast.descriptor].cast_w /= (G.G[node2cast.descriptor].o +1);
+
 }
 
 
@@ -89,7 +92,7 @@ void Core::CastRays()
   {
     cos_cast = std::cos(angle);
     sin_cast = std::sin(angle);
-    ray_dis = 5.0;
+    ray_dis = 5.0; // Starting distance from node
     
     while (!pathFound)
     {
@@ -100,19 +103,15 @@ void Core::CastRays()
 
       if (map->grid[ray_pos.y][ray_pos.x].isOccupied)
       {
-        if (ray_dis > 10.0){
-
+        if (ray_dis > 10.0)
+        {
           node2add.pos.x  = ray_pos.x;
           node2add.pos.y  = ray_pos.y;
 
-          // Proximity
           node2add.p   = 0.;
-          // Explorability (distance from parent)
           node2add.e   = 0.;
-          // Occurence 
           node2add.o   = 0;
-          // Total weight
-          node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
+          node2add.cast_w = ray_dis; // To do compute the weight with a function f(p,e,o)
 
           G.AddNode(node2add,G.G);
           G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
@@ -125,111 +124,103 @@ void Core::CastRays()
       }
    
 
-      // if (isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass)
-      // {        
-      //   if (ray_dis > 5.0){
-      //     node2add.pos.x  = ray_pos.x;
-      //     node2add.pos.y  = ray_pos.y;
+      if (isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass)
+      {        
+        if (ray_dis > 10.0){
+          node2add.pos.x  = ray_pos.x;
+          node2add.pos.y  = ray_pos.y;
 
-      //     // Proximity
-      //     node2add.p   = 0.;
-      //     // Explorability (distance from parent)
-      //     node2add.e   = 0.;
-      //     // Occurence 
-      //     node2add.o   = 0;
-      //     // Total weight
-      //     node2add.cast_w  = ray_dis; // To do compute the weight with a function f(p,e,o)
-    
-      //     G.AddNode(node2add,G.G);
-      //     child = node2add.descriptor;
-      //     G.AddEdge(father,child,G.G,ray_dis);
-      //     break;
-      //     //TODO: break the edge
-      //   }else{
-      //     break;
-      //   }
-      // }
-
-
-      // if (!isRobot && map->grid[ray_pos.y][ray_pos.x].targetPass)
-      // {
-      //   if (ray_dis > 5.0){
-      //     node2add.pos.x  = ray_pos.x;
-      //     node2add.pos.y  = ray_pos.y;
-
-      //     // Proximity
-      //     node2add.p   = 0.;
-      //     // Explorability (distance from parent)
-      //     node2add.e   = 0.;
-      //     // Occurence 
-      //     node2add.o   = 0;
-      //     // Total weight
-      //     node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
-      //     G.AddNode(node2add,G.G);
-      //     child = node2add.descriptor;
-      //     G.AddEdge(father,child,G.G,ray_dis);
-      //     break;
-      //     //TODO: break the edge
-      //   }else{
-      //     break;
-      //   }
-      // }
-
-      // if (isRobot && map->grid[ray_pos.y][ray_pos.x].targetPass)
-      // {
-      //   node2add.pos.x  = ray_pos.x;
-      //   node2add.pos.y  = ray_pos.y;
-
-      //   // Proximity
-      //   node2add.p   = 0.;
-      //   // Explorability (distance from parent)
-      //   node2add.e   = 0.;
-      //   // Occurence 
-      //   node2add.o   = 0;
-      //   // Total weight
-      //   node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
-  
-      //   G.AddNode(node2add,G.G);
-      //   child = node2add.descriptor;
-      //   G.AddEdge(father,child,G.G,ray_dis);
-      //   pathFound = true;
-
-      //   return;
-
-      //   //TODO: break the edge
-      // }
-
-
-      // if (!isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass)
-      // {
-
-      //   node2add.pos.x  = ray_pos.x;
-      //   node2add.pos.y  = ray_pos.y;
-
-      //   // Proximity
-      //   node2add.p   = 0.;
-      //   // Explorability (distance from parent)
-      //   node2add.e   = 0.;
-      //   // Occurence 
-      //   node2add.o   = 0;
-      //   // Total weight
-      //   node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
-  
-      //   G.AddNode(node2add,G.G);
-      //   child = node2add.descriptor;
-      //   G.AddEdge(father,child,G.G,ray_dis);
-      //   pathFound = true;
-      //   return;
-        
-      //   //TODO: break the edge
-      // }
+          node2add.p   = 0.;
+          node2add.e   = 0.;
+          node2add.o   = 0;
       
-      // if (isRobot){
-      //   map->grid[ray_pos.y][ray_pos.x].robotPass = true;
-      // }else{
-      //   map->grid[ray_pos.y][ray_pos.x].targetPass = true;
-      // }
+          node2add.cast_w  = ray_dis; // To do compute the weight with a function f(p,e,o)
+    
+         
+          G.AddNode(node2add,G.G);
+          G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
+          addNodeList.push_back(node2add);
+          break;
+          //TODO: break the edge
+        }else{
+          break;
+        }
+      }
 
+
+      if (!isRobot && map->grid[ray_pos.y][ray_pos.x].targetPass)
+      {
+        if (ray_dis > 10.0){
+          node2add.pos.x  = ray_pos.x;
+          node2add.pos.y  = ray_pos.y;
+
+          node2add.p   = 0.;
+          node2add.e   = 0.;
+          node2add.o   = 0;
+      
+          node2add.cast_w  = ray_dis; // To do compute the weight with a function f(p,e,o)
+    
+         
+          G.AddNode(node2add,G.G);
+          G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
+          addNodeList.push_back(node2add);
+          break;
+          //TODO: break the edge
+        }else{
+          break;
+        }
+      }
+
+      if (isRobot && map->grid[ray_pos.y][ray_pos.x].targetPass)
+      {
+        node2add.pos.x  = ray_pos.x;
+        node2add.pos.y  = ray_pos.y;
+
+        // Proximity
+        node2add.p   = 0.;
+        // Explorability (distance from parent)
+        node2add.e   = 0.;
+        // Occurence 
+        node2add.o   = 0;
+        // Total weight
+        node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
+  
+        G.AddNode(node2add,G.G);
+        G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
+        addNodeList.push_back(node2add);
+        pathFound = true;
+
+        return;
+
+        //TODO: break the edge
+      }
+
+
+      if (!isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass)
+      {
+
+        node2add.pos.x  = ray_pos.x;
+        node2add.pos.y  = ray_pos.y;
+
+        // Proximity
+        node2add.p   = 0.;
+        // Explorability (distance from parent)
+        node2add.e   = 0.;
+        // Occurence 
+        node2add.o   = 0;
+        // Total weight
+        node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
+  
+        G.AddNode(node2add,G.G);
+        G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
+        addNodeList.push_back(node2add);
+        pathFound = true;
+        return; // THis is not plotted
+        
+        //TODO: break the edge
+      }
+      
+  
       ray_dis += 1.0;
     }      
   

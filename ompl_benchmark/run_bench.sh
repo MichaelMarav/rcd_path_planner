@@ -1,3 +1,3 @@
 #! /bin/bash
 
-./build/ompl_benchmark 100 "RRTConnect" "/home/michael/github/rcd_path_planner/maps/occ_2_30_0/occ_2_30_0.ppm" 39 76 38 163 
+./build/ompl_benchmark 100 "RRTstar" "/home/michael/github/rcd_path_planner/maps/occ_17_3_52/occ_17_3_52.ppm" 451 54 40 32 
