@@ -24,17 +24,18 @@ int main()
     // Target Caster
     RCD::Core TargetCaster(false, &handler);
 
-
     // Main loop
     auto start = std::chrono::system_clock::now();
     while (!RCD::Core::pathFound){
+
         RobotCaster.PrepareCasting();
         RobotCaster.CastRays();
+        RobotCaster.UpdateGrid();
+        
         TargetCaster.PrepareCasting();
         TargetCaster.CastRays();
-
-        plotter.VisualzeRays(handler);
-
+        TargetCaster.UpdateGrid();
+        // plotter.VisualzeRays(handler);
     }
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;

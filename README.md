@@ -15,6 +15,16 @@
 # For future work
 * The pointer to the map will be changed by three entities -> real-time occ. grid updated, robot , target
 
+## Build
+```
+mkdir build && cd build
+```
+```
+cmake .. -DCMAKE_BUILD_TYPE=Release
+```
+``` 
+make
+```
 ## Overview
 RCD is a global path planner that given a binary occupancy grid, the target's and the robot's position produces a collision free path.
 

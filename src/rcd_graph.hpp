@@ -35,8 +35,28 @@ namespace RCD
 
 
 
-    RGraph();
-    void AddNode(RGraph::Node & node, BoostGraph & G);
-    void AddEdge(const BoostGraph::vertex_descriptor & father, const BoostGraph::vertex_descriptor & child, BoostGraph & G, float weight);
-    };
+    RGraph()
+    {
+    }
+   
+    inline void AddEdge(const BoostGraph::vertex_descriptor & father, const BoostGraph::vertex_descriptor & child, BoostGraph & G, float weight)    {
+      boost::add_edge(father, child, Edge{weight}, G);
+    }
+    /*
+    Initialize and insert node to the graph (inline for fast insertion)
+    */
+    inline void AddNode(RGraph::Node & node, BoostGraph & G, const Point & position, const float & weight)
+    {
+      node.pos.x  = position.x;
+      node.pos.y  = position.y;
+      node.p   = 0.;
+      node.e   = 0.;
+      node.o   = 0;
+      node.cast_w = weight;
+
+      node.descriptor = boost::add_vertex(node, G); // Add the node to the graph and return the vertex descriptor
+    }
+    
+    
+  };
  }

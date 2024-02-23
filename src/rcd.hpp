@@ -18,7 +18,7 @@ namespace RCD
       // Casted ray travelling distance
       float ray_dis; 
 
-      // Random initiali casting direction    
+      // Random initial casting direction    
       float casting_dir;
       
       // List with the casting angles -> casting_dir + angle_increment * i
@@ -46,18 +46,19 @@ namespace RCD
       RGraph::Node& CastDecision();
       //TODO: Add heap or set or queue for stroring the pointers to the new nodes and update the weights
     
-      static RCD::RGraph::Node intersectionNode;
 
     public:
+      static bool pathFound; // Flag set to true if the path is found
+      // static RCD::RGraph::Node intersectionNode;
+
       Core(bool robot_flag,MapHandler *map_); // Constructor
 
-      static bool pathFound; // Flag set to true if the path is found
-      
       void CastRays();
       void PrepareCasting();
       void UpdateGrid();
       MapHandler* map; // pointer to the map object
 
   };
-
+  
+  // RCD::RGraph::Node Core::intersectionNode; // Definition of static member variable
 }

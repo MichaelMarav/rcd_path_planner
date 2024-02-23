@@ -6,27 +6,13 @@ using namespace RCD;
 Core::Core(bool robot_flag, MapHandler *map_)
 :isRobot(robot_flag), casting_angles(NUM_RAYS), map{map_}
 {
-
-  std::cout << "Robot --> " << map->robot_pos.x << "  " <<map->robot_pos.y << '\n';
   if (isRobot){
-    std::cout << "Initialized Robot Graph \n";
-    node2add.pos = map->robot_pos;
-    node2add.p   = std::sqrt(std::pow(map->robot_pos.x - map->target_pos.x,2) + std::pow(map->robot_pos.y - map->target_pos.y,2) );
-    node2add.e   = 0.;
-    node2add.o   = 1;
-    node2add.cast_w   = 3. ; // TODO compute the weight with a function f(p,e,o)
-  
-    }else{
-    std::cout << "Initialized Target Graph \n";
-
-    node2add.pos = map->target_pos;
-    node2add.p   = std::sqrt(std::pow(map->robot_pos.x - map->target_pos.x,2) + std::pow(map->robot_pos.y -map->target_pos.y,2) );
-    node2add.e   = 0.;
-    node2add.o   = 1;
-    node2add.cast_w = 3.; // TODO compute the weight with a function f(p,e,o)
+    printInfo("Initialized Robot Graph");
+    G.AddNode(node2add,G.G,map->robot_pos,1.0); // Initial Weight = 1
+  }else{
+    printInfo("Initialized Target Graph");
+    G.AddNode(node2add,G.G,map->target_pos,1.0);
   }
-
-  G.AddNode(node2add,G.G); // Add root to the graph
 }
 
 
@@ -81,12 +67,10 @@ void Core::PrepareCasting()
 
 /*
 Casts NUM_RAYS into map->grid
--->!!! This is the only method that changes the values of the grid!!!<--
 */
 void Core::CastRays()
 {
-  std::cout <<"Cast this node: "<< node2cast.pos.x << "  " << node2cast.pos.y << '\n';
-  // TODO: Instead of updating real time save the nodes that will be add and add them at the end
+  // std::cout <<"Cast this node: "<< node2cast.pos.x << "  " << node2cast.pos.y << '\n';
   // For every casting direction
   for (const auto& angle : casting_angles)
   {
@@ -99,134 +83,53 @@ void Core::CastRays()
       ray_pos.x = std::ceil(node2cast.pos.x + ray_dis*cos_cast);
       ray_pos.y = std::ceil(node2cast.pos.y + ray_dis*sin_cast);
 
-      // Don't do that here (store it in a vector and the nodes in update)
 
+      // Case #1
       if (map->grid[ray_pos.y][ray_pos.x].isOccupied)
       {
-        if (ray_dis > 10.0)
-        {
-          node2add.pos.x  = ray_pos.x;
-          node2add.pos.y  = ray_pos.y;
-
-          node2add.p   = 0.;
-          node2add.e   = 0.;
-          node2add.o   = 0;
-          node2add.cast_w = ray_dis; // To do compute the weight with a function f(p,e,o)
-
-          G.AddNode(node2add,G.G);
+        if (ray_dis >10.){ //  Don't add node that immedietly hits the wall
+          G.AddNode(node2add,G.G,ray_pos, ray_dis);
           G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
-          addNodeList.push_back(node2add);
-          break;
-        }else{ // Don't add node
-         
-          break;
+          addNodeList.push_back(node2add); // 
         }
+        break;
       }
    
-
+      // Case #2
       if (isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass)
       {        
-        if (ray_dis > 10.0){
-          node2add.pos.x  = ray_pos.x;
-          node2add.pos.y  = ray_pos.y;
-
-          node2add.p   = 0.;
-          node2add.e   = 0.;
-          node2add.o   = 0;
-      
-          node2add.cast_w  = ray_dis; // To do compute the weight with a function f(p,e,o)
-    
-         
-          G.AddNode(node2add,G.G);
+          G.AddNode(node2add,G.G,ray_pos, ray_dis);
           G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
-          addNodeList.push_back(node2add);
-          break;
-          //TODO: break the edge
-        }else{
-          break;
-        }
+          addNodeList.push_back(node2add); // 
+          break;     
       }
 
-
+      // Case #3
       if (!isRobot && map->grid[ray_pos.y][ray_pos.x].targetPass)
       {
-        if (ray_dis > 10.0){
-          node2add.pos.x  = ray_pos.x;
-          node2add.pos.y  = ray_pos.y;
-
-          node2add.p   = 0.;
-          node2add.e   = 0.;
-          node2add.o   = 0;
-      
-          node2add.cast_w  = ray_dis; // To do compute the weight with a function f(p,e,o)
-    
-         
-          G.AddNode(node2add,G.G);
+        
+          G.AddNode(node2add,G.G,ray_pos, ray_dis);
           G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
-          addNodeList.push_back(node2add);
+          addNodeList.push_back(node2add); // 
           break;
-          //TODO: break the edge
-        }else{
-          break;
-        }
       }
 
-      if (isRobot && map->grid[ray_pos.y][ray_pos.x].targetPass)
+      // Case #4
+      if ( (!isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass) ||
+           (isRobot && map->grid[ray_pos.y][ray_pos.x].targetPass))
       {
-        node2add.pos.x  = ray_pos.x;
-        node2add.pos.y  = ray_pos.y;
-
-        // Proximity
-        node2add.p   = 0.;
-        // Explorability (distance from parent)
-        node2add.e   = 0.;
-        // Occurence 
-        node2add.o   = 0;
-        // Total weight
-        node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
-  
-        G.AddNode(node2add,G.G);
-        G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
-        addNodeList.push_back(node2add);
-        pathFound = true;
-
-        return;
-
-        //TODO: break the edge
-      }
-
-
-      if (!isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass)
-      {
-
-        node2add.pos.x  = ray_pos.x;
-        node2add.pos.y  = ray_pos.y;
-
-        // Proximity
-        node2add.p   = 0.;
-        // Explorability (distance from parent)
-        node2add.e   = 0.;
-        // Occurence 
-        node2add.o   = 0;
-        // Total weight
-        node2add.cast_w   = ray_dis; // To do compute the weight with a function f(p,e,o)
-  
-        G.AddNode(node2add,G.G);
-        G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
-        addNodeList.push_back(node2add);
+        // intersectionNode = node2add;
+        // G.AddNode(intersectionNode,G.G, ray_pos, ray_dis);
+        // G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
+        // addNodeList.push_back(node2add);
         pathFound = true;
         return; // THis is not plotted
-        
         //TODO: break the edge
       }
-      
-  
+    
       ray_dis += 1.0;
     }      
-  
   }
-
-  UpdateGrid();
 }
 
 
