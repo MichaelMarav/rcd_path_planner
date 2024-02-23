@@ -49,7 +49,7 @@ namespace RCD
 
     public:
       static bool pathFound; // Flag set to true if the path is found
-      // static RCD::RGraph::Node intersectionNode;
+      static RCD::RGraph::Node intersectionNode;
 
       Core(bool robot_flag,MapHandler *map_); // Constructor
 
@@ -59,6 +59,6 @@ namespace RCD
       MapHandler* map; // pointer to the map object
 
   };
-  
+  // RCD::RGraph::Node Core::intersectionNode;
   // RCD::RGraph::Node Core::intersectionNode; // Definition of static member variable
 }

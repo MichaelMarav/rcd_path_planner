@@ -2,22 +2,22 @@
 
 using namespace RCD;
 
+RCD::RGraph::Node Core::intersectionNode; // Definition of static member variable
+
+
 
 Core::Core(bool robot_flag, MapHandler *map_)
 :isRobot(robot_flag), casting_angles(NUM_RAYS), map{map_}
 {
-  if (isRobot){
-    printInfo("Initialized Robot Graph");
-    G.AddNode(node2add,G.G,map->robot_pos,1.0); // Initial Weight = 1
-  }else{
-    printInfo("Initialized Target Graph");
-    G.AddNode(node2add,G.G,map->target_pos,1.0);
-  }
+  isRobot ? G.AddNode(node2add, G.G, map->robot_pos, map->target_pos, 10.01) : G.AddNode(node2add, G.G, map->target_pos,map->robot_pos, 10.01);
+
+  srand(static_cast<unsigned int>(time(nullptr))); //Seed time for different sequence of pseudo-random numbers
 }
 
 
 /*
-Performs low-variance resampling  and decides which node to cast next
+NOW: Searches the graph for finding the max weight
+TODO:Performs low-variance resampling  and decides which node to cast next
 */
 RGraph::Node& Core::CastDecision()
 {
@@ -47,6 +47,8 @@ RGraph::Node& Core::CastDecision()
     // Return the node with the maximum weight
     return G.G[maxNodeDescriptor];
 }
+
+
 /*
   Updated Graph and compute properties. (Gets object ready before cast)
 */
@@ -59,8 +61,8 @@ void Core::PrepareCasting()
   }
 
   node2cast = CastDecision(); // Extract the node to be casted
-  G.G[node2cast.descriptor].o += 1;
-  G.G[node2cast.descriptor].cast_w /= (G.G[node2cast.descriptor].o +1);
+  G.G[node2cast.descriptor].n += 1;
+  G.G[node2cast.descriptor].cast_w /= (G.G[node2cast.descriptor].n +1); 
 
 }
 
@@ -84,52 +86,44 @@ void Core::CastRays()
       ray_pos.y = std::ceil(node2cast.pos.y + ray_dis*sin_cast);
 
 
-      // Case #1
+      // Case #1: Path found
+      if ( (!isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass) ||
+           (isRobot && map->grid[ray_pos.y][ray_pos.x].targetPass))
+      {
+        isRobot ? G.AddNode(node2add,G.G,ray_pos, map->target_pos, ray_dis) : G.AddNode(node2add,G.G,ray_pos, map->robot_pos, ray_dis) ;
+        G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
+        addNodeList.push_back(node2add);
+        intersectionNode = node2add;
+        pathFound = true;
+        return; 
+      }
+    
+      // Case #2: Hit wall after exploring
       if (map->grid[ray_pos.y][ray_pos.x].isOccupied)
       {
         if (ray_dis >10.){ //  Don't add node that immedietly hits the wall
-          G.AddNode(node2add,G.G,ray_pos, ray_dis);
-          G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
-          addNodeList.push_back(node2add); // 
+          isRobot ? G.AddNode(node2add, G.G, ray_pos, map->target_pos, ray_dis) : G.AddNode(node2add,G.G,ray_pos, map->robot_pos, ray_dis) ;
+          G.AddEdge(node2cast.descriptor, node2add.descriptor, G.G, ray_dis);
+          // Break and connect
+          addNodeList.push_back(node2add);  
         }
         break;
       }
    
-      // Case #2
-      if (isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass)
-      {        
-          G.AddNode(node2add,G.G,ray_pos, ray_dis);
-          G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
-          addNodeList.push_back(node2add); // 
-          break;     
+      // Case #3: Same kind of ray intersection (create new node)
+      if (map->grid[ray_pos.y][ray_pos.x].robotPass || map->grid[ray_pos.y][ray_pos.x].targetPass)
+      {   
+        if (ray_dis >10.){ //  Do I really need this condition? Maybe it sacrifices probabilistic completeness
+          isRobot ? G.AddNode(node2add, G.G, ray_pos, map->target_pos, ray_dis) : G.AddNode(node2add, G.G, ray_pos, map->robot_pos, ray_dis) ;
+          G.AddEdge(node2cast.descriptor, node2add.descriptor, G.G, ray_dis);
+          addNodeList.push_back(node2add); 
+        }
+        break;     
       }
-
-      // Case #3
-      if (!isRobot && map->grid[ray_pos.y][ray_pos.x].targetPass)
-      {
-        
-          G.AddNode(node2add,G.G,ray_pos, ray_dis);
-          G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
-          addNodeList.push_back(node2add); // 
-          break;
-      }
-
-      // Case #4
-      if ( (!isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass) ||
-           (isRobot && map->grid[ray_pos.y][ray_pos.x].targetPass))
-      {
-        // intersectionNode = node2add;
-        // G.AddNode(intersectionNode,G.G, ray_pos, ray_dis);
-        // G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
-        // addNodeList.push_back(node2add);
-        pathFound = true;
-        return; // THis is not plotted
-        //TODO: break the edge
-      }
-    
       ray_dis += 1.0;
     }      
   }
+  return;
 }
 
 

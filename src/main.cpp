@@ -40,7 +40,7 @@ int main()
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double> elapsed_seconds = end - start;
 
-    printInfo("Elapsed Time = " + std::to_string(elapsed_seconds.count()));
+    printInfo("Elapsed Time = " + std::to_string(elapsed_seconds.count()) + " (s)");
     plotter.VisualzeRays(handler);
 
 
