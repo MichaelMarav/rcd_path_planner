@@ -3,7 +3,7 @@
 
 #include "rcd_graph.hpp"
 #include "map_handler.hpp"
-#include "utilities.hpp"
+
 namespace RCD
 {
   class Core
@@ -12,11 +12,8 @@ namespace RCD
       // Number of rays to be casted
       const int NUM_RAYS{6}; 
     
-      // Float PI
-      const float PI{static_cast<float>(M_PI)}; 
-    
       // Symmetric angle increment dependent on number of rays (e.g. 6 rays = 60 deg., 3 rays 120 deg.) 
-      const float angle_increment = static_cast<float>(2.0 * static_cast<float>(PI) / static_cast<float>(NUM_RAYS));
+      const float angle_increment = static_cast<float>(2.0 * PI / static_cast<float>(NUM_RAYS));
     
       // Casted ray travelling distance
       float ray_dis; 
@@ -48,14 +45,19 @@ namespace RCD
       // Returns which node to cast next based on the weights 
       RGraph::Node& CastDecision();
       //TODO: Add heap or set or queue for stroring the pointers to the new nodes and update the weights
+    
+      static RCD::RGraph::Node intersectionNode;
+
     public:
       Core(bool robot_flag,MapHandler *map_); // Constructor
 
-      bool pathFound{false}; // Flag set to true if the path is found
+      static bool pathFound; // Flag set to true if the path is found
+      
       void CastRays();
       void PrepareCasting();
       void UpdateGrid();
       MapHandler* map; // pointer to the map object
 
   };
+
 }

@@ -2,7 +2,8 @@
 
 Visualizer::Visualizer(const MapHandler & map): map(map), image{cv::Mat(map.height,map.width,CV_8UC3)}
 {
-  std::cout << "Visualizing Occupancy Grid \n";
+  printInfo("Visualizing Occupancy Grid..");
+  printInfo("Confirm that the dots are the initial and target positions");
   visualizeOccupancyGrid();
 }
 
@@ -22,8 +23,7 @@ void Visualizer::visualizeOccupancyGrid()
     }
   }
 
-  printInfo("Loaded Occupancy Grid");
-  printInfo("Confirm that the dots are the initial and target positions");
+
   cv::Point robot(map.robot_pos.x, map.robot_pos.y); // Center coordinates
   cv::Point target(map.target_pos.x, map.target_pos.y); // Center coordinates
 
@@ -41,10 +41,6 @@ void Visualizer::visualizeOccupancyGrid()
 }
 
 
-void Visualizer::printInfo(const std::string & message)
-{
-  std::cout << "[INFO]  " << message << '\n';
-}
 
 /*
 Visualizes the casted rays
@@ -65,9 +61,7 @@ void Visualizer::VisualzeRays(const MapHandler & updatedMap)
       }
     }
   }
-
-  printInfo("Loaded Occupancy Grid");
-  printInfo("Confirm that the dots are the initial and target positions");
+  printInfo("Press anything to visualize next cast");
   cv::Point robot(map.robot_pos.x, map.robot_pos.y); // Center coordinates
   cv::Point target(map.target_pos.x, map.target_pos.y); // Center coordinates
 

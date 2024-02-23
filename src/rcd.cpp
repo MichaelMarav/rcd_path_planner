@@ -1,5 +1,4 @@
 #include "rcd.hpp"
-#include <typeinfo>
 
 using namespace RCD;
 
@@ -7,6 +6,7 @@ using namespace RCD;
 Core::Core(bool robot_flag, MapHandler *map_)
 :isRobot(robot_flag), casting_angles(NUM_RAYS), map{map_}
 {
+
   std::cout << "Robot --> " << map->robot_pos.x << "  " <<map->robot_pos.y << '\n';
   if (isRobot){
     std::cout << "Initialized Robot Graph \n";
@@ -23,7 +23,7 @@ Core::Core(bool robot_flag, MapHandler *map_)
     node2add.p   = std::sqrt(std::pow(map->robot_pos.x - map->target_pos.x,2) + std::pow(map->robot_pos.y -map->target_pos.y,2) );
     node2add.e   = 0.;
     node2add.o   = 1;
-    node2add.cast_w   = 3.; // TODO compute the weight with a function f(p,e,o)
+    node2add.cast_w = 3.; // TODO compute the weight with a function f(p,e,o)
   }
 
   G.AddNode(node2add,G.G); // Add root to the graph

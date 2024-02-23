@@ -14,9 +14,8 @@ class Visualizer
 {
   public:
     Visualizer(const MapHandler & map);
+    
     void visualizeOccupancyGrid(); 
-
-    void printInfo(const std::string & message);
 
     void VisualzeRays(const MapHandler & updatedMap);
 

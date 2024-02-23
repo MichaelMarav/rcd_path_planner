@@ -1,8 +1,7 @@
 #pragma once 
 #include <boost/graph/adjacency_list.hpp>
+
 #include "utilities.hpp"
-
-
 namespace RCD
 {
   class RGraph
