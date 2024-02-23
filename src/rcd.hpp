@@ -3,7 +3,7 @@
 
 #include "rcd_graph.hpp"
 #include "map_handler.hpp"
-
+#include "utilities.hpp"
 namespace RCD
 {
   class Core

@@ -26,6 +26,9 @@ struct Point
 {
   unsigned int x;
   unsigned int y;
+
+  Point(unsigned int x_, unsigned int y_):x{x_},y{y_}{}
+  Point(){};
 };
 
 

@@ -1,1 +1,1 @@
-/usr/bin/c++ -rdynamic CMakeFiles/ompl_benchmark.dir/src/main.cpp.o -o ompl_benchmark  -lompl -lboost_serialization -lboost_filesystem -lboost_system -lode 
+/usr/bin/c++    -rdynamic CMakeFiles/ompl_benchmark.dir/src/main.cpp.o  -o ompl_benchmark  -lompl 
