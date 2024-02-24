@@ -49,13 +49,16 @@ namespace RCD
 
     public:
       static bool pathFound; // Flag set to true if the path is found
-      static RCD::RGraph::Node intersectionNode;
+
+      static RCD::RGraph::Node intersectionNode; // The node tha connects the two graphs
+      static RCD::RGraph::EdgeDescriptor intersectionEdge_id; // The edge_id of the intersection
 
       Core(bool robot_flag,MapHandler *map_); // Constructor
 
       void CastRays();
       void PrepareCasting();
       void UpdateGrid();
+      std::vector<Point> ShortestPath();
       MapHandler* map; // pointer to the map object
 
   };

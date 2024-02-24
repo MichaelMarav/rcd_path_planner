@@ -1,15 +1,20 @@
 #include "rcd.hpp"
+#include <boost/graph/breadth_first_search.hpp>
 
 using namespace RCD;
 
 RCD::RGraph::Node Core::intersectionNode; // Definition of static member variable
+RCD::RGraph::EdgeDescriptor Core::intersectionEdge_id; // The edge_id of the intersection
 
 
 
 Core::Core(bool robot_flag, MapHandler *map_)
 :isRobot(robot_flag), casting_angles(NUM_RAYS), map{map_}
 {
+
   isRobot ? G.AddNode(node2add, G.G, map->robot_pos, map->target_pos, 10.01) : G.AddNode(node2add, G.G, map->target_pos,map->robot_pos, 10.01);
+  
+  G.root_descriptor = node2add.node_descriptor; // Save the root de
 
   srand(static_cast<unsigned int>(time(nullptr))); //Seed time for different sequence of pseudo-random numbers
 }
@@ -43,7 +48,7 @@ RGraph::Node& Core::CastDecision()
             maxNodeDescriptor = vd;
         }
     }
-    G.G[maxNodeDescriptor].descriptor = maxNodeDescriptor ;
+    G.G[maxNodeDescriptor].node_descriptor = maxNodeDescriptor ;
     // Return the node with the maximum weight
     return G.G[maxNodeDescriptor];
 }
@@ -61,8 +66,8 @@ void Core::PrepareCasting()
   }
 
   node2cast = CastDecision(); // Extract the node to be casted
-  G.G[node2cast.descriptor].n += 1;
-  G.G[node2cast.descriptor].cast_w /= (G.G[node2cast.descriptor].n +1); 
+  G.G[node2cast.node_descriptor].n += 1;
+  G.G[node2cast.node_descriptor].cast_w /= (G.G[node2cast.node_descriptor].n +1); 
 
 }
 
@@ -90,10 +95,13 @@ void Core::CastRays()
       if ( (!isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass) ||
            (isRobot && map->grid[ray_pos.y][ray_pos.x].targetPass))
       {
+        // The intersection node will be added later to both graphs
         isRobot ? G.AddNode(node2add,G.G,ray_pos, map->target_pos, ray_dis) : G.AddNode(node2add,G.G,ray_pos, map->robot_pos, ray_dis) ;
-        G.AddEdge(node2cast.descriptor,node2add.descriptor,G.G,ray_dis);
+        G.AddEdge(node2cast.node_descriptor,node2add.node_descriptor,G.G,ray_dis);
         addNodeList.push_back(node2add);
         intersectionNode = node2add;
+        intersectionEdge_id = map->grid[ray_pos.y][ray_pos.x].edge_id;
+        
         pathFound = true;
         return; 
       }
@@ -102,9 +110,11 @@ void Core::CastRays()
       if (map->grid[ray_pos.y][ray_pos.x].isOccupied)
       {
         if (ray_dis >10.){ //  Don't add node that immedietly hits the wall
+          // Initalize node and fill its properties
           isRobot ? G.AddNode(node2add, G.G, ray_pos, map->target_pos, ray_dis) : G.AddNode(node2add,G.G,ray_pos, map->robot_pos, ray_dis) ;
-          G.AddEdge(node2cast.descriptor, node2add.descriptor, G.G, ray_dis);
-          // Break and connect
+          // Extract the edge descriptor
+          node2add.edge_descriptor = G.AddEdge(node2cast.node_descriptor, node2add.node_descriptor, G.G, ray_dis);
+          // Save node to list
           addNodeList.push_back(node2add);  
         }
         break;
@@ -115,7 +125,21 @@ void Core::CastRays()
       {   
         if (ray_dis >10.){ //  Do I really need this condition? Maybe it sacrifices probabilistic completeness
           isRobot ? G.AddNode(node2add, G.G, ray_pos, map->target_pos, ray_dis) : G.AddNode(node2add, G.G, ray_pos, map->robot_pos, ray_dis) ;
-          G.AddEdge(node2cast.descriptor, node2add.descriptor, G.G, ray_dis);
+
+          // Find the source and target of the already implemented edge
+          G.source_vertex = boost::source(map->grid[ray_pos.y][ray_pos.x].edge_id, G.G);
+          G.target_vertex = boost::target(map->grid[ray_pos.y][ray_pos.x].edge_id, G.G);
+
+          node2add.edge_descriptor = G.AddEdge(node2cast.node_descriptor, node2add.node_descriptor, G.G, ray_dis);
+          // TODO: Ideally I should break the edge and update the grid with the new two edges
+          // Find distance between new node and source/target of the already existing edge
+          // A----> B ----> C , where B is node2add, and A & C are the already existing nodes connected by edge_id
+          auto disAB = std::sqrt(std::pow(G.G[G.source_vertex].pos.x - node2add.pos.x,2) + std::pow(G.G[G.source_vertex].pos.y - node2add.pos.y,2));
+          auto disBC = std::sqrt(std::pow(G.G[G.target_vertex].pos.x - node2add.pos.x,2) + std::pow(G.G[G.target_vertex].pos.y - node2add.pos.y,2)); 
+          // Create two extra connections (like breaking the edge in two) 
+          G.AddEdge(node2add.node_descriptor, G.source_vertex,G.G,disAB);
+          G.AddEdge(node2add.node_descriptor, G.source_vertex,G.G,disBC);
+          
           addNodeList.push_back(node2add); 
         }
         break;     
@@ -169,13 +193,63 @@ void Core::UpdateGrid()
     if (isRobot){
       for (const auto& point : points) {
         map->grid[point.y][point.x].robotPass = true; 
+        map->grid[point.y][point.x].edge_id = node.edge_descriptor.first; 
       }
     }else{
       for (const auto& point : points) {
         map->grid[point.y][point.x].targetPass = true; 
+        map->grid[point.y][point.x].edge_id = node.edge_descriptor.first; 
+
       }
     }
   }
  
   addNodeList.clear(); // To maintain the dynamic size (max_size = NUM_RAYS)
+}
+
+/* 
+ * Adds the intersection node to both graphs and finds the shortest path on the graph with breadth_first search
+ */
+std::vector<Point> Core::ShortestPath()
+{
+
+  // Adds the intersection_node to the other graph (not the one that found the path)
+  if (!G.IsVertexInGraph(G.G,intersectionNode.node_descriptor)){
+    std::cout << " Is robot? -->" << isRobot << '\n';
+
+    G.source_vertex = boost::source(intersectionEdge_id, G.G);
+    G.target_vertex = boost::target(intersectionEdge_id, G.G);
+    // G.AddNode(node2add, G.G, ray_pos, map->target_pos, ray_dis
+
+    // A----> B ----> C , where B is node2add, and A & C are the already existing nodes connected by edge_id
+    auto disAB = std::sqrt(std::pow(G.G[G.source_vertex].pos.x - intersectionNode.pos.x,2) + std::pow(G.G[G.source_vertex].pos.y - intersectionNode.pos.y,2));
+    auto disBC = std::sqrt(std::pow(G.G[G.target_vertex].pos.x - intersectionNode.pos.x,2) + std::pow(G.G[G.target_vertex].pos.y - intersectionNode.pos.y,2)); 
+    
+    if (disAB > disBC){
+      G.AddNode(intersectionNode, G.G, intersectionNode.pos, map->target_pos, disBC);
+    }else{
+      G.AddNode(intersectionNode, G.G, intersectionNode.pos, map->target_pos, disAB);
+    }
+
+    G.AddEdge(intersectionNode.node_descriptor, G.source_vertex,G.G,disAB);
+    G.AddEdge(intersectionNode.node_descriptor, G.source_vertex,G.G,disBC);
+  }
+
+
+  std::vector<RGraph::NodeDescriptor> predecessors(boost::num_vertices(G.G));
+  std::vector<Point> path;
+  // Run breadth-first search algorithm
+  breadth_first_search(G.G, G.root_descriptor,boost::visitor(boost::make_bfs_visitor(boost::record_predecessors(predecessors.data(), boost::on_tree_edge()))));
+
+  // Reconstruct the shortest path
+  std::vector<RGraph::NodeDescriptor> shortest_path;
+  for (RGraph::NodeDescriptor v = intersectionNode.node_descriptor; v != G.root_descriptor; v = predecessors[v]) {
+      shortest_path.push_back(v);
+      path.push_back(G.G[v].pos);
+  }
+
+  shortest_path.push_back(G.root_descriptor);
+  path.push_back(G.G[G.root_descriptor].pos);
+
+  return path;
 }

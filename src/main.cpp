@@ -35,13 +35,27 @@ int main()
         TargetCaster.PrepareCasting();
         TargetCaster.CastRays();
         TargetCaster.UpdateGrid();
-        // plotter.VisualzeRays(handler);
+        // plotter.VisualzeRays(handler); // For real-time plotting
     }
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double> elapsed_seconds = end - start;
 
+    auto robot_path  = RobotCaster.ShortestPath();
+    auto target_path = TargetCaster.ShortestPath();
+    std::reverse(target_path.begin(), target_path.end());
+    // target_path.pop_back(); // Remove duplicate intersection node
+    // target_path.erase(target_path.begin());
+
+    robot_path.insert(robot_path.end(), target_path.begin(), target_path.end());
+
+    auto end = std::chrono::system_clock::now();
+
+
+    std::chrono::duration<double> elapsed_seconds = end - start;
     printInfo("Elapsed Time = " + std::to_string(elapsed_seconds.count()) + " (s)");
     plotter.VisualzeRays(handler);
+
+    plotter.VisualzePath(handler,robot_path);
+    // plotter.VisualzePath(handler,path2);
+
 
 
     
