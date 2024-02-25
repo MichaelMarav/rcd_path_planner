@@ -22,13 +22,13 @@ CMAKE_AR:FILEPATH=/usr/bin/ar
 
 //Choose the type of build, options are: None Debug Release RelWithDebInfo
 // MinSizeRel ...
-CMAKE_BUILD_TYPE:STRING=
+CMAKE_BUILD_TYPE:STRING=Release
 
 //Enable/Disable color output during build.
 CMAKE_COLOR_MAKEFILE:BOOL=ON
 
 //CXX compiler
-CMAKE_CXX_COMPILER:STRING=/usr/bin/c++
+CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
 
 //A wrapper around 'ar' adding the appropriate '--plugin' option
 // for the GCC compiler
@@ -54,7 +54,7 @@ CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
 CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 
 //C compiler
-CMAKE_C_COMPILER:STRING=/usr/bin/cc
+CMAKE_C_COMPILER:FILEPATH=/usr/bin/cc
 
 //A wrapper around 'ar' adding the appropriate '--plugin' option
 // for the GCC compiler
@@ -224,17 +224,11 @@ OMPL_INCLUDE_DIRS:STRING=/usr/include;/usr/include/eigen3
 //Path to a library.
 OMPL_LIBRARIES:FILEPATH=/usr/lib/x86_64-linux-gnu/libompl.so
 
-//Library path for OMPL and its dependencies
-OMPL_LIBRARY_DIRS:STRING=/usr/lib/x86_64-linux-gnu
-
 //The directory containing a CMake configuration file for ompl.
 ompl_DIR:PATH=/usr/share/ompl/cmake
 
 //Value Computed by CMake
 ompl_benchmark_BINARY_DIR:STATIC=/home/michael/github/rcd_path_planner/ompl_benchmark/build
-
-//Value Computed by CMake
-ompl_benchmark_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 ompl_benchmark_SOURCE_DIR:STATIC=/home/michael/github/rcd_path_planner/ompl_benchmark

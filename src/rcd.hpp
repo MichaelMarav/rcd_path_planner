@@ -40,7 +40,6 @@ namespace RCD
 
       std::vector<RCD::RGraph::Node> addNodeList; // Temp Node list that will be added to the graph at each iteration
 
-      RCD::RGraph G; // Graph structure for this Core object
       
       // Returns which node to cast next based on the weights 
       RGraph::Node& CastDecision();
@@ -48,8 +47,10 @@ namespace RCD
     
 
     public:
-      static bool pathFound; // Flag set to true if the path is found
+      RCD::RGraph G; // Graph structure for this Core object
 
+      static bool pathFound; // Flag set to true if the path is found
+      static bool pathFoundByRobot;
       static RCD::RGraph::Node intersectionNode; // The node tha connects the two graphs
       static RCD::RGraph::EdgeDescriptor intersectionEdge_id; // The edge_id of the intersection
 
@@ -59,7 +60,7 @@ namespace RCD
       void PrepareCasting();
       void UpdateGrid();
       // std::vector<Point> ShortestPath();
-    std::vector<Point>  ShortestPath();
+    std::vector<Point>  ShortestPath(RCD::RGraph::Node end_node);
       MapHandler* map; // pointer to the map object
 
   };
