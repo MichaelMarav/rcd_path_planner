@@ -1,7 +1,7 @@
 #include "visualizer.hpp"
 
-Visualizer::Visualizer(const MapHandler & map)
-: map(map), path_image{cv::Mat(map.height,map.width,CV_8UC3)},cast_image{cv::Mat(map.height,map.width,CV_8UC3)}
+Visualizer::Visualizer(const MapHandler & input)
+: map(input), path_image{cv::Mat(input.height,input.width,CV_8UC3)},cast_image{cv::Mat(input.height,input.width,CV_8UC3)}
 {
   printInfo("Visualizing Occupancy Grid..");
   printInfo("Confirm that the dots are the initial and target positions");
@@ -48,22 +48,22 @@ Visualizes the casted rays
 void Visualizer::VisualzeRays(const MapHandler & updatedMap)
 {
   // Fill the cast_image with appropriate colors based on the grid
-  for (int i = 0; i < map.height; ++i) {
-    for (int j = 0; j < map.width; ++j) {
-      if (map.grid[i][j].robotPass) {
+  for (int i = 0; i < updatedMap.height; ++i) {
+    for (int j = 0; j < updatedMap.width; ++j) {
+      if (updatedMap.grid[i][j].robotPass) {
         // Black for occupied cells
         cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 255, 0);
       } 
       
-      if (map.grid[i][j].targetPass) {
+      if (updatedMap.grid[i][j].targetPass) {
         // White for unoccupied cells
         cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 255);
       }
     }
   }
   printInfo("Press anything to visualize next cast");
-  cv::Point robot(map.robot_pos.x, map.robot_pos.y); 
-  cv::Point target(map.target_pos.x, map.target_pos.y); 
+  cv::Point robot(updatedMap.robot_pos.x, updatedMap.robot_pos.y); 
+  cv::Point target(updatedMap.target_pos.x, updatedMap.target_pos.y); 
 
   
   int radius = 5; // Radius of the dot
@@ -81,11 +81,12 @@ void Visualizer::VisualzeRays(const MapHandler & updatedMap)
   cv::waitKey(0);
 }
 
-void Visualizer::VisualzePath(const MapHandler & updatedMap, std::vector<Point> path)
+void Visualizer::VisualzePath(const MapHandler & updatedMap, std::vector<Point> path,RCD::RGraph::Node node)
 {
-  for (int i = 0; i < map.height; ++i) {
-    for (int j = 0; j < map.width; ++j) {
-      if (map.grid[i][j].isOccupied) {
+
+  for (int i = 0; i < updatedMap.height; ++i) {
+    for (int j = 0; j < updatedMap.width; ++j) {
+      if (updatedMap.grid[i][j].isOccupied) {
         // Black for occupied cells
         path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
       } else {
@@ -94,6 +95,27 @@ void Visualizer::VisualzePath(const MapHandler & updatedMap, std::vector<Point> 
       }
     }
   }
+    // Fill the cast_image with appropriate colors based on the grid
+  for (int i = 0; i < updatedMap.height; ++i) {
+    for (int j = 0; j < updatedMap.width; ++j) {
+      if (updatedMap.grid[i][j].robotPass) {
+        // Black for occupied cells
+        path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 255, 0);
+      } 
+      
+      if (updatedMap.grid[i][j].targetPass) {
+        // White for unoccupied cells
+        path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 255);
+      }
+    }
+  }
+  cv::Point intersection(node.pos.x, node.pos.y); // robot coordinates
+
+  cv::circle(path_image, intersection, 20, cv::Scalar(0, 255, 0), -1);
+
+
+
+
   
   cv::Point robot(map.robot_pos.x, map.robot_pos.y); // robot coordinates
   cv::Point target(map.target_pos.x, map.target_pos.y); // target coordinates

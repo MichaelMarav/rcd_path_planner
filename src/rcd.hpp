@@ -58,7 +58,8 @@ namespace RCD
       void CastRays();
       void PrepareCasting();
       void UpdateGrid();
-      std::vector<Point> ShortestPath();
+      // std::vector<Point> ShortestPath();
+    std::vector<Point>  ShortestPath();
       MapHandler* map; // pointer to the map object
 
   };

@@ -1,5 +1,7 @@
 #include "rcd.hpp"
 #include <boost/graph/breadth_first_search.hpp>
+#include <boost/graph/dijkstra_shortest_paths.hpp> // Include Dijkstra's algorithm header
+
 
 using namespace RCD;
 
@@ -12,9 +14,9 @@ Core::Core(bool robot_flag, MapHandler *map_)
 :isRobot(robot_flag), casting_angles(NUM_RAYS), map{map_}
 {
 
-  isRobot ? G.AddNode(node2add, G.G, map->robot_pos, map->target_pos, 10.01) : G.AddNode(node2add, G.G, map->target_pos,map->robot_pos, 10.01);
+  isRobot ? G.AddNode(node2add, G.G, map->robot_pos, map->target_pos, 1.) : G.AddNode(node2add, G.G, map->target_pos,map->robot_pos, 1.);
   
-  G.root_descriptor = node2add.node_descriptor; // Save the root de
+  G.root_descriptor = node2add.node_descriptor; // Save the root descriptor
 
   srand(static_cast<unsigned int>(time(nullptr))); //Seed time for different sequence of pseudo-random numbers
 }
@@ -67,7 +69,7 @@ void Core::PrepareCasting()
 
   node2cast = CastDecision(); // Extract the node to be casted
   G.G[node2cast.node_descriptor].n += 1;
-  G.G[node2cast.node_descriptor].cast_w /= (G.G[node2cast.node_descriptor].n +1); 
+  G.G[node2cast.node_descriptor].cast_w = (node2cast.e*node2cast.p +node2cast.n + 1.)/( node2cast.p*(node2cast.n + 1.)); 
 
 }
 
@@ -77,7 +79,6 @@ Casts NUM_RAYS into map->grid
 */
 void Core::CastRays()
 {
-  // std::cout <<"Cast this node: "<< node2cast.pos.x << "  " << node2cast.pos.y << '\n';
   // For every casting direction
   for (const auto& angle : casting_angles)
   {
@@ -212,10 +213,8 @@ void Core::UpdateGrid()
  */
 std::vector<Point> Core::ShortestPath()
 {
-
   // Adds the intersection_node to the other graph (not the one that found the path)
   if (!G.IsVertexInGraph(G.G,intersectionNode.node_descriptor)){
-    std::cout << " Is robot? -->" << isRobot << '\n';
 
     G.source_vertex = boost::source(intersectionEdge_id, G.G);
     G.target_vertex = boost::target(intersectionEdge_id, G.G);
@@ -230,9 +229,9 @@ std::vector<Point> Core::ShortestPath()
     }else{
       G.AddNode(intersectionNode, G.G, intersectionNode.pos, map->target_pos, disAB);
     }
-
+    boost::remove_edge(G.source_vertex, G.target_vertex, G.G); // Remove the old edge
     G.AddEdge(intersectionNode.node_descriptor, G.source_vertex,G.G,disAB);
-    G.AddEdge(intersectionNode.node_descriptor, G.source_vertex,G.G,disBC);
+    G.AddEdge(intersectionNode.node_descriptor, G.target_vertex,G.G,disBC);
   }
 
 
@@ -245,6 +244,7 @@ std::vector<Point> Core::ShortestPath()
   std::vector<RGraph::NodeDescriptor> shortest_path;
   for (RGraph::NodeDescriptor v = intersectionNode.node_descriptor; v != G.root_descriptor; v = predecessors[v]) {
       shortest_path.push_back(v);
+      std::cout << G.G[v].pos.x << "  " << G.G[v].pos.y << "\n";
       path.push_back(G.G[v].pos);
   }
 
@@ -253,3 +253,70 @@ std::vector<Point> Core::ShortestPath()
 
   return path;
 }
+
+
+// DJIKSTRA
+// std::vector<Point>  Core::ShortestPath() {
+
+//   // Adds the intersection_node to the other graph (not the one that found the path)
+//   if (!G.IsVertexInGraph(G.G,intersectionNode.node_descriptor)){
+
+//     G.source_vertex = boost::source(intersectionEdge_id, G.G);
+//     G.target_vertex = boost::target(intersectionEdge_id, G.G);
+//     // G.AddNode(node2add, G.G, ray_pos, map->target_pos, ray_dis
+
+//     // A----> B ----> C , where B is node2add, and A & C are the already existing nodes connected by edge_id
+//     auto disAB = std::sqrt(std::pow(G.G[G.source_vertex].pos.x - intersectionNode.pos.x,2) + std::pow(G.G[G.source_vertex].pos.y - intersectionNode.pos.y,2));
+//     auto disBC = std::sqrt(std::pow(G.G[G.target_vertex].pos.x - intersectionNode.pos.x,2) + std::pow(G.G[G.target_vertex].pos.y - intersectionNode.pos.y,2)); 
+    
+//     if (disAB > disBC){
+//       G.AddNode(intersectionNode, G.G, intersectionNode.pos, map->target_pos, disBC);
+//     }else{
+//       G.AddNode(intersectionNode, G.G, intersectionNode.pos, map->target_pos, disAB);
+//     }
+//     boost::remove_edge(G.source_vertex, G.target_vertex, G.G); // Remove the old edge
+//     G.AddEdge(intersectionNode.node_descriptor, G.source_vertex,G.G,disAB);
+//     G.AddEdge(intersectionNode.node_descriptor, G.target_vertex,G.G,disBC);
+//   }
+
+
+
+
+
+//     // Vector to store predecessors
+//     std::vector<RGraph::NodeDescriptor> predecessors(boost::num_vertices(G.G));
+//     // Vector to store distances
+//     std::vector<float> distances(boost::num_vertices(G.G));
+//     std::vector<Point> pathPoints;
+//     // Perform Dijkstra's algorithm
+//     boost::dijkstra_shortest_paths(
+//         G.G,                                   // Graph
+//         intersectionNode.node_descriptor,      // Source vertex
+//         boost::predecessor_map(&predecessors[0]) // Output: Predecessor map
+//         .distance_map(&distances[0])           // Output: Distance map
+//         .weight_map(boost::get(&RGraph::Edge::d, G.G)) // Edge weight map
+//     );
+
+//     // Construct path from intersectionNode to root_descriptor
+//     std::vector<RGraph::NodeDescriptor> path;
+//     RGraph::NodeDescriptor current = intersectionNode.node_descriptor;
+//     // while (current != G.root_descriptor) {
+//     //     path.push_back(current);
+//     //     current = predecessors[current];
+//     //     pathPoints.push_back(G.G[current].pos);
+//     // }
+
+//       while (current != G.root_descriptor) {
+//                 std::cout << G.G[current].pos.x << "  " <<G.G[current].pos.y <<'\n';
+
+//             RGraph::Node current_node = G.G[current];
+//             pathPoints.push_back(current_node.pos);
+//             current = predecessors[current];
+//         }
+//     path.push_back(G.root_descriptor);
+//       pathPoints.push_back(G.G[G.root_descriptor].pos);
+//     // Reverse the path to start from root_descriptor
+//     std::reverse(path.begin(), path.end());
+
+//     return pathPoints;
+// }

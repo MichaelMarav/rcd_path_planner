@@ -2,6 +2,8 @@
 
 # Issues
 * generated path is broken
+* Change all node names to vertexes
+* Reformat code to google C++ style
 # TO ADD features
 * Fix max weight searching of the graph by filling up a list in real-time
 * Implement multiple runs on the same dataset and compute mean and std
