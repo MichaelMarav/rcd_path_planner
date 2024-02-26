@@ -13,6 +13,7 @@ class PathOptimizer
 
     std::vector<Point> GenerateSamples(); // Generates new samples on top of the originalPath and saves it in infusedPath
     void OptimizePath(); // Optimizes infusedPath with LoS (iterative)
+    bool HasLineOfSight(const Point& p1, const Point& p2);
 
     const int sampleIncrement = 2; // Distance between two consecutive generated samples 
   public:
