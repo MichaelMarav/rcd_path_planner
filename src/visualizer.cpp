@@ -131,7 +131,6 @@ void Visualizer::VisualzePath(const MapHandler & updatedMap, std::vector<Point> 
   // Loop through the path points
   for (const auto& point : path) {
     cv::Point currentPoint(point.x, point.y);
-    std::cout <<"draw  " << point.x << "   " <<  point.y <<'\n';
     // Draw the circle for the current point
     cv::circle(path_image, currentPoint, radius, cv::Scalar(255, 0, 0), -1);
 

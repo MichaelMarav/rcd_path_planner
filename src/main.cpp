@@ -4,7 +4,7 @@
 #include "map_handler.hpp"
 #include "visualizer.hpp"
 #include "rcd_graph.hpp"
-
+#include "path_optimizer.hpp" 
 
 bool RCD::Core::pathFound = false;  // Initialize static variable 
 bool RCD::Core::pathFoundByRobot = false;  // Initialize static variable 
@@ -87,6 +87,9 @@ int main()
     robot_path.insert(robot_path.end(), target_path.begin(), target_path.end());
 
 
+    PathOptimizer los_optimizer(robot_path, &handler);
+
+    auto new_path = los_optimizer.GenerateSamples();
     auto end = std::chrono::system_clock::now();
     // for (int i = 0 ; i < robot_path.size() ; ++i){
     //     std::cout << robot_path[i].x << "  " <<robot_path[i].y <<'\n' ;
@@ -96,7 +99,7 @@ int main()
     printInfo("Elapsed Time = " + std::to_string(elapsed_seconds.count()) + " (s)");
     plotter.VisualzeRays(handler);
 
-    plotter.VisualzePath(handler,robot_path, tmp_node);
+    plotter.VisualzePath(handler,new_path, tmp_node);
 
 
     // plotter.VisualzePath(handler,target_path);
