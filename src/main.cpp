@@ -45,6 +45,7 @@ int main()
     std::vector<Point> target_path ;
 
     if (RCD::Core::pathFoundByRobot){
+      printInfo("Path Found by ROBOT");
       TargetCaster.G.AddNode(tmp_node,TargetCaster.G.G,RCD::Core::intersectionNode.pos,RCD::Core::intersectionNode.pos, 10.);
       
       // Find the source and target of the already implemented edge
@@ -62,6 +63,7 @@ int main()
       target_path = TargetCaster.ShortestPath(tmp_node);
 
     }else{
+      printInfo("Path Found by TARGET");
 
       RobotCaster.G.AddNode(tmp_node,RobotCaster.G.G,RCD::Core::intersectionNode.pos,RCD::Core::intersectionNode.pos, 10.);
       
@@ -89,27 +91,16 @@ int main()
 
     PathOptimizer los_optimizer(robot_path, &handler);
 
-    // auto new_path = los_optimizer.GenerateSamples();
+
     auto end = std::chrono::system_clock::now();
-    // for (int i = 0 ; i < robot_path.size() ; ++i){
-    //     std::cout << robot_path[i].x << "  " <<robot_path[i].y <<'\n' ;
-    // }
 
     std::chrono::duration<double> elapsed_seconds = end - start;
     printInfo("Elapsed Time = " + std::to_string(elapsed_seconds.count()) + " (s)");
     plotter.VisualzeRays(handler);
 
-    // plotter.VisualzePath(handler,new_path, tmp_node);
+    plotter.VisualzePath(handler,los_optimizer.optimizedPath, tmp_node);
+    plotter.VisualzePath(handler,robot_path, tmp_node);
 
 
-    // plotter.VisualzePath(handler,target_path);
-
-    // plotter.VisualzePath(handler,path2);
-
-
-
-    
-    // Use path optimizer to fix the path
-    // Use visualizer to save the path for paper TODO: Implement it with color
     return 0;
 }

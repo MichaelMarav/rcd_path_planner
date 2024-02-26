@@ -29,6 +29,17 @@ struct Point
 
   Point(int x_, int y_):x{x_},y{y_}{}
   Point(){};
+
+  // Overloaded == operator
+  bool operator==(const Point& other) const {
+      return (x == other.x) && (y == other.y);
+  }
+
+  // Overloaded != operator
+  bool operator!=(const Point& other) const {
+      return !(*this == other);
+  }
+
 };
 
 

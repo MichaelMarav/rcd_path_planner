@@ -5,10 +5,25 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & path, MapHandler *map_)
 {
 
   printInfo("Initialized Path Optimizer");
+  GenerateSamples(); // Fills in the infused path
+  // optimizedPath = infusedPath;
+  OptimizePath(); // fills in the optimized path
+
+  // while (prev_path_length > curr_path_length)
+  // {
+  //   prev_path_length = curr_path_length;
+  //   originalPath = optimizedPath;
+  //   GenerateSamples(); // Fills in the infused path
+  //   // optimizedPath = infusedPath;
+  //   OptimizePath(); // fills in the optimized path
+  //   PathDistance(); // updates curr_path_length
+  // }
 }
 
-std::vector<Point> PathOptimizer::GenerateSamples()
+void PathOptimizer::GenerateSamples()
 {
+  infusedPath.clear();
+
   int dis;
   double distance_between_points = 0.0;
   double angle = 0.0;
@@ -35,7 +50,6 @@ std::vector<Point> PathOptimizer::GenerateSamples()
       infusedPath.push_back(point2add);
     }
   }
-  return infusedPath;
 }
 
 
@@ -44,7 +58,22 @@ std::vector<Point> PathOptimizer::GenerateSamples()
 */
 void PathOptimizer::OptimizePath()
 {
+  optimizedPath.push_back(originalPath[0]);
+  int c = 0;
+  int p = 2;
+  while (p < infusedPath.size()){
+    // std::cout << "Optimized " << optimizedPath.back().x << "  " << optimizedPath.back().y << '\n'; 
+    // std::cout << "infused  " << originalPath.back().x << "  " << originalPath.back().y << '\n'; 
 
+    if (HasLineOfSight(infusedPath[c], infusedPath[p])){
+      ++p;
+    }else{
+      optimizedPath.push_back(infusedPath[p-1]);
+      c = p - 1;
+      ++p;
+    }
+  }
+  optimizedPath.push_back(originalPath.back());
 }
 
 
@@ -54,21 +83,37 @@ void PathOptimizer::OptimizePath()
 */
 bool PathOptimizer::HasLineOfSight(const Point& p1, const Point& p2)
 {
-  double dis = sampleIncrement;
+  double dis = 1;
   
   double distance_between_points = std::sqrt(std::pow((static_cast<double>(p1.x) - static_cast<double>(p2.x)), 2) +
-                                              std::pow((static_cast<double>(p1.y) - static_cast<double>(p2.y)), 2));
-  double angle = std::atan2((next_point.y - curr_point.y), (next_point.x - curr_point.x));
+                                             std::pow((static_cast<double>(p1.y) - static_cast<double>(p2.y)), 2));
+  double angle = std::atan2((p2.y - p1.y), (p2.x - p1.x));
   int x_i,y_i;
   while (dis < distance_between_points) {
 
-    x_i = static_cast<int>(std::ceil(curr_point.x + dis * std::cos(angle)));
-    y_i = static_cast<int>(std::ceil(curr_point.y + dis * std::sin(angle)));
+    x_i = static_cast<int>(std::ceil(p1.x + dis * std::cos(angle)));
+    y_i = static_cast<int>(std::ceil(p1.y + dis * std::sin(angle)));
     if (map->grid[y_i][x_i].isOccupied) {
         return false;
     }
-    dis += sampleIncrement;
+    dis += 1;
   }
 
   return true;
+}
+
+
+/*
+ * Computes the path distance of the optimized path
+ */
+void PathOptimizer::PathDistance()
+{
+  for (int i = 0 ; i < optimizedPath.size()-2 ; ++ i){
+    curr_path_length += ComputeDistance(optimizedPath[i], optimizedPath[i+1]);
+  }
+}
+
+
+double PathOptimizer::ComputeDistance(const Point & p1, const Point & p2){
+  return std::sqrt( std::pow(static_cast<double>(p1.x) - static_cast<double>(p2.x),2.) +std::pow(static_cast<double>(p1.y) - static_cast<double>(p2.y),2.) );
 }
