@@ -60,14 +60,20 @@ public:
   
   
   /*<AddNode>
-    *Initialize and insert node to the graph (inline for fast insertion)
-    *Parameters
-    *  -node: the node to be initialized and added
-    *  -G: the graph the node should be added to
-    *  -position: Node's position
-    *  -distance: Node's distance from its father 
-    */
-  inline void AddNode(RGraph::Node & node, BoostGraph & G, const Point & node_pos, const Point & target_pos, const float & explorability)
+   *Initialize and insert node to the graph (inline for fast insertion)
+   *Parameters
+   *  -node: the node to be initialized and added
+   *  -G: the graph the node should be added to
+   *  -position: Node's position
+   *  -distance: Node's distance from its father 
+   */
+  inline void AddNode(RGraph::Node & node, BoostGraph & G)
+  {
+    node.node_descriptor = boost::add_vertex(node, G); // Add the node to the graph and return the vertex descriptor
+    return;
+  }
+
+  inline void UpdateWeight(RGraph::Node & node, const Point & node_pos, const Point & target_pos, const float & explorability)
   {
     node.pos.x  = node_pos.x;
     node.pos.y  = node_pos.y;
@@ -75,22 +81,28 @@ public:
     node.e   = explorability;
     node.n   = 0.;
     
-    node.cast_w = (node.e*node.p +node.n + 1.)/( node.p*(node.n + 1.)); // cast_w = f(p,e,n) // Placeholder experiment with the structure of the graph and the times
+    node.cast_w = explorability/(node.n+1.);// (node.e*node.p +node.n + 1.)/( node.p*(node.n + 1.)); // cast_w = f(p,e,n) // Placeholder experiment with the structure of the graph and the times
+
+  }
+  /*<AddNode>
+   * Overloaded function for adding a node when explorability, proximity are not required
+   */
+  
+  inline void AddNode(RGraph::Node & node, BoostGraph & G, const Point & node_pos)
+  {
+    node.pos.x  = node_pos.x;
+    node.pos.y  = node_pos.y;
+    node.p   = 0;
+    node.e   = 0;
+    node.n   = 0.;
+    
+    node.cast_w = 0;
 
     node.node_descriptor = boost::add_vertex(node, G); // Add the node to the graph and return the vertex descriptor
     return;
   }
   
   
-  /*
-   * Breaks an edge connecting nodes A and B then inserts C into the graph and creates two new edges connecting A to C and C to B
-   * Parameters
-   */
-  inline void Connect(RGraph::Node & node, BoostGraph & G)
-  {
-    // boost::remove_edge(vertex_A_descriptor, vertex_B_descriptor, G);
-  }
-
   /*
     * Given a graph g it find if vertex vd is in the graph
   */

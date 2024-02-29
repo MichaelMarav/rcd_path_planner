@@ -18,7 +18,6 @@ class PathOptimizer
     void OptimizePath(); // Optimizes infusedPath with LoS (iterative)
     bool HasLineOfSight(const Point& p1, const Point& p2);
     void PathDistance();
-    double ComputeDistance(const Point & p1, const Point & p2);
 
     const int sampleIncrement = 10; // Distance between two consecutive generated samples 
   public:

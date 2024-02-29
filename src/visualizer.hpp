@@ -6,6 +6,10 @@
 #include <opencv2/highgui.hpp>
 #include "map_handler.hpp"
 #include "utilities.hpp"
+#include "rcd.hpp"
+#include "rcd_graph.hpp"
+
+
 /*
 Object for handling visualization of the produced path
 */
@@ -17,9 +21,11 @@ class Visualizer
     
     void visualizeOccupancyGrid(); 
 
-    void VisualzeRays(const MapHandler & updatedMap);
+    void VisualizeRays(const MapHandler & updatedMap);
 
-    void VisualzePath(const MapHandler & updatedMap, std::vector<Point> path, RCD::RGraph::Node node);
+    void VisualizePath(const MapHandler & updatedMap, std::vector<Point> path, RCD::RGraph::Node node);
+
+    void VisualizeNodes(const MapHandler & updatedMap, RCD::Core g1, RCD::Core g2);
 
   private:
     MapHandler  map;    // The map with just the occupancy grid

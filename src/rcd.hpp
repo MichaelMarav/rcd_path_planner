@@ -40,7 +40,7 @@ namespace RCD
 
       std::vector<RCD::RGraph::Node> addNodeList; // Temp Node list that will be added to the graph at each iteration
 
-      
+      std::pair<bool,Point>  CheckIntersection(const Point & p);
       // Returns which node to cast next based on the weights 
       RGraph::Node& CastDecision();
       //TODO: Add heap or set or queue for stroring the pointers to the new nodes and update the weights
@@ -59,9 +59,12 @@ namespace RCD
       void CastRays();
       void PrepareCasting();
       void UpdateGrid();
-
+      RCD::RGraph::Node AddIntersectionNode();
       std::vector<Point>  ShortestPath(RCD::RGraph::Node end_node);
+      
       MapHandler* map; // pointer to the map object
+
+
 
   };
   // RCD::RGraph::Node Core::intersectionNode;

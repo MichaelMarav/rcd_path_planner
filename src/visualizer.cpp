@@ -1,4 +1,5 @@
 #include "visualizer.hpp"
+#include <boost/graph/adjacency_list.hpp>
 
 Visualizer::Visualizer(const MapHandler & input)
 : map(input), path_image{cv::Mat(input.height,input.width,CV_8UC3)},cast_image{cv::Mat(input.height,input.width,CV_8UC3)}
@@ -45,7 +46,7 @@ void Visualizer::visualizeOccupancyGrid()
 /*
 Visualizes the casted rays
 */
-void Visualizer::VisualzeRays(const MapHandler & updatedMap)
+void Visualizer::VisualizeRays(const MapHandler & updatedMap)
 {
   // Fill the cast_image with appropriate colors based on the grid
   for (int i = 0; i < updatedMap.height; ++i) {
@@ -81,7 +82,7 @@ void Visualizer::VisualzeRays(const MapHandler & updatedMap)
   cv::waitKey(0);
 }
 
-void Visualizer::VisualzePath(const MapHandler & updatedMap, std::vector<Point> path,RCD::RGraph::Node node)
+void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point> path,RCD::RGraph::Node node)
 {
 
   for (int i = 0; i < updatedMap.height; ++i) {
@@ -144,4 +145,32 @@ void Visualizer::VisualzePath(const MapHandler & updatedMap, std::vector<Point> 
   // Display the cast_image using OpenCV
   cv::imshow("Path ", path_image);
   cv::waitKey(0);
+}
+
+
+
+  
+void Visualizer::VisualizeNodes(const MapHandler & updatedMap, RCD::Core g1, RCD::Core g2)
+{
+
+   for (auto vd : boost::make_iterator_range(boost::vertices(g1.G) )   ) 
+    {
+        // Access the node
+        RCD::RGraph::Node& node = g1.G[vd];        
+        cv::Point p(node.pos.x, node.pos.y); // robot coordinates
+        cv::circle(cast_image, p, 2, cv::Scalar(0, 255, 0), -1);
+
+    }
+
+
+       for (auto vd : boost::make_iterator_range(RCD::boost::vertices(g2.G)))
+    {
+        // Access the node
+        RCD::RGraph::Node& node = g2.G[vd];        
+        cv::Point p(node.pos.x, node.pos.y); // robot coordinates
+        cv::circle(cast_image, p, 2, cv::Scalar(0, 0, 255), -1);
+
+    }
+
+
 }

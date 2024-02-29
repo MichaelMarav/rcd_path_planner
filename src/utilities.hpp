@@ -16,11 +16,8 @@ Contains generic data structures and libraries
 #include <unordered_map>
 
 
+constexpr float PI = 3.14159265359f;
 
-inline void printInfo(const std::string & message)
-{
-  std::cout << "[INFO]  " << message << '\n';
-}
 
 struct Point
 {
@@ -44,4 +41,14 @@ struct Point
 
 
 
-constexpr float PI = 3.14159265359f;
+
+
+inline void printInfo(const std::string & message)
+{
+  std::cout << "[INFO]  " << message << '\n';
+}
+
+inline double CalculateDistance(const Point & p1, const Point & p2)
+{
+  return std::sqrt( std::pow(static_cast<double>(p1.x) - static_cast<double>(p2.x),2.) +std::pow(static_cast<double>(p1.y) - static_cast<double>(p2.y),2.) );
+}

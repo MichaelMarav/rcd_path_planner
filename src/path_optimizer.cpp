@@ -85,8 +85,8 @@ bool PathOptimizer::HasLineOfSight(const Point& p1, const Point& p2)
 {
   double dis = 1;
   
-  double distance_between_points = std::sqrt(std::pow((static_cast<double>(p1.x) - static_cast<double>(p2.x)), 2) +
-                                             std::pow((static_cast<double>(p1.y) - static_cast<double>(p2.y)), 2));
+  double distance_between_points = CalculateDistance(p1,p2);
+  
   double angle = std::atan2((p2.y - p1.y), (p2.x - p1.x));
   int x_i,y_i;
   while (dis < distance_between_points) {
@@ -109,11 +109,7 @@ bool PathOptimizer::HasLineOfSight(const Point& p1, const Point& p2)
 void PathOptimizer::PathDistance()
 {
   for (int i = 0 ; i < optimizedPath.size()-2 ; ++ i){
-    curr_path_length += ComputeDistance(optimizedPath[i], optimizedPath[i+1]);
+    curr_path_length += CalculateDistance(optimizedPath[i], optimizedPath[i+1]);
   }
 }
 
-
-double PathOptimizer::ComputeDistance(const Point & p1, const Point & p2){
-  return std::sqrt( std::pow(static_cast<double>(p1.x) - static_cast<double>(p2.x),2.) +std::pow(static_cast<double>(p1.y) - static_cast<double>(p2.y),2.) );
-}
