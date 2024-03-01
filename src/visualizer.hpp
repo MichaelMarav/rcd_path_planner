@@ -8,7 +8,7 @@
 #include "utilities.hpp"
 #include "rcd.hpp"
 #include "rcd_graph.hpp"
-
+#include <boost/graph/adjacency_list.hpp>
 
 /*
 Object for handling visualization of the produced path

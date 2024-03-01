@@ -41,8 +41,9 @@ int main()
             TargetCaster.CastRays();
             TargetCaster.UpdateGrid();
         }
-        plotter.VisualizeRays(handler); // For real-time plotting
-        plotter.VisualizeNodes(handler, RobotCaster, TargetCaster);
+
+        // plotter.VisualizeNodes(handler, RobotCaster, TargetCaster);
+        // plotter.VisualizeRays(handler); // For real-time plotting
     }
 
     // Add the intersection node to the graph that didn't find the path
@@ -55,8 +56,10 @@ int main()
       robot_path = RobotCaster.ShortestPath(RCD::Core::intersectionNode);
       
       target_path = TargetCaster.ShortestPath(final_node);
-      
-      plotter.VisualizePath(handler,robot_path, RCD::Core::intersectionNode); // Visualize the casting path (fully-unoptimized)
+      for (int i = 0 ; i < target_path.size() ; ++i){
+        std::cout << target_path[i].x << "  " << target_path[i].y << '\n';
+      }
+      plotter.VisualizePath(handler,target_path, RCD::Core::intersectionNode); // Visualize the casting path (fully-unoptimized)
 
     }else{
 

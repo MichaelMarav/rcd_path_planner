@@ -104,10 +104,10 @@ void Core::CastRays()
       {
         // The intersection node will be added later to both graphs
 
-      printInfo("Path Found");
-      if (isRobot){
-          G.UpdateWeight(node2add,ray_pos, map->target_pos, ray_dis);
-          pathFoundByRobot = true;
+        printInfo("Path Found");
+        if (isRobot){
+            G.UpdateWeight(node2add,ray_pos, map->target_pos, ray_dis);
+            pathFoundByRobot = true;
 
         }else{
           G.UpdateWeight(node2add,ray_pos, map->robot_pos, ray_dis);
@@ -131,19 +131,21 @@ void Core::CastRays()
       // Case #2: Hit wall after exploring
       if (map->grid[ray_pos.y][ray_pos.x].isOccupied)
       {
-        if (ray_dis >10.)  //  Don't add node that immedietly hits the wall
+        if (ray_dis < 10.)  //  Don't add node that immedietly hits the wall
         {
-          // Initalize node and fill its properties          
-          
-          isRobot ? G.UpdateWeight(node2add, ray_pos, map->target_pos, ray_dis) : G.UpdateWeight(node2add, ray_pos, map->robot_pos, ray_dis);  
-
-          node2add.edge_descriptor = G.AddEdge(node2cast.node_descriptor, node2add.node_descriptor, G.G, ray_dis);
-
-          G.AddNode(node2add, G.G);
-          
-          // Save node to list
-          addNodeList.push_back(node2add);  
+          break;
         }
+        // Initalize node and fill its properties          
+        
+        isRobot ? G.UpdateWeight(node2add, ray_pos, map->target_pos, ray_dis) : G.UpdateWeight(node2add, ray_pos, map->robot_pos, ray_dis);  
+
+        node2add.edge_descriptor = G.AddEdge(node2cast.node_descriptor, node2add.node_descriptor, G.G, ray_dis);
+
+        G.AddNode(node2add, G.G);
+        
+        // Save node to list
+        addNodeList.push_back(node2add);  
+      
         break;
       }
    
@@ -153,6 +155,9 @@ void Core::CastRays()
 
       if (intersection.first) // If there is an intersection
       {   
+        if (ray_dis < 10){
+          break;
+        }
         ray_pos = intersection.second;
 
         isRobot ? G.UpdateWeight(node2add, ray_pos, map->target_pos, ray_dis) : G.UpdateWeight(node2add, ray_pos, map->robot_pos, ray_dis);  
@@ -199,7 +204,6 @@ void Core::CastRays()
 */
 void Core::UpdateGrid()
 {
-  // TODO: Optimize this
   // fill the grid with line path (max lines = NUM_RAYS)
   for (const auto& node: addNodeList) 
   {
@@ -261,13 +265,12 @@ std::vector<Point> Core::ShortestPath(RCD::RGraph::Node end_node)
   std::vector<RGraph::NodeDescriptor> predecessors(boost::num_vertices(G.G));
   std::vector<Point> path;
   // Run breadth-first search algorithm
-  breadth_first_search(G.G, G.root_descriptor,boost::visitor(boost::make_bfs_visitor(boost::record_predecessors(predecessors.data(), boost::on_tree_edge()))));
-  int counter = 0;
+  breadth_first_search(G.G, end_node.node_descriptor,boost::visitor(boost::make_bfs_visitor(boost::record_predecessors(predecessors.data(), boost::on_tree_edge()))));
+
   // Reconstruct the shortest path
   std::vector<RGraph::NodeDescriptor> shortest_path;
   for (RGraph::NodeDescriptor v = end_node.node_descriptor; v != G.root_descriptor; v = predecessors[v]) {
-     std::cout << "node count " << counter << '\n';
-     counter++;
+    
       shortest_path.push_back(v);
       path.push_back(G.G[v].pos);
   }
@@ -277,7 +280,6 @@ std::vector<Point> Core::ShortestPath(RCD::RGraph::Node end_node)
 
   return path;
 }
-
 
 /* <AddIntersectionNode>
  * otherGraph: Is the graph that found the intersection (either robot or target)

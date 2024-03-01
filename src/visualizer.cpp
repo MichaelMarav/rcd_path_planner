@@ -1,5 +1,4 @@
 #include "visualizer.hpp"
-#include <boost/graph/adjacency_list.hpp>
 
 Visualizer::Visualizer(const MapHandler & input)
 : map(input), path_image{cv::Mat(input.height,input.width,CV_8UC3)},cast_image{cv::Mat(input.height,input.width,CV_8UC3)}
@@ -114,10 +113,6 @@ void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point>
 
   cv::circle(path_image, intersection, 20, cv::Scalar(0, 255, 0), -1);
 
-
-
-
-  
   cv::Point robot(map.robot_pos.x, map.robot_pos.y); // robot coordinates
   cv::Point target(map.target_pos.x, map.target_pos.y); // target coordinates
 
@@ -153,24 +148,20 @@ void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point>
 void Visualizer::VisualizeNodes(const MapHandler & updatedMap, RCD::Core g1, RCD::Core g2)
 {
 
-   for (auto vd : boost::make_iterator_range(boost::vertices(g1.G) )   ) 
+   for (auto vd : boost::make_iterator_range( boost::vertices(g1.G.G) )) 
     {
-        // Access the node
-        RCD::RGraph::Node& node = g1.G[vd];        
-        cv::Point p(node.pos.x, node.pos.y); // robot coordinates
-        cv::circle(cast_image, p, 2, cv::Scalar(0, 255, 0), -1);
-
+      // Access the node
+      RCD::RGraph::Node& node = g1.G.G[vd];        
+      cv::Point p(node.pos.x, node.pos.y); // robot coordinates
+      cv::circle(cast_image, p, 2, cv::Scalar(0, 255, 0), -1);
     }
 
 
-       for (auto vd : boost::make_iterator_range(RCD::boost::vertices(g2.G)))
+    for (auto vd : boost::make_iterator_range(boost::vertices(g2.G.G)))
     {
-        // Access the node
-        RCD::RGraph::Node& node = g2.G[vd];        
-        cv::Point p(node.pos.x, node.pos.y); // robot coordinates
-        cv::circle(cast_image, p, 2, cv::Scalar(0, 0, 255), -1);
-
+      // Access the node
+      RCD::RGraph::Node& node = g2.G.G[vd];        
+      cv::Point p(node.pos.x, node.pos.y); // robot coordinates
+      cv::circle(cast_image, p, 2, cv::Scalar(0, 0, 255), -1);
     }
-
-
 }

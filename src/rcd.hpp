@@ -4,6 +4,9 @@
 #include "rcd_graph.hpp"
 #include "map_handler.hpp"
 #include "utilities.hpp"
+
+#include <boost/graph/dijkstra_shortest_paths.hpp>
+
 namespace RCD
 {
   class Core
