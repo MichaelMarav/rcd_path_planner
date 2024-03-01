@@ -2,6 +2,4 @@ robot_position_x: 451
 robot_position_y: 54
 target_position_x: 40
 target_position_y: 32
-workspace_dimension_x: 50
-workspace_dimension_y: 30
 grid_resolution: 0.1
