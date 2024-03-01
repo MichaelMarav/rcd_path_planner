@@ -13,7 +13,6 @@ MapHandler::MapHandler(const std::string & map_file): ppm_filename(map_file)
   yaml_filename = ppm_filename.substr(0, ppm_filename.find_last_of('.')) + ".yaml";
   
   loadOccupancyParams(yaml_filename);
-
 }
 
 /*
@@ -51,16 +50,13 @@ void MapHandler::loadOccupancyGrid(const std::string & ppm_filename)
   file.get();
 
 
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
+  for (int y = 0; y < this->height; ++y) {
+    for (int x = 0; x < this->width; ++x) {
       unsigned char r, g, b;
       file.read(reinterpret_cast<char*>(&r), 1);
       file.read(reinterpret_cast<char*>(&g), 1);
       file.read(reinterpret_cast<char*>(&b), 1);
       
-      // Assuming black is defined as RGB(0, 0, 0)
-      // Convert to grayscale for simplicity
-      // You may adjust this based on your definition of black
       bool isBlack = (r + g + b) / 3 < 128;
 
       grid[y][x].isOccupied = isBlack;
@@ -71,8 +67,8 @@ void MapHandler::loadOccupancyGrid(const std::string & ppm_filename)
 
 
 /*
-Loads occupancy grid params
-*/
+ *Loads occupancy grid params
+ */
 void MapHandler::loadOccupancyParams(const std::string & yaml_file)
 {
   YAML::Node config = YAML::LoadFile(yaml_file);
@@ -81,14 +77,12 @@ void MapHandler::loadOccupancyParams(const std::string & yaml_file)
   this->robot_pos.y     = config["robot_position_y"].as<unsigned int>();
   this->target_pos.x    = config["target_position_x"].as<unsigned int>();
   this->target_pos.y    = config["target_position_y"].as<unsigned int>();
-  this->grid_size_x     = config["workspace_dimension_x"].as<float>();
-  this->grid_size_y     = config["workspace_dimension_y"].as<float>();
   this->grid_resolution = config["grid_resolution"].as<float>(); 
 }
 
 /*
-Initilizes memory and attributes for the occupancy grid
-*/
+ * Initilizes memory and attributes for the occupancy grid
+ */
 void MapHandler::initializeGrid(unsigned int width, unsigned int height) 
 {
   grid.resize(height, std::vector<Cell>(width));
