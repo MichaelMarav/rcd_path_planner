@@ -1,3 +1,4 @@
 .vscode/*
 __pycache__/
 build/*
+ompl_benchmark/build/*
