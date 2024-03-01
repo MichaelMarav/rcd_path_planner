@@ -1,1 +1,0 @@
-/usr/bin/c++  -O3 -DNDEBUG  -rdynamic CMakeFiles/ompl_benchmark.dir/src/main.cpp.o  -o ompl_benchmark  -lompl 
