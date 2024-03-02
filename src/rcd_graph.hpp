@@ -30,7 +30,7 @@ public:
     float e;        // Explorability -> Distance between this node and its father
     float n;        // Frequency     -> How many times this node has already been casted
     NodeDescriptor node_descriptor; // Index for finding the node in the graph
-    std::pair<EdgeDescriptor,bool> edge_descriptor;
+    EdgeDescriptor edge_descriptor;
     // Maybe use this as a pointer so when the edge is deleted the grid should automatically be updated
     // Note this breaks the "one function-changes-grid " rule
   };
@@ -40,25 +40,23 @@ public:
     float d; // Eucledean distance between the two connecting nodes (for finding shortest path)
   };
 
-  NodeDescriptor root_descriptor;
 
   // These twwo are used for saving the source and target of an edge given its edge_id
   NodeDescriptor source_vertex;
   NodeDescriptor target_vertex;
 
-
   RGraph(){}
   
   /* <AddEdge>
     * Adds a weighted edge between father and child 
-    * Returns a std::pair with the edge descriptor and a flag if the edge was added succesfully
+    * Returns the edge descriptor 
     */
-  inline std::pair<EdgeDescriptor,bool> AddEdge(const BoostGraph::vertex_descriptor & father, const BoostGraph::vertex_descriptor & child, BoostGraph & G, float weight)    {
-    return boost::add_edge(father, child, Edge{weight}, G);
+  inline EdgeDescriptor AddEdge(const NodeDescriptor & father, const NodeDescriptor & child, BoostGraph & G, float weight)   
+  {    
+    return boost::add_edge(father, child, Edge{weight}, G).first;
   }
   
-  
-  
+
   /*<AddNode>
    *Initialize and insert node to the graph (inline for fast insertion)
    *Parameters
@@ -70,6 +68,7 @@ public:
   inline void AddNode(RGraph::Node & node, BoostGraph & G)
   {
     node.node_descriptor = boost::add_vertex(node, G); // Add the node to the graph and return the vertex descriptor
+    G[node.node_descriptor].node_descriptor = node.node_descriptor;
     return;
   }
 
@@ -77,30 +76,13 @@ public:
   {
     node.pos.x  = node_pos.x;
     node.pos.y  = node_pos.y;
-    node.p   = std::sqrt( std::pow(node_pos.x - target_pos.x,2.) + std::pow(node_pos.y - target_pos.y,2.));
+    node.p   = CalculateDistance(node_pos,target_pos);
     node.e   = explorability;
     node.n   = 0.;
     
     node.cast_w = explorability/(node.n+1.);// (node.e*node.p +node.n + 1.)/( node.p*(node.n + 1.)); // cast_w = f(p,e,n) // Placeholder experiment with the structure of the graph and the times
-
   }
-  /*<AddNode>
-   * Overloaded function for adding a node when explorability, proximity are not required
-   */
-  
-  inline void AddNode(RGraph::Node & node, BoostGraph & G, const Point & node_pos)
-  {
-    node.pos.x  = node_pos.x;
-    node.pos.y  = node_pos.y;
-    node.p   = 0;
-    node.e   = 0;
-    node.n   = 0.;
-    
-    node.cast_w = 0;
 
-    node.node_descriptor = boost::add_vertex(node, G); // Add the node to the graph and return the vertex descriptor
-    return;
-  }
   
   
   /*

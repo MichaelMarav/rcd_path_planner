@@ -4,7 +4,7 @@
 #include "rcd_graph.hpp"
 #include "map_handler.hpp"
 #include "utilities.hpp"
-
+#include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 
 namespace RCD
@@ -61,7 +61,9 @@ namespace RCD
 
       void CastRays();
       void PrepareCasting();
-      void UpdateGrid();
+      // void UpdateGrid();
+      void UpdateGrid(const RCD::RGraph::Node &  source,const RCD::RGraph::Node & target);
+
       RCD::RGraph::Node AddIntersectionNode();
       std::vector<Point>  ShortestPath(RCD::RGraph::Node end_node);
       
@@ -70,6 +72,4 @@ namespace RCD
 
 
   };
-  // RCD::RGraph::Node Core::intersectionNode;
-  // RCD::RGraph::Node Core::intersectionNode; // Definition of static member variable
 }

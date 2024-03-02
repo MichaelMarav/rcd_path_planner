@@ -28,7 +28,7 @@ class Visualizer
     void VisualizeNodes(const MapHandler & updatedMap, RCD::Core g1, RCD::Core g2);
 
   private:
-    MapHandler  map;    // The map with just the occupancy grid
+    MapHandler map;    // The map with just the occupancy grid
     cv::Mat cast_image; // 3 channels for RGB
     cv::Mat path_image; // 3 channels for RGB
 

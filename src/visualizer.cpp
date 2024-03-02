@@ -33,8 +33,6 @@ void Visualizer::visualizeOccupancyGrid()
   cv::circle(cast_image, robot, radius, cv::Scalar(0, 255, 0 ), -1); // Color: Blue (BGR), -1 for filled circle
   cv::circle(cast_image, target, radius, cv::Scalar(0, 0, 255), -1); // Color: Blue (BGR), -1 for filled circle
 
-
-
   // Display the cast_image using OpenCV
   cv::imshow("Occupancy Grid", cast_image);
   cv::waitKey(0);
@@ -59,6 +57,8 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap)
         // White for unoccupied cells
         cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 255);
       }
+
+        // cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b( updatedMap.grid[i][j].edge_id.m_source, updatedMap.grid[i][j].edge_id.m_target, 0);
     }
   }
   printInfo("Press anything to visualize next cast");

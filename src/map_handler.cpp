@@ -89,8 +89,8 @@ void MapHandler::initializeGrid(unsigned int width, unsigned int height)
 
   for (int i = 0; i < this->height; ++i) {
     for (int j = 0; j < this->width; ++j) {
-      grid[i][j].isOccupied = false;
-      grid[i][j].robotPass  = false;
+      this->grid[i][j].isOccupied = false;
+      this->grid[i][j].robotPass  = false;
       this->grid[i][j].targetPass = false;
     }
   }

@@ -40,9 +40,6 @@ struct Point
 };
 
 
-
-
-
 inline void printInfo(const std::string & message)
 {
   std::cout << "[INFO]  " << message << '\n';
