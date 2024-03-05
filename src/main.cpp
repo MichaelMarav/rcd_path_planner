@@ -13,7 +13,10 @@ int main()
   std::cout << "Ray Casting and Diffusion model for Path Plannig \n";
 
   // Initializes the map and the relevant parameters (Maybe do this from config file to avoid building it every time)0
-  MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_17_3_52/occ_17_3_52.ppm");
+  // MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_17_3_52/occ_17_3_52.ppm");
+
+  MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_0_52_22/occ_0_52_22.ppm");
+
   
   // Visualization of the imported grid
   Visualizer plotter(handler);
@@ -75,12 +78,14 @@ int main()
   robot_path.insert(robot_path.end(), target_path.begin(), target_path.end());
 
 
+  PathOptimizer los_optimizer(robot_path, &handler);
+  plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
 
-  // plotter.VisualizePath(handler,robot_path, final_node); // Visualize the casting path (fully-unoptimized)
 
 
   // PathOptimizer los_optimizer(robot_path, &handler);
 
+  // plotter.VisualizePath(handler,robot_path, final_node); // Visualize the casting path (fully-unoptimized)
 
   auto end = std::chrono::system_clock::now();
 

@@ -1,12 +1,10 @@
 #include "path_optimizer.hpp"
 
-PathOptimizer::PathOptimizer(const std::vector<Point> & path, MapHandler *map_)
-:originalPath{path}, map{map_}
+PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler *map_)
+:originalPath{default_path}, map{map_}
 {
 
   printInfo("Initialized Path Optimizer");
-  GenerateSamples(); // Fills in the infused path
-  // optimizedPath = infusedPath;
   OptimizePath(); // fills in the optimized path
 
   // while (prev_path_length > curr_path_length)
@@ -20,7 +18,7 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & path, MapHandler *map_)
   // }
 }
 
-void PathOptimizer::GenerateSamples()
+void PathOptimizer::GenerateSamples(const std::vector<Point> & path)
 {
   infusedPath.clear();
 
@@ -29,12 +27,12 @@ void PathOptimizer::GenerateSamples()
   double angle = 0.0;
 
   Point point2add; // point to add to the infused path
-  for (int p = 0; p < originalPath.size() - 1; ++p) {
-    infusedPath.push_back(originalPath[p]);
+  for (int p = 0; p < path.size() - 1; ++p) {
+    infusedPath.push_back(path[p]);
     dis = sampleIncrement;
 
-    curr_point = originalPath[p];
-    next_point = originalPath[p + 1];
+    curr_point = path[p];
+    next_point = path[p + 1];
     
     distance_between_points = std::sqrt(std::pow((static_cast<double>(curr_point.x) - static_cast<double>(next_point.x)), 2) +
                                         std::pow((static_cast<double>(curr_point.y) - static_cast<double>(next_point.y)), 2));
@@ -53,28 +51,68 @@ void PathOptimizer::GenerateSamples()
 }
 
 
+
 /*
  * Optimizes the path using iterative LoS
 */
 void PathOptimizer::OptimizePath()
 {
-  optimizedPath.push_back(originalPath[0]);
-  int c = 0;
-  int p = 2;
-  while (p < infusedPath.size()){
-    // std::cout << "Optimized " << optimizedPath.back().x << "  " << optimizedPath.back().y << '\n'; 
-    // std::cout << "infused  " << originalPath.back().x << "  " << originalPath.back().y << '\n'; 
+  optimizedPath.push_back(originalPath[0]); // Add the starting node
+  GenerateSamples(originalPath); // Fills in the infused path
 
-    if (HasLineOfSight(infusedPath[c], infusedPath[p])){
-      ++p;
-    }else{
-      optimizedPath.push_back(infusedPath[p-1]);
-      c = p - 1;
-      ++p;
+  float prev_curr_length = PathDistance(originalPath);
+  float curr_path_length = prev_curr_length + 1;
+  float epsilon = std::numeric_limits<float>::lowest();
+
+
+  // while (std::abs(prev_curr_length - curr_path_length) > epsilon)
+  // {
+    prev_curr_length = curr_path_length;
+    for (int i = 0 ; i < infusedPath.size() - 1 ; ++i){
+      for (int j = i + 1 ; j < infusedPath.size() ; ++j){
+        if (HasLineOfSight(infusedPath[i], infusedPath[j])){
+          continue;
+        }else{
+          if (std::find(optimizedPath.begin(), optimizedPath.end(), infusedPath[j-1]) != optimizedPath.end()){
+            break;
+          }else{
+            optimizedPath.push_back(infusedPath[j-1]);
+          }
+
+        }
+      }
     }
-  }
-  optimizedPath.push_back(originalPath.back());
+    curr_path_length = PathDistance(optimizedPath);
+    std::cout << "Lengths -> " << curr_path_length << "  " << prev_curr_length << '\n';
+    // GenerateSamples(optimizedPath); // Fills in the infused path based on the optimized path
+  // }
+
 }
+
+
+
+// /*
+//  * Optimizes the path using iterative LoS
+// */
+// void PathOptimizer::OptimizePath()
+// {
+//   optimizedPath.push_back(originalPath[0]);
+//   int c = 0;
+//   int p = 2;
+//   while (p < infusedPath.size()){
+//     // std::cout << "Optimized " << optimizedPath.back().x << "  " << optimizedPath.back().y << '\n'; 
+//     // std::cout << "infused  " << originalPath.back().x << "  " << originalPath.back().y << '\n'; 
+
+//     if (HasLineOfSight(infusedPath[c], infusedPath[p])){
+//       ++p;
+//     }else{
+//       optimizedPath.push_back(infusedPath[p-1]);
+//       c = p - 1;
+//       ++p;
+//     }
+//   }
+//   optimizedPath.push_back(originalPath.back());
+// }
 
 
 
@@ -106,10 +144,13 @@ bool PathOptimizer::HasLineOfSight(const Point& p1, const Point& p2)
 /*
  * Computes the path distance of the optimized path
  */
-void PathOptimizer::PathDistance()
+float PathOptimizer::PathDistance(const std::vector<Point> & path)
 {
-  for (int i = 0 ; i < optimizedPath.size()-2 ; ++ i){
-    curr_path_length += CalculateDistance(optimizedPath[i], optimizedPath[i+1]);
+  float curr_path_length = 0;
+    // double prev_path_length;
+  for (int i = 0 ; i < path.size()-2 ; ++ i){
+    curr_path_length += CalculateDistance(path[i], path[i+1]);
   }
+  return curr_path_length;
 }
 
