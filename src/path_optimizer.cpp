@@ -5,7 +5,9 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler
 {
 
   printInfo("Initialized Path Optimizer");
-  OptimizePath(); // fills in the optimized path
+  // GenerateSamples(originalPath);
+  // OptimizePath(); // fills in the optimized path
+  GenerateSamples(originalPath);            // Fills in the infused path
 
   // while (prev_path_length > curr_path_length)
   // {
@@ -54,13 +56,12 @@ void PathOptimizer::GenerateSamples(const std::vector<Point> & path)
 
 /*
  * Optimizes the path using iterative LoS
-*/
+ */
 void PathOptimizer::OptimizePath()
 {
   optimizedPath.push_back(originalPath[0]); // Add the starting node
-  GenerateSamples(originalPath); // Fills in the infused path
 
-  float prev_curr_length = PathDistance(originalPath);
+  float prev_curr_length = PathDistance(infusedPath);
   float curr_path_length = prev_curr_length + 1;
   float epsilon = std::numeric_limits<float>::lowest();
 
@@ -68,23 +69,24 @@ void PathOptimizer::OptimizePath()
   // while (std::abs(prev_curr_length - curr_path_length) > epsilon)
   // {
     prev_curr_length = curr_path_length;
-    for (int i = 0 ; i < infusedPath.size() - 1 ; ++i){
+    for (int i = 0 ; i < optimizedPath.size()  ; ++i){
       for (int j = i + 1 ; j < infusedPath.size() ; ++j){
-        if (HasLineOfSight(infusedPath[i], infusedPath[j])){
+        if (HasLineOfSight(optimizedPath[i], infusedPath[j])){
           continue;
         }else{
-          if (std::find(optimizedPath.begin(), optimizedPath.end(), infusedPath[j-1]) != optimizedPath.end()){
-            break;
-          }else{
+          // if (std::find(optimizedPath.begin(), optimizedPath.end(), infusedPath[j-1]) != optimizedPath.end()){
+          //   break;
+          // }else{
             optimizedPath.push_back(infusedPath[j-1]);
-          }
+          // }
+          std::cout << "Addded \n";
 
         }
       }
     }
     curr_path_length = PathDistance(optimizedPath);
     std::cout << "Lengths -> " << curr_path_length << "  " << prev_curr_length << '\n';
-    // GenerateSamples(optimizedPath); // Fills in the infused path based on the optimized path
+    GenerateSamples(optimizedPath); // Fills in the infused path based on the optimized path
   // }
 
 }

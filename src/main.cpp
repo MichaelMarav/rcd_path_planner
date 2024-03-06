@@ -15,7 +15,7 @@ int main()
   // Initializes the map and the relevant parameters (Maybe do this from config file to avoid building it every time)0
   // MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_17_3_52/occ_17_3_52.ppm");
 
-  MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_0_52_22/occ_0_52_22.ppm");
+  MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_17_3_52/occ_17_3_52.ppm");
 
   
   // Visualization of the imported grid
@@ -73,13 +73,19 @@ int main()
   // Remove Duplicate intersection point (from target / robot graph)
   std::reverse(target_path.begin(), target_path.end());
   robot_path.pop_back();
-
-
+  // Connect the two paths
   robot_path.insert(robot_path.end(), target_path.begin(), target_path.end());
 
 
+  // plotter.VisualizePath(handler,robot_path, final_node); // Visualize the casting path (fully-unoptimized)
+
   PathOptimizer los_optimizer(robot_path, &handler);
-  plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+
+  while (true){
+    los_optimizer.OptimizePath();
+    plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+
+  }
 
 
 
