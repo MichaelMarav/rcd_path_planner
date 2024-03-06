@@ -7,7 +7,6 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler
   printInfo("Initialized Path Optimizer");
   // GenerateSamples(originalPath);
   // OptimizePath(); // fills in the optimized path
-  GenerateSamples(originalPath);            // Fills in the infused path
 
   // while (prev_path_length > curr_path_length)
   // {
@@ -59,36 +58,37 @@ void PathOptimizer::GenerateSamples(const std::vector<Point> & path)
  */
 void PathOptimizer::OptimizePath()
 {
+  if (optimizedPath.size() > 1 ){
+    GenerateSamples(optimizedPath);            // Fills in the infused path
+  }else{
+    GenerateSamples(originalPath);            // Fills in the infused path
+
+  }
+  optimizedPath.clear();
   optimizedPath.push_back(originalPath[0]); // Add the starting node
 
   float prev_curr_length = PathDistance(infusedPath);
   float curr_path_length = prev_curr_length + 1;
   float epsilon = std::numeric_limits<float>::lowest();
+ 
+  optimizedPath.push_back(originalPath[0]);
 
+  int c = 0;
+  int p = 1;
+  while (p < infusedPath.size()){
+    // std::cout << "Optimized " << optimizedPath.back().x << "  " << optimizedPath.back().y << '\n'; 
+    // std::cout << "infused  " << originalPath.back().x << "  " << originalPath.back().y << '\n'; 
 
-  // while (std::abs(prev_curr_length - curr_path_length) > epsilon)
-  // {
-    prev_curr_length = curr_path_length;
-    for (int i = 0 ; i < optimizedPath.size()  ; ++i){
-      for (int j = i + 1 ; j < infusedPath.size() ; ++j){
-        if (HasLineOfSight(optimizedPath[i], infusedPath[j])){
-          continue;
-        }else{
-          // if (std::find(optimizedPath.begin(), optimizedPath.end(), infusedPath[j-1]) != optimizedPath.end()){
-          //   break;
-          // }else{
-            optimizedPath.push_back(infusedPath[j-1]);
-          // }
-          std::cout << "Addded \n";
-
-        }
-      }
+    if (HasLineOfSight(infusedPath[c], infusedPath[p])){
+      ++p;
+    }else{
+      optimizedPath.push_back(infusedPath[p-1]);
+      c = p - 1;
+      ++p;
     }
-    curr_path_length = PathDistance(optimizedPath);
-    std::cout << "Lengths -> " << curr_path_length << "  " << prev_curr_length << '\n';
-    GenerateSamples(optimizedPath); // Fills in the infused path based on the optimized path
-  // }
-
+  }
+  optimizedPath.push_back(originalPath.back());
+ std::cout << "Path Distance --> " <<  PathDistance(optimizedPath) << '\n';
 }
 
 

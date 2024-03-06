@@ -140,6 +140,8 @@ void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point>
   // Display the cast_image using OpenCV
   cv::imshow("Path ", path_image);
   cv::waitKey(0);
+  cv::waitKey(0);
+
 }
 
 
