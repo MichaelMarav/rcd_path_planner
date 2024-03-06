@@ -8,6 +8,8 @@ class PathOptimizer
   private:
     std::vector<Point> originalPath;
     std::vector<Point> infusedPath; // Path with extra generated samples
+    std::vector<Point> prevPath; // Path with extra generated samples
+
     Point curr_point;
     Point next_point;
 

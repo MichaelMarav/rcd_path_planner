@@ -62,7 +62,6 @@ void PathOptimizer::OptimizePath()
     GenerateSamples(optimizedPath);            // Fills in the infused path
   }else{
     GenerateSamples(originalPath);            // Fills in the infused path
-
   }
   optimizedPath.clear();
   optimizedPath.push_back(originalPath[0]); // Add the starting node
@@ -71,7 +70,6 @@ void PathOptimizer::OptimizePath()
   float curr_path_length = prev_curr_length + 1;
   float epsilon = std::numeric_limits<float>::lowest();
  
-  optimizedPath.push_back(originalPath[0]);
 
   int c = 0;
   int p = 1;
@@ -82,15 +80,28 @@ void PathOptimizer::OptimizePath()
     if (HasLineOfSight(infusedPath[c], infusedPath[p])){
       ++p;
     }else{
-      optimizedPath.push_back(infusedPath[p-1]);
-      c = p - 1;
-      ++p;
+      if (std::count(prevPath.begin(), prevPath.end(), infusedPath[p-1])){
+        ++p;
+        continue;
+
+      }else{
+        if (HasLineOfSight(optimizedPath.back(),infusedPath[p-1])){
+          optimizedPath.push_back(infusedPath[p-1]);
+          c = p - 1;
+          ++p;
+        }else{
+          ++c;
+          p = c+1;
+        }
+        
+      }
+
     }
   }
   optimizedPath.push_back(originalPath.back());
+  prevPath = optimizedPath;
  std::cout << "Path Distance --> " <<  PathDistance(optimizedPath) << '\n';
 }
-
 
 
 // /*
