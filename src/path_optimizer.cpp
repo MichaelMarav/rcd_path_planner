@@ -17,6 +17,39 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler
   //   OptimizePath(); // fills in the optimized path
   //   PathDistance(); // updates curr_path_length
   // }
+
+
+  optimizedPath.clear();
+
+  // First layer of optimization (make only 2 consecutive nodes have LoS between them)
+  int c = 0; 
+  int p = 1;
+  optimizedPath.push_back(originalPath[0]); // Add source
+  while (p < originalPath.size())
+  {
+    if (HasLineOfSight(originalPath[c],originalPath[p]))
+    {
+      ++p;
+    }
+    else
+    {
+      std::pair<Point,int> last_seen(originalPath[p-1],p-1);
+      for (int i = p + 1 ; i < originalPath.size() ; ++i)
+      {
+        if (HasLineOfSight(originalPath[c],originalPath[i]))
+        {
+          last_seen = {originalPath[i], i};
+        } 
+      }
+      optimizedPath.push_back(last_seen.first);
+      c = last_seen.second;
+      p = c + 1;
+    }
+  }
+  optimizedPath.push_back(*(originalPath.end() -1));
+  GenerateSamples(optimizedPath);
+
+
 }
 
 void PathOptimizer::GenerateSamples(const std::vector<Point> & path)
@@ -43,7 +76,7 @@ void PathOptimizer::GenerateSamples(const std::vector<Point> & path)
       point2add.x = static_cast<int>(std::ceil(curr_point.x + dis * std::cos(angle)));
       point2add.y = static_cast<int>(std::ceil(curr_point.y + dis * std::sin(angle)));
       dis += sampleIncrement;
-      if (map->grid[point2add.y][point2add.x].isOccupied) {
+      if (map->deflated_grid[point2add.y][point2add.x].isOccupied) {
           continue;
       }
       infusedPath.push_back(point2add);
@@ -51,81 +84,115 @@ void PathOptimizer::GenerateSamples(const std::vector<Point> & path)
   }
 }
 
-
-
-/*
- * Optimizes the path using iterative LoS
- */
 void PathOptimizer::OptimizePath()
 {
-  if (optimizedPath.size() > 1 ){
-    GenerateSamples(optimizedPath);            // Fills in the infused path
-  }else{
-    GenerateSamples(originalPath);            // Fills in the infused path
-  }
-  optimizedPath.clear();
-  optimizedPath.push_back(originalPath[0]); // Add the starting node
+  int opt_point = 0;
+    std::cout << " Path size   "  << infusedPath.size() << '\n';
+  int prev_p = 0;
+  while(opt_point < infusedPath.size())
+  {
+    std::cout << " Path size   "  << infusedPath.size() << '\n';
 
-  float prev_curr_length = PathDistance(infusedPath);
-  float curr_path_length = prev_curr_length + 1;
-  float epsilon = std::numeric_limits<float>::lowest();
- 
+    std::cout << "Opt --> " << opt_point << '\n';
+    // Second Layer of optimization:
+    GenerateSamples(optimizedPath);
+    optimizedPath.clear();
+    optimizedPath.push_back(originalPath[0]);
+    int c = opt_point;
+    int p = c + 1;
 
-  int c = 0;
-  int p = 1;
-  while (p < infusedPath.size()){
-    // std::cout << "Optimized " << optimizedPath.back().x << "  " << optimizedPath.back().y << '\n'; 
-    // std::cout << "infused  " << originalPath.back().x << "  " << originalPath.back().y << '\n'; 
-
-    if (HasLineOfSight(infusedPath[c], infusedPath[p])){
-      ++p;
-    }else{
-      if (std::count(prevPath.begin(), prevPath.end(), infusedPath[p-1])){
+    while (p < infusedPath.size())
+    {
+      if (HasLineOfSight(infusedPath[c],infusedPath[p]))
+      {
         ++p;
-        continue;
-
-      }else{
-        if (HasLineOfSight(optimizedPath.back(),infusedPath[p-1])){
-          optimizedPath.push_back(infusedPath[p-1]);
-          c = p - 1;
-          ++p;
-        }else{
-          ++c;
-          p = c+1;
-        }
-        
       }
-
+      else
+      {
+        std::pair<Point,int> last_seen(infusedPath[p-1],p-1);
+        for (int i = p + 1 ; i < infusedPath.size() ; ++i)
+        {
+          if (HasLineOfSight(infusedPath[c],infusedPath[i]))
+          {
+            last_seen = {infusedPath[i], i};
+          } 
+        }
+        optimizedPath.push_back(last_seen.first);
+        c = last_seen.second;
+        p = c + 1;
+      }
     }
+    optimizedPath.push_back(*(originalPath.end() -1));
+    ++opt_point;
+    if (prev_p == p){
+      break;
+    }
+    prev_p = p;
+
   }
-  optimizedPath.push_back(originalPath.back());
-  prevPath = optimizedPath;
- std::cout << "Path Distance --> " <<  PathDistance(optimizedPath) << '\n';
-}
+  
 
 
-// /*
-//  * Optimizes the path using iterative LoS
-// */
+} 
+
+
+/* OLD
+ * Optimizes the path using iterative LoS
+ */
 // void PathOptimizer::OptimizePath()
 // {
-//   optimizedPath.push_back(originalPath[0]);
-//   int c = 0;
-//   int p = 2;
-//   while (p < infusedPath.size()){
-//     // std::cout << "Optimized " << optimizedPath.back().x << "  " << optimizedPath.back().y << '\n'; 
-//     // std::cout << "infused  " << originalPath.back().x << "  " << originalPath.back().y << '\n'; 
+//   if (optimizedPath.size() > 1 ){
+//     GenerateSamples(optimizedPath);            // Fills in the infused path
+//   }else{
+//     GenerateSamples(originalPath);            // Fills in the infused path
+//   }
+//   optimizedPath.clear();
+//   // optimizedPath.push_back(originalPath[0]); // Add the starting node
 
-//     if (HasLineOfSight(infusedPath[c], infusedPath[p])){
+//   int c = 0;
+//   int p = 1;
+//   while (p < infusedPath.size()){
+    
+//     if (p == infusedPath.size()-1) break; // Done
+ 
+//     if (HasLineOfSight(infusedPath[c], infusedPath[p]))
+//     {
 //       ++p;
-//     }else{
-//       optimizedPath.push_back(infusedPath[p-1]);
-//       c = p - 1;
-//       ++p;
+//     }
+//     else
+//     {
+//       if (std::count(prevPath.begin(), prevPath.end(), infusedPath[p-1]) > 0)
+//       {
+//         c++;
+//         p = c + 1;
+//         continue;
+//       }
+//       else
+//       {
+//         optimizedPath.push_back(infusedPath[c]);
+//         optimizedPath.push_back(infusedPath[p-1]);
+//         c = p - 1;
+//         ++p;
+//         // if (HasLineOfSight(optimizedPath.back(),infusedPath[p-1]))
+//         // {
+//         //   optimizedPath.push_back(infusedPath[p-1]);
+
+//         // }
+//         // else
+//         // {
+//         //   ++c;
+//         //   p = c+1;
+//         // }
+        
+//       }
+
 //     }
 //   }
 //   optimizedPath.push_back(originalPath.back());
+//   prevPath = optimizedPath;
+//  std::cout << "Path Distance --> " <<  PathDistance(optimizedPath) << '\n';
 // }
+
 
 
 
@@ -144,7 +211,7 @@ bool PathOptimizer::HasLineOfSight(const Point& p1, const Point& p2)
 
     x_i = static_cast<int>(std::ceil(p1.x + dis * std::cos(angle)));
     y_i = static_cast<int>(std::ceil(p1.y + dis * std::sin(angle)));
-    if (map->grid[y_i][x_i].isOccupied) {
+    if (map->deflated_grid[y_i][x_i].isOccupied) {
         return false;
     }
     dis += 1;

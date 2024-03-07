@@ -20,8 +20,10 @@ class MapHandler
       RCD::RGraph::EdgeDescriptor edge_id; // Stores the edge descriptor that connects the nodes that pass through
     };
 
-    OccupancyGrid<Cell> grid;  // 2D occupancy grid
-    
+    OccupancyGrid<Cell> grid;  // 2D occupancy grid --> This occupancy grid will be inflated for the casting
+    OccupancyGrid<Cell> deflated_grid; // This grid will be deflated for the optimization step
+    OccupancyGrid<Cell> inflated_grid; // This grid will be deflated for the optimization step
+
     float grid_resolution; // in m
 
     // Geometry of environment (m)

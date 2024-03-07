@@ -62,6 +62,30 @@ void MapHandler::loadOccupancyGrid(const std::string & ppm_filename)
       grid[y][x].isOccupied = isBlack;
     }
   }
+
+  deflated_grid = grid; // Not inflated
+  inflated_grid = grid; // Grid to be inflated
+
+  int robot_size = 2; // Make this hyperParameter
+  // Inflate grid
+  for (int y = 0; y < this->height; ++y) {
+    for (int x = 0; x < this->width; ++x) {
+      if (grid[y][x].isOccupied) {
+        for (int i = -robot_size; i <= robot_size; ++i) {
+          for (int j = -robot_size; j <= robot_size; ++j) {
+            int new_y = y + i;
+            int new_x = x + j;
+            if (new_y >= 0 && new_y < this->height && new_x >= 0 && new_x < this->width) {
+                inflated_grid[new_y][new_x].isOccupied = true;
+            }
+          }
+        }
+      }
+    }
+  }
+  grid = inflated_grid;
+
+
   file.close();
 }
 

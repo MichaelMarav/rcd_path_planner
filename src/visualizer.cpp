@@ -86,7 +86,7 @@ void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point>
 
   for (int i = 0; i < updatedMap.height; ++i) {
     for (int j = 0; j < updatedMap.width; ++j) {
-      if (updatedMap.grid[i][j].isOccupied) {
+      if (updatedMap.deflated_grid[i][j].isOccupied) {
         // Black for occupied cells
         path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
       } else {
@@ -98,12 +98,12 @@ void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point>
     // Fill the cast_image with appropriate colors based on the grid
   for (int i = 0; i < updatedMap.height; ++i) {
     for (int j = 0; j < updatedMap.width; ++j) {
-      if (updatedMap.grid[i][j].robotPass) {
+      if (updatedMap.deflated_grid[i][j].robotPass) {
         // Black for occupied cells
         path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 255, 0);
       } 
       
-      if (updatedMap.grid[i][j].targetPass) {
+      if (updatedMap.deflated_grid[i][j].targetPass) {
         // White for unoccupied cells
         path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 255);
       }
