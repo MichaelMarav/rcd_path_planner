@@ -34,8 +34,8 @@ void Visualizer::visualizeOccupancyGrid()
   cv::circle(cast_image, target, radius, cv::Scalar(0, 0, 255), -1); // Color: Blue (BGR), -1 for filled circle
 
   // Display the cast_image using OpenCV
-  cv::imshow("Occupancy Grid", cast_image);
-  cv::waitKey(0);
+  // cv::imshow("Occupancy Grid", cast_image);
+  // cv::waitKey(0);
 }
 
 
@@ -109,20 +109,20 @@ void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point>
       }
     }
   }
-  cv::Point intersection(node.pos.x, node.pos.y); // robot coordinates
+  // cv::Point intersection(node.pos.x, node.pos.y); // robot coordinates
 
-  cv::circle(path_image, intersection, 20, cv::Scalar(0, 255, 0), -1);
+  // cv::circle(path_image, intersection, 20, cv::Scalar(0, 255, 0), -1);
 
   cv::Point robot(map.robot_pos.x, map.robot_pos.y); // robot coordinates
   cv::Point target(map.target_pos.x, map.target_pos.y); // target coordinates
 
-  cv::circle(path_image, robot, 10, cv::Scalar(0, 255, 0), -1);
-  cv::circle(path_image, target, 10, cv::Scalar(0, 0, 255), -1);
+  cv::circle(path_image, robot, 5, cv::Scalar(0, 255, 0), -1);
+  cv::circle(path_image, target, 5, cv::Scalar(0, 0, 255), -1);
 
-  int radius = 5; // Radius of the dot
+  int radius = 2; // Radius of the dot
 
   cv::Point prevPoint; // Store the previous point for line drawing
-  int thickness = 2;  // Thickness of the lines (adjust as needed)
+  int thickness = 1;  // Thickness of the lines (adjust as needed)
 
   // Loop through the path points
   for (const auto& point : path) {

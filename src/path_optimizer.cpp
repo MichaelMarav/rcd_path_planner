@@ -5,135 +5,190 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler
 {
 
   printInfo("Initialized Path Optimizer");
-  // GenerateSamples(originalPath);
-  // OptimizePath(); // fills in the optimized path
+  
+  opt_point = 0;
+  // First step optimization: one node should only be able to see one
+  int c = 0 ;
+  int p = c + 2;
+  std::pair<Point,int> last_seen;
+  
+  interPath.push_back(originalPath[0]);
 
-  // while (prev_path_length > curr_path_length)
-  // {
-  //   prev_path_length = curr_path_length;
-  //   originalPath = optimizedPath;
-  //   GenerateSamples(); // Fills in the infused path
-  //   // optimizedPath = infusedPath;
-  //   OptimizePath(); // fills in the optimized path
-  //   PathDistance(); // updates curr_path_length
-  // }
+  while (p < originalPath.size()){
 
-
-  optimizedPath.clear();
-
-  // First layer of optimization (make only 2 consecutive nodes have LoS between them)
-  int c = 0; 
-  int p = 1;
-  optimizedPath.push_back(originalPath[0]); // Add source
-  while (p < originalPath.size())
-  {
-    if (HasLineOfSight(originalPath[c],originalPath[p]))
-    {
+    if (HasLineOfSight(originalPath[c],originalPath[p])){
       ++p;
-    }
-    else
-    {
-      std::pair<Point,int> last_seen(originalPath[p-1],p-1);
-      for (int i = p + 1 ; i < originalPath.size() ; ++i)
-      {
-        if (HasLineOfSight(originalPath[c],originalPath[i]))
-        {
-          last_seen = {originalPath[i], i};
-        } 
+    }else{
+      last_seen = {originalPath[p-1], p-1};
+      if (p-1 == originalPath.size()-1){
+        interPath.push_back(last_seen.first);
+        originalPath = interPath; // So, original path holds the first layer of optimized initial path
+        interPath.clear();
+        return;
       }
-      optimizedPath.push_back(last_seen.first);
+
+      for (int i = last_seen.second + 1 ; i < originalPath.size() ; ++i){
+        if (HasLineOfSight(originalPath[c],originalPath[i])){
+          last_seen = {originalPath[i], i};
+        }
+      }
       c = last_seen.second;
-      p = c + 1;
+      p = c + 2;
+      interPath.push_back(last_seen.first);
     }
   }
-  optimizedPath.push_back(*(originalPath.end() -1));
-  GenerateSamples(optimizedPath);
+  interPath.push_back(originalPath.back());
+  originalPath = interPath; // So, original path holds the first layer of optimized initial path
+  infusedPath = GenerateSamples(originalPath, 0, originalPath.size());
+  optimizedPath = infusedPath;
 
-
+  // interPath.clear();
 }
 
-void PathOptimizer::GenerateSamples(const std::vector<Point> & path)
+std::vector<Point> PathOptimizer::GenerateSamples(const std::vector<Point> & path, int start, int end)
 {
-  infusedPath.clear();
+  if (end > path.size()){
+    printInfo("ERROR");
+    exit(3); 
+  }
+  std::vector<Point> generatedPath;
+  
+  for (int i = 0 ; i < start + 1; ++i){
+    generatedPath.push_back(path[i]);
+  }
 
   int dis;
   double distance_between_points = 0.0;
   double angle = 0.0;
 
-  Point point2add; // point to add to the infused path
-  for (int p = 0; p < path.size() - 1; ++p) {
-    infusedPath.push_back(path[p]);
+  Point point2add;
+
+
+  for (int p = start; p < end-1; ++p) {
     dis = sampleIncrement;
 
     curr_point = path[p];
     next_point = path[p + 1];
     
-    distance_between_points = std::sqrt(std::pow((static_cast<double>(curr_point.x) - static_cast<double>(next_point.x)), 2) +
-                                        std::pow((static_cast<double>(curr_point.y) - static_cast<double>(next_point.y)), 2));
+    distance_between_points = CalculateDistance(curr_point, next_point);
     angle = std::atan2((next_point.y - curr_point.y), (next_point.x - curr_point.x));
 
     while (dis < distance_between_points) {
       point2add.x = static_cast<int>(std::ceil(curr_point.x + dis * std::cos(angle)));
       point2add.y = static_cast<int>(std::ceil(curr_point.y + dis * std::sin(angle)));
       dis += sampleIncrement;
+
       if (map->deflated_grid[point2add.y][point2add.x].isOccupied) {
           continue;
       }
-      infusedPath.push_back(point2add);
+      generatedPath.push_back(point2add);
+    }
+  }
+
+  for (int i = end; i < path.size() ; ++i ){
+    generatedPath.push_back(path[i]);
+  }
+  return generatedPath;
+}
+
+// This is the optimal line of sight for one poitn. It finds the truly last seen element for every node
+std::vector<Point> PathOptimizer::LoS(std::vector<Point> path, int opt)
+{
+  std::vector<Point> reducedPath;
+  for (int i = 0 ; i < opt+1 ; ++i){
+    reducedPath.push_back(path[i]);
+  }
+
+  std::pair<Point,int> last_seen;
+  int p = opt+1 ;
+  while (p < path.size()){
+    if (HasLineOfSight(path[opt],path[p])){
+      if (p == path.size()-1){
+        reducedPath.push_back(path.back());
+        return reducedPath;
+      }
+      ++p;
+    }else{
+      last_seen = {path[p-1],p-1};
+      for (int i = p ; i < path.size(); ++i){
+        if (HasLineOfSight(path[opt],path[i])){
+          last_seen = {path[i],i};
+        }
+      }
+      reducedPath.push_back(last_seen.first);
+      // Fill in the rest as same
+      for (int i = last_seen.second + 1 ; i < path.size()  ; ++i ){
+        reducedPath.push_back(path[i]);
+      }
+      return reducedPath;
     }
   }
 }
 
+
+
+
 void PathOptimizer::OptimizePath()
 {
-  int opt_point = 0;
-    std::cout << " Path size   "  << infusedPath.size() << '\n';
-  int prev_p = 0;
-  while(opt_point < infusedPath.size())
-  {
-    std::cout << " Path size   "  << infusedPath.size() << '\n';
+  optimizedPath = LoS(optimizedPath,opt_point);
+  optimizedPath = GenerateSamples(optimizedPath,opt_point, opt_point + 2);
 
-    std::cout << "Opt --> " << opt_point << '\n';
-    // Second Layer of optimization:
-    GenerateSamples(optimizedPath);
-    optimizedPath.clear();
-    optimizedPath.push_back(originalPath[0]);
-    int c = opt_point;
-    int p = c + 1;
+  ++opt_point;
 
-    while (p < infusedPath.size())
-    {
-      if (HasLineOfSight(infusedPath[c],infusedPath[p]))
-      {
-        ++p;
-      }
-      else
-      {
-        std::pair<Point,int> last_seen(infusedPath[p-1],p-1);
-        for (int i = p + 1 ; i < infusedPath.size() ; ++i)
-        {
-          if (HasLineOfSight(infusedPath[c],infusedPath[i]))
-          {
-            last_seen = {infusedPath[i], i};
-          } 
-        }
-        optimizedPath.push_back(last_seen.first);
-        c = last_seen.second;
-        p = c + 1;
-      }
-    }
-    optimizedPath.push_back(*(originalPath.end() -1));
-    ++opt_point;
-    if (prev_p == p){
-      break;
-    }
-    prev_p = p;
+} 
 
-  }
+
+// BEST OPTIMIZER SO FAR=
+// void PathOptimizer::OptimizePath()
+// {
+//   int opt_point = 0;
+//     std::cout << " Path size   "  << infusedPath.size() << '\n';
+//   int prev_p = 0;
+//   while(opt_point < infusedPath.size())
+//   {
+//     std::cout << " Path size   "  << infusedPath.size() << '\n';
+
+//     std::cout << "Opt --> " << opt_point << '\n';
+//     // Second Layer of optimization:
+//     GenerateSamples(interPath);
+//     optimizedPath.clear();
+//     optimizedPath.push_back(originalPath[0]);
+//     int c = opt_point;
+//     int p = c + 1;
+
+//     while (p < infusedPath.size())
+//     {
+//       if (HasLineOfSight(infusedPath[c],infusedPath[p]))
+//       {
+//         ++p;
+//       }
+//       else
+//       {
+//         std::pair<Point,int> last_seen(infusedPath[p-1],p-1);
+//         for (int i = p + 1 ; i < infusedPath.size() ; ++i)
+//         {
+//           if (HasLineOfSight(infusedPath[c],infusedPath[i]))
+//           {
+//             last_seen = {infusedPath[i], i};
+//           } 
+//         }
+//         optimizedPath.push_back(last_seen.first);
+//         c = last_seen.second;
+//         p = c + 1;
+//       }
+//     }
+//     optimizedPath.push_back(*(originalPath.end() -1));
+//     ++opt_point;
+//     if (prev_p == p){
+//       break;
+//     }
+//     prev_p = p;
+
+//   }
   
 
 
-} 
+// } 
 
 
 /* OLD
@@ -201,23 +256,54 @@ void PathOptimizer::OptimizePath()
 */
 bool PathOptimizer::HasLineOfSight(const Point& p1, const Point& p2)
 {
-  double dis = 1;
-  
-  double distance_between_points = CalculateDistance(p1,p2);
-  
-  double angle = std::atan2((p2.y - p1.y), (p2.x - p1.x));
-  int x_i,y_i;
-  while (dis < distance_between_points) {
+    // Calculate distance between points
+    double distance_between_points = CalculateDistance(p1, p2);
 
-    x_i = static_cast<int>(std::ceil(p1.x + dis * std::cos(angle)));
-    y_i = static_cast<int>(std::ceil(p1.y + dis * std::sin(angle)));
-    if (map->deflated_grid[y_i][x_i].isOccupied) {
-        return false;
+    // Calculate angle
+    double angle = std::atan2((p2.y - p1.y), (p2.x - p1.x));
+
+    // Initialize Bresenham's algorithm parameters
+    int x1 = static_cast<int>(p1.x);
+    int y1 = static_cast<int>(p1.y);
+    int x2 = static_cast<int>(p2.x);
+    int y2 = static_cast<int>(p2.y);
+
+    // Determine increments for x and y
+    int dx = abs(x2 - x1);
+    int dy = abs(y2 - y1);
+    int sx = (x1 < x2) ? 1 : -1;
+    int sy = (y1 < y2) ? 1 : -1;
+    int err = dx - dy;
+
+    // Iterate through points using Bresenham's algorithm
+    while (true) {
+        // Check if the current point is occupied
+        for (int i = -1; i < 2; ++i) {
+            for (int j = -1; j < 2; ++j) {
+                if (map->deflated_grid[y1 + j][x1 + i].isOccupied) {
+                    return false; // Line of sight blocked
+                }
+            }
+        }
+
+        // Check if reached the end point
+        if (x1 == x2 && y1 == y2) {
+            break;
+        }
+
+        // Calculate next point using Bresenham's algorithm
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+            err -= dy;
+            x1 += sx;
+        }
+        if (e2 < dx) {
+            err += dx;
+            y1 += sy;
+        }
     }
-    dis += 1;
-  }
 
-  return true;
+    return true; // Line of sight not blocked
 }
 
 
