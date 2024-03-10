@@ -9,42 +9,50 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler
   opt_point = 0;
   // First step optimization: one node should only be able to see one
   int c = 0 ;
+  interPath.push_back(originalPath[0]);
   int p = c + 2;
   std::pair<Point,int> last_seen;
   
-  interPath.push_back(originalPath[0]);
-
   while (p < originalPath.size()){
 
     if (HasLineOfSight(originalPath[c],originalPath[p])){
+      if (originalPath[p] == originalPath.back()){
+        interPath.push_back(originalPath.back());
+        break;
+      }
       ++p;
     }else{
-      last_seen = {originalPath[p-1], p-1};
-      if (p-1 == originalPath.size()-1){
-        interPath.push_back(last_seen.first);
-        originalPath = interPath; // So, original path holds the first layer of optimized initial path
-        interPath.clear();
-        return;
-      }
-
-      for (int i = last_seen.second + 1 ; i < originalPath.size() ; ++i){
+      last_seen = {originalPath[p-1],p-1};
+      for (int i = p ; i < originalPath.size();++i){
         if (HasLineOfSight(originalPath[c],originalPath[i])){
-          last_seen = {originalPath[i], i};
+          last_seen = {originalPath[i],i};
         }
       }
-      c = last_seen.second;
-      p = c + 2;
+
       interPath.push_back(last_seen.first);
+      c = last_seen.second;
+      p = c + 1;
     }
   }
-  interPath.push_back(originalPath.back());
-  originalPath = interPath; // So, original path holds the first layer of optimized initial path
-  infusedPath = GenerateSamples(originalPath, 0, originalPath.size());
-  infusedPath.push_back(originalPath.back());
-  optimizedPath = infusedPath;
-
-  // interPath.clear();
+  optimizedPath = GenerateSamples(interPath, 0 , interPath.size()-1);
 }
+
+
+/* <OptmizePath> 
+ *
+ */
+void PathOptimizer::OptimizePath()
+{
+  while (optimizedPath.back() == originalPath.back()){
+    optimizedPath = LoS(optimizedPath,opt_point);
+    optimizedPath = GenerateSamples(optimizedPath,opt_point, opt_point + 2);
+    ++opt_point;  
+    // return;
+  }
+} 
+
+
+
 
 std::vector<Point> PathOptimizer::GenerateSamples(const std::vector<Point> & path, int start, int end)
 {
@@ -65,7 +73,7 @@ std::vector<Point> PathOptimizer::GenerateSamples(const std::vector<Point> & pat
   Point point2add;
 
 
-  for (int p = start; p < end-1; ++p) {
+  for (int p = start; p < end; ++p) {
     dis = sampleIncrement;
 
     curr_point = path[p];
@@ -100,7 +108,7 @@ std::vector<Point> PathOptimizer::LoS(const std::vector<Point> & path  , int opt
     reducedPath.push_back(path[i]);
   }
 
-  std::pair<Point,int> last_seen;
+  // std::pair<Point,int> last_seen;
   int p = opt+2 ;
   while (p < path.size()){
     if (HasLineOfSight(path[opt],path[p])){
@@ -117,6 +125,8 @@ std::vector<Point> PathOptimizer::LoS(const std::vector<Point> & path  , int opt
       //     last_seen = {path[i],i};
       //   }
       // }
+\
+
       reducedPath.push_back(path[p-1]);
       // Fill in the rest as same
       for (int i = p; i < path.size()  ; ++i ){
@@ -130,16 +140,6 @@ std::vector<Point> PathOptimizer::LoS(const std::vector<Point> & path  , int opt
 
 
 
-
-void PathOptimizer::OptimizePath()
-{
-  while (optimizedPath.back() == originalPath.back()){
-    optimizedPath = LoS(optimizedPath,opt_point);
-    optimizedPath = GenerateSamples(optimizedPath,opt_point, opt_point + 2);
-    ++opt_point;  
-    // return;
-  }
-} 
 
 
 /*

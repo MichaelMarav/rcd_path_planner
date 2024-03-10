@@ -83,10 +83,10 @@ class InteractiveGridGenerator:
         self.print_green("Map saved as " + base_name + ".png" + " at maps/ folder")
         # TODO: add the txt + yaml params inside a file in the folder.
         with open(f"/home/michael/github/rcd_path_planner/maps/{base_name}/{base_name}.yaml",'w') as file:
-            file.write("robot_position_x: " +  str(self.robot_pos[0] ) + '\n')
-            file.write("robot_position_y: " +  str(self.grid_size[1] - self.robot_pos[1] ) + '\n')
-            file.write("target_position_x: " + str(self.target_pos[0]) + '\n')
-            file.write("target_position_y: " + str(self.grid_size[1] - self.target_pos[1]) + '\n')
+            file.write("robot_position_x: " +  str((int)(self.robot_pos[0]) ) + '\n')
+            file.write("robot_position_y: " +  str((int)(self.grid_size[1]) - self.robot_pos[1] ) + '\n')
+            file.write("target_position_x: " + str((int)(self.target_pos[0])) + '\n')
+            file.write("target_position_y: " + str((int)(self.grid_size[1]) - self.target_pos[1]) + '\n')
             # file.write("workspace_dimension_x: " + str(self.workspace_size[0]) + '\n')
             # file.write("workspace_dimension_y: " + str(self.workspace_size[1]) + '\n')
             file.write("grid_resolution: "+str(self.grid_resolution) + '\n')         

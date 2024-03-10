@@ -15,7 +15,7 @@ int main()
   // Initializes the map and the relevant parameters (Maybe do this from config file to avoid building it every time)0
   // MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_17_3_52/occ_17_3_52.ppm");
 
-  MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_17_3_52/occ_17_3_52.ppm");
+  MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_22_36_41/occ_22_36_41.ppm");
 
   
   // Visualization of the imported grid
@@ -84,7 +84,6 @@ int main()
   // while (true){
     los_optimizer.OptimizePath();
   //   plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
-
   // }
 
 
