@@ -40,6 +40,7 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler
   interPath.push_back(originalPath.back());
   originalPath = interPath; // So, original path holds the first layer of optimized initial path
   infusedPath = GenerateSamples(originalPath, 0, originalPath.size());
+  infusedPath.push_back(originalPath.back());
   optimizedPath = infusedPath;
 
   // interPath.clear();
@@ -92,7 +93,7 @@ std::vector<Point> PathOptimizer::GenerateSamples(const std::vector<Point> & pat
 }
 
 // This is the optimal line of sight for one poitn. It finds the truly last seen element for every node
-std::vector<Point> PathOptimizer::LoS(std::vector<Point> path, int opt)
+std::vector<Point> PathOptimizer::LoS(const std::vector<Point> & path  , int opt)
 {
   std::vector<Point> reducedPath;
   for (int i = 0 ; i < opt+1 ; ++i){
@@ -130,125 +131,12 @@ std::vector<Point> PathOptimizer::LoS(std::vector<Point> path, int opt)
 
 void PathOptimizer::OptimizePath()
 {
-  optimizedPath = LoS(optimizedPath,opt_point);
-  optimizedPath = GenerateSamples(optimizedPath,opt_point, opt_point + 2);
-
-  ++opt_point;
-
+  while (optimizedPath.back() == originalPath.back()){
+    optimizedPath = LoS(optimizedPath,opt_point);
+    optimizedPath = GenerateSamples(optimizedPath,opt_point, opt_point + 2);
+    ++opt_point;  
+  }
 } 
-
-
-// BEST OPTIMIZER SO FAR=
-// void PathOptimizer::OptimizePath()
-// {
-//   int opt_point = 0;
-//     std::cout << " Path size   "  << infusedPath.size() << '\n';
-//   int prev_p = 0;
-//   while(opt_point < infusedPath.size())
-//   {
-//     std::cout << " Path size   "  << infusedPath.size() << '\n';
-
-//     std::cout << "Opt --> " << opt_point << '\n';
-//     // Second Layer of optimization:
-//     GenerateSamples(interPath);
-//     optimizedPath.clear();
-//     optimizedPath.push_back(originalPath[0]);
-//     int c = opt_point;
-//     int p = c + 1;
-
-//     while (p < infusedPath.size())
-//     {
-//       if (HasLineOfSight(infusedPath[c],infusedPath[p]))
-//       {
-//         ++p;
-//       }
-//       else
-//       {
-//         std::pair<Point,int> last_seen(infusedPath[p-1],p-1);
-//         for (int i = p + 1 ; i < infusedPath.size() ; ++i)
-//         {
-//           if (HasLineOfSight(infusedPath[c],infusedPath[i]))
-//           {
-//             last_seen = {infusedPath[i], i};
-//           } 
-//         }
-//         optimizedPath.push_back(last_seen.first);
-//         c = last_seen.second;
-//         p = c + 1;
-//       }
-//     }
-//     optimizedPath.push_back(*(originalPath.end() -1));
-//     ++opt_point;
-//     if (prev_p == p){
-//       break;
-//     }
-//     prev_p = p;
-
-//   }
-  
-
-
-// } 
-
-
-/* OLD
- * Optimizes the path using iterative LoS
- */
-// void PathOptimizer::OptimizePath()
-// {
-//   if (optimizedPath.size() > 1 ){
-//     GenerateSamples(optimizedPath);            // Fills in the infused path
-//   }else{
-//     GenerateSamples(originalPath);            // Fills in the infused path
-//   }
-//   optimizedPath.clear();
-//   // optimizedPath.push_back(originalPath[0]); // Add the starting node
-
-//   int c = 0;
-//   int p = 1;
-//   while (p < infusedPath.size()){
-    
-//     if (p == infusedPath.size()-1) break; // Done
- 
-//     if (HasLineOfSight(infusedPath[c], infusedPath[p]))
-//     {
-//       ++p;
-//     }
-//     else
-//     {
-//       if (std::count(prevPath.begin(), prevPath.end(), infusedPath[p-1]) > 0)
-//       {
-//         c++;
-//         p = c + 1;
-//         continue;
-//       }
-//       else
-//       {
-//         optimizedPath.push_back(infusedPath[c]);
-//         optimizedPath.push_back(infusedPath[p-1]);
-//         c = p - 1;
-//         ++p;
-//         // if (HasLineOfSight(optimizedPath.back(),infusedPath[p-1]))
-//         // {
-//         //   optimizedPath.push_back(infusedPath[p-1]);
-
-//         // }
-//         // else
-//         // {
-//         //   ++c;
-//         //   p = c+1;
-//         // }
-        
-//       }
-
-//     }
-//   }
-//   optimizedPath.push_back(originalPath.back());
-//   prevPath = optimizedPath;
-//  std::cout << "Path Distance --> " <<  PathDistance(optimizedPath) << '\n';
-// }
-
-
 
 
 /*

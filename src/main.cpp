@@ -81,22 +81,26 @@ int main()
 
   PathOptimizer los_optimizer(robot_path, &handler);
 
-  while (true){
+  // while (true){
     los_optimizer.OptimizePath();
-    plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+    // plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
 
-  }
+  // }
 
 
 
   // PathOptimizer los_optimizer(robot_path, &handler);
 
-  // plotter.VisualizePath(handler,robot_path, final_node); // Visualize the casting path (fully-unoptimized)
 
   auto end = std::chrono::system_clock::now();
 
   std::chrono::duration<double> elapsed_seconds = end - start;
   printInfo("Elapsed Time = " + std::to_string(elapsed_seconds.count()) + " (s)");
+  printInfo("Path Length  = " + std::to_string(los_optimizer.PathDistance(los_optimizer.optimizedPath)));
+  plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+
+    // plotter.VisualizePath(handler,robot_path, final_node); // Visualize the casting path (fully-unoptimized)
+
   // plotter.VisualizeRays(handler);
   // plotter.VisualzePath(handler,robot_path, RCD::Core::intersectionNode); // Visualize the casting path (fully-unoptimized)
 
