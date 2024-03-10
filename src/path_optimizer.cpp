@@ -101,7 +101,7 @@ std::vector<Point> PathOptimizer::LoS(const std::vector<Point> & path  , int opt
   }
 
   std::pair<Point,int> last_seen;
-  int p = opt+1 ;
+  int p = opt+2 ;
   while (p < path.size()){
     if (HasLineOfSight(path[opt],path[p])){
       if (p == path.size()-1){
@@ -110,20 +110,22 @@ std::vector<Point> PathOptimizer::LoS(const std::vector<Point> & path  , int opt
       }
       ++p;
     }else{
-      last_seen = {path[p-1],p-1};
-      for (int i = p ; i < path.size(); ++i){
-        if (HasLineOfSight(path[opt],path[i])){
-          last_seen = {path[i],i};
-        }
-      }
-      reducedPath.push_back(last_seen.first);
+      // last_seen = {path[p-1],p-1};
+      // for (int i = p ; i < path.size(); ++i){
+      //   if (HasLineOfSight(path[opt],path[i])){
+      //     std::cout << "Updated last seeen \n";
+      //     last_seen = {path[i],i};
+      //   }
+      // }
+      reducedPath.push_back(path[p-1]);
       // Fill in the rest as same
-      for (int i = last_seen.second + 1 ; i < path.size()  ; ++i ){
+      for (int i = p; i < path.size()  ; ++i ){
         reducedPath.push_back(path[i]);
       }
       return reducedPath;
     }
   }
+  return reducedPath;
 }
 
 
@@ -135,6 +137,7 @@ void PathOptimizer::OptimizePath()
     optimizedPath = LoS(optimizedPath,opt_point);
     optimizedPath = GenerateSamples(optimizedPath,opt_point, opt_point + 2);
     ++opt_point;  
+    // return;
   }
 } 
 

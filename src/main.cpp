@@ -83,7 +83,7 @@ int main()
 
   // while (true){
     los_optimizer.OptimizePath();
-    // plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+  //   plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
 
   // }
 
