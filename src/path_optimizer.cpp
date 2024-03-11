@@ -8,32 +8,26 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler
   
   opt_point = 0;
   // First step optimization: one node should only be able to see one
-  int c = 0 ;
+  std::cout << "Original Path size -> " << originalPath.size() << '\n';
+  // int c = 0; 
+  // int p = c + 2;
   interPath.push_back(originalPath[0]);
-  int p = c + 2;
   std::pair<Point,int> last_seen;
-  
-  while (p < originalPath.size()){
-
-    if (HasLineOfSight(originalPath[c],originalPath[p])){
-      if (originalPath[p] == originalPath.back()){
-        interPath.push_back(originalPath.back());
-        break;
+  int c = 0 ; 
+  int p = c + 1;
+  while (interPath.back() != originalPath.back())
+  {
+    std::cout << "p --> " << p << '\n';
+    for (int i = p ; i < originalPath.size() ; ++i){
+      if (HasLineOfSight(originalPath[c],originalPath[i])){
+        last_seen = {originalPath[i], i};
       }
-      ++p;
-    }else{
-      last_seen = {originalPath[p-1],p-1};
-      for (int i = p ; i < originalPath.size();++i){
-        if (HasLineOfSight(originalPath[c],originalPath[i])){
-          last_seen = {originalPath[i],i};
-        }
-      }
-
-      interPath.push_back(last_seen.first);
-      c = last_seen.second;
-      p = c + 1;
     }
+    interPath.push_back(last_seen.first);
+    c = last_seen.second;
+    p = c + 1;
   }
+
   optimizedPath = GenerateSamples(interPath, 0 , interPath.size()-1);
 }
 
@@ -169,14 +163,16 @@ bool PathOptimizer::HasLineOfSight(const Point& p1, const Point& p2)
     // Iterate through points using Bresenham's algorithm
     while (true) {
         // Check if the current point is occupied
-        for (int i = -1; i < 2; ++i) {
-            for (int j = -1; j < 2; ++j) {
-                if (map->deflated_grid[y1 + j][x1 + i].isOccupied) {
+        // for (int i = -1; i < 2; ++i) {
+        //     for (int j = -1; j < 2; ++j) {
+        //         if (map->deflated_grid[y1 + j][x1 + i].isOccupied) {
+        //             return false; // Line of sight blocked
+        //         }
+        //     }
+        // }
+            if (map->deflated_grid[y1][x1].isOccupied) {
                     return false; // Line of sight blocked
                 }
-            }
-        }
-
         // Check if reached the end point
         if (x1 == x2 && y1 == y2) {
             break;
