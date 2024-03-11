@@ -10,16 +10,16 @@
 
 int main()
 {
+  // for (int f = 0 ; f < 10 ; ++f){
   std::cout << "Ray Casting and Diffusion model for Path Plannig \n";
-
+while (true){
   // Initializes the map and the relevant parameters (Maybe do this from config file to avoid building it every time)0
   // MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_17_3_52/occ_17_3_52.ppm");
   MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_22_36_41/occ_22_36_41.ppm");
 
-  
+  RCD::Core::pathFound = false;
   // Visualization of the imported grid
   Visualizer plotter(handler);
-
   // Robot Caster
   RCD::Core RobotCaster(true, &handler);
 
@@ -81,7 +81,7 @@ int main()
   PathOptimizer los_optimizer(robot_path, &handler);
 
   // while (true){
-    // los_optimizer.OptimizePath();
+    los_optimizer.OptimizePath();
   //   plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
   // }
 
@@ -97,7 +97,7 @@ int main()
   plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
 
     // plotter.VisualizePath(handler,robot_path, final_node); // Visualize the casting path (fully-unoptimized)
-
+}
   // plotter.VisualizeRays(handler);
   // plotter.VisualzePath(handler,robot_path, RCD::Core::intersectionNode); // Visualize the casting path (fully-unoptimized)
 
