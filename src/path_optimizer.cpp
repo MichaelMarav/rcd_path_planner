@@ -22,8 +22,6 @@ void PathOptimizer::OptimizePath()
 
   while(last_seen.first != originalPath.back())
   {
-    std::cout << last_seen.first.x << "   " << last_seen.first.x << "\n"; 
-    std::cout << originalPath.back().x << "   "  << originalPath.back().y << "\n"; 
     last_seen = {Point(-1,-1),-1};
     for (int p = opt_point + 1 ; p < optimizedPath.size() ; ++p )
     {
@@ -85,7 +83,7 @@ std::vector<Point> PathOptimizer::GenerateSamples(const std::vector<Point> & pat
     
     
     // <MODIFY SAMPLE INCREMENT> 
-    sampleIncrement = 10;// round(distance_between_points/5.) + 1;
+    sampleIncrement =  round(distance_between_points/5.) + 1;
     
     
     dis = sampleIncrement;
