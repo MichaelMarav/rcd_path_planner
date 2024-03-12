@@ -22,6 +22,7 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler
     {
       if (HasLineOfSight(originalPath[opt_point],originalPath[p])){
         if (originalPath[p] == originalPath.back()){ 
+          // std::cout << "Exiting from first if \n";
           interPath.push_back(originalPath[p]);
           interPath = GenerateSamples(interPath,interPath.size()-2,interPath.size());
           optimizedPath = interPath;
@@ -39,6 +40,8 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler
         if (last_seen.first == originalPath.back()){
           interPath.push_back(last_seen.first);
           originalPath = interPath;
+          // std::cout << "Exiting from second if \n";
+
           break;
         }
 
@@ -56,6 +59,8 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler
     ++opt_point;
 
   }
+  // std::cout << "Exiting from normally \n";
+
   optimizedPath = originalPath;
   opt_point = 0;
 } 
@@ -112,7 +117,14 @@ std::vector<Point> PathOptimizer::GenerateSamples(const std::vector<Point> & pat
       dis += sampleIncrement;
 
       if (map->deflated_grid[point2add.y][point2add.x].isOccupied) {
-          continue;
+        for (int i = -1; i < 2; ++i) {
+          for (int j = -1; j < 2; ++j) {
+            if (!map->deflated_grid[point2add.y + j][point2add.x + i].isOccupied) {
+              point2add = (Point(point2add.x +i,point2add.y +j));
+            }
+          }
+        }
+
       }
       generatedPath.push_back(point2add);
     }
@@ -162,56 +174,56 @@ std::vector<Point> PathOptimizer::LoS(const std::vector<Point> & path  , int opt
 */
 bool PathOptimizer::HasLineOfSight(const Point& p1, const Point& p2)
 {
-    // Calculate distance between points
-    double distance_between_points = CalculateDistance(p1, p2);
+  // Calculate distance between points
+  double distance_between_points = CalculateDistance(p1, p2);
 
-    // Calculate angle
-    double angle = std::atan2((p2.y - p1.y), (p2.x - p1.x));
+  // Calculate angle
+  double angle = std::atan2((p2.y - p1.y), (p2.x - p1.x));
 
-    // Initialize Bresenham's algorithm parameters
-    int x1 = static_cast<int>(p1.x);
-    int y1 = static_cast<int>(p1.y);
-    int x2 = static_cast<int>(p2.x);
-    int y2 = static_cast<int>(p2.y);
+  // Initialize Bresenham's algorithm parameters
+  int x1 = static_cast<int>(p1.x);
+  int y1 = static_cast<int>(p1.y);
+  int x2 = static_cast<int>(p2.x);
+  int y2 = static_cast<int>(p2.y);
 
-    // Determine increments for x and y
-    int dx = abs(x2 - x1);
-    int dy = abs(y2 - y1);
-    int sx = (x1 < x2) ? 1 : -1;
-    int sy = (y1 < y2) ? 1 : -1;
-    int err = dx - dy;
+  // Determine increments for x and y
+  int dx = abs(x2 - x1);
+  int dy = abs(y2 - y1);
+  int sx = (x1 < x2) ? 1 : -1;
+  int sy = (y1 < y2) ? 1 : -1;
+  int err = dx - dy;
 
-    // Iterate through points using Bresenham's algorithm
-    while (true) {
-        // Check if the current point is occupied
-        // for (int i = -1; i < 2; ++i) {
-        //     for (int j = -1; j < 2; ++j) {
-        //         if (map->deflated_grid[y1 + j][x1 + i].isOccupied) {
-        //             return false; // Line of sight blocked
-        //         }
-        //     }
-        // }
-            if (map->deflated_grid[y1][x1].isOccupied) {
-                    return false; // Line of sight blocked
-                }
-        // Check if reached the end point
-        if (x1 == x2 && y1 == y2) {
-            break;
+  // Iterate through points using Bresenham's algorithm
+  while (true) {
+    // Check if the current point is occupied
+    for (int i = -1; i < 2; ++i) {
+      for (int j = -1; j < 2; ++j) {
+        if (map->deflated_grid[y1 + j][x1 + i].isOccupied) {
+            return false; // Line of sight blocked
         }
-
-        // Calculate next point using Bresenham's algorithm
-        int e2 = 2 * err;
-        if (e2 > -dy) {
-            err -= dy;
-            x1 += sx;
-        }
-        if (e2 < dx) {
-            err += dx;
-            y1 += sy;
-        }
+      }
+    }
+    // if (map->deflated_grid[y1][x1].isOccupied) {
+    //         return false; // Line of sight blocked
+    //     }
+    // Check if reached the end point
+    if (x1 == x2 && y1 == y2) {
+      break;
     }
 
-    return true; // Line of sight not blocked
+    // Calculate next point using Bresenham's algorithm
+    int e2 = 2 * err;
+    if (e2 > -dy) {
+      err -= dy;
+      x1 += sx;
+    }
+    if (e2 < dx) {
+      err += dx;
+      y1 += sy;
+    }
+  }
+
+  return true; // Line of sight not blocked
 }
 
 

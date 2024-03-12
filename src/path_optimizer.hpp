@@ -27,5 +27,4 @@ class PathOptimizer
     std::vector<Point> optimizedPath; // Optimized path with LoS
 
     MapHandler* map; // pointer to the map object
-
 };
