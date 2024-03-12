@@ -81,8 +81,8 @@ while (true){
   PathOptimizer los_optimizer(robot_path, &handler);
 
   // while (true){
-    // los_optimizer.OptimizePath();
-    // plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+    los_optimizer.OptimizePath();
+  //   plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
   // }
 
   auto end = std::chrono::system_clock::now();
