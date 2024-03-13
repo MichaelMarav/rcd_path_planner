@@ -72,7 +72,7 @@ void Core::PrepareCasting()
   node2cast = CastDecision(); // Extract the node to be casted
   // Update weight
   G.G[node2cast.node_descriptor].n += 1;
-  G.G[node2cast.node_descriptor].cast_w = (G.G[node2cast.node_descriptor].e) /(G.G[node2cast.node_descriptor].n+1.);
+  G.G[node2cast.node_descriptor].cast_w = 1./(G.G[node2cast.node_descriptor].p*(G.G[node2cast.node_descriptor].n+1.));
 }
 
 

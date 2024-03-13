@@ -38,7 +38,7 @@ void PathOptimizer::OptimizePath()
       interPath.push_back(optimizedPath[i]);
     }
     interPath.push_back(last_seen.first);
-
+  
     interPath = GenerateSamples(interPath,interPath.size()-2,interPath.size());
     
     for (int i = last_seen.second + 1; i < optimizedPath.size() ; ++i)
@@ -48,6 +48,7 @@ void PathOptimizer::OptimizePath()
 
     optimizedPath = interPath;
     ++opt_point;
+    // return;
   }
 } 
 

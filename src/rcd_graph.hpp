@@ -80,7 +80,7 @@ public:
     node.e   = CalculateDistance(node_pos,robot_pos);
     node.n   = 0.;
     
-    node.cast_w = node.e/(node.n+1.);// (node.e*node.p +node.n + 1.)/( node.p*(node.n + 1.)); // cast_w = f(p,e,n) // Placeholder experiment with the structure of the graph and the times
+    node.cast_w = 1./(node.p*(node.n+1.));// (node.e*node.p +node.n + 1.)/( node.p*(node.n + 1.)); // cast_w = f(p,e,n) // Placeholder experiment with the structure of the graph and the times
   }
 
   
