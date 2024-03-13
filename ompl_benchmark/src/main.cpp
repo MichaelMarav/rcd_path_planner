@@ -10,12 +10,17 @@
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/sbl/SBL.h>
 #include <ompl/util/PPM.h>
+#include <yaml-cpp/yaml.h>
 
 #include <chrono>
 #include <iostream>
 
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
+
+
+std::vector<double> mean_path_list;
+std::vector<double> mean_time_list;
 
 void statistics(const std::vector<double> &vec, double &mean, double &std_dev) {
     // Compute mean (average of elements)
@@ -35,6 +40,7 @@ void statistics(const std::vector<double> &vec, double &mean, double &std_dev) {
 
 class Planner2D {
    public:
+
     Planner2D(const char *ppm_file, size_t N, const std::string &type) {
         N_ = N;
         bool map_loaded = false;
@@ -125,6 +131,8 @@ class Planner2D {
         statistics(lengths, length_mean, length_std);
         OMPL_INFORM("Mean time %f, time std %f ", time_mean, time_std);
         OMPL_INFORM("Mean path length %f, path length std %f ", length_mean, length_std);
+        mean_path_list.push_back(length_mean);
+        mean_time_list.push_back(time_mean);
 
         const std::size_t ns = ss_->getProblemDefinition()->getSolutionCount();
         OMPL_INFORM("Found %d solutions", (int)ns);
@@ -192,28 +200,70 @@ int main(int argc, char *argv[]) {
     std::string path_to_map;
     size_t initial_position[2];
     size_t target_position[2];
-    if (argc < 8) {
+    if (argc < 3) {
         std::cout << "Not enough arguments passed " << argc << std::endl;
         return 1;
     } else {
         planner_runs = std::atoi(argv[1]);
         planner_type = std::string(argv[2]);
-        path_to_map = std::string(argv[3]);
-        initial_position[0] = std::atoi(argv[4]);
-        initial_position[1] = std::atoi(argv[5]);
-        target_position[0] = std::atoi(argv[6]);
-        target_position[1] = std::atoi(argv[7]);
     }
 
-    // Initialize planner
-    Planner2D planner(path_to_map.c_str(), planner_runs, planner_type);
+    std::string prefix = "/home/michael/github/rcd_path_planner/maps/mazes2/";
+    
+    for (int i = 0 ; i < 100 ; ++i)
+    {   
+      
+      path_to_map = prefix + std::to_string(i) + ".ppm";
+      auto path_to_yaml = prefix + std::to_string(i) +".yaml";
+      YAML::Node config = YAML::LoadFile(path_to_yaml);
 
-    // Run the planner and overlay the optimal trajectory to the map
-    if (planner.plan(initial_position[0], initial_position[1], target_position[0],
-                     target_position[1])) {
-        planner.recordSolution();
-        planner.save("result_demo.ppm");
+      initial_position[0] = config["robot_position_x"].as<size_t>();
+      initial_position[1] = config["robot_position_y"].as<size_t>();
+      target_position[0]  = config["target_position_x"].as<size_t>();
+      target_position[1]  = config["target_position_y"].as<size_t>();
+
+
+      std::cout << initial_position[0] << '\n';
+
+
+      // Initialize planner
+      Planner2D planner(path_to_map.c_str(), planner_runs, planner_type);
+
+          // Run the planner and overlay the optimal trajectory to the map
+      if (planner.plan(initial_position[0], initial_position[1], target_position[0],
+                       target_position[1])) {
+          // planner.recordSolution();
+          // planner.save("result_demo.ppm");
+      }
+
     }
+
+
+  float time_mean = std::accumulate(mean_time_list.begin(), mean_time_list.end(), 0.0f) / mean_time_list.size();
+  float path_length_mean = std::accumulate(mean_path_list.begin(), mean_path_list.end(), 0.0f) / mean_path_list.size();
+ 
+  // Compute standard deviation of time vector
+  float time_std = 0.0f;
+  for (float t : mean_time_list) {
+      time_std += (t - time_mean) * (t - time_mean);
+  }
+  time_std = std::sqrt(time_std / mean_time_list.size());
+
+// Compute standard deviation of path_length vector
+  float path_length_std = 0.0f;
+  for (float pl : mean_path_list) {
+      path_length_std += (pl - path_length_mean) * (pl - path_length_mean);
+  }
+  path_length_std = std::sqrt(path_length_std / mean_path_list.size());
+
+// Print results
+  std::cout << "Mean time: " << time_mean ;
+  std::cout << "   std time : " << time_std << std::endl;
+  std::cout << "Mean of path length: " << path_length_mean;
+  std::cout << "   std of path length: " << path_length_std << std::endl;
+
+    
+
 
     return 0;
 }
