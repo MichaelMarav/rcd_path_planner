@@ -102,7 +102,7 @@ for (int i = 0 ; i < N ; ++i)
   time.push_back(static_cast<float>(elapsed_seconds.count()));
   path_length.push_back(los_optimizer.PathDistance(los_optimizer.optimizedPath));
 
-  // plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+  plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
   
   
   }

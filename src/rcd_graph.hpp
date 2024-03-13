@@ -72,15 +72,15 @@ public:
     return;
   }
 
-  inline void UpdateWeight(RGraph::Node & node, const Point & node_pos, const Point & target_pos, const Point & robot_pos)
+  inline void UpdateWeight(RGraph::Node & node, float distance_from_father, float father_proximity, const Point & node_pos, const Point & target_pos, const Point & robot_pos)
   {
     node.pos.x  = node_pos.x;
     node.pos.y  = node_pos.y;
     node.p   = CalculateDistance(node_pos,target_pos);
-    node.e   = CalculateDistance(node_pos,robot_pos);
+    node.e   = distance_from_father;
     node.n   = 0.;
     
-    node.cast_w = log10(node.e+1.)/(node.p*exp((node.n+1.)));// (node.e*node.p +node.n + 1.)/( node.p*(node.n + 1.)); // cast_w = f(p,e,n) // Placeholder experiment with the structure of the graph and the times
+    node.cast_w = (node.e + (father_proximity-node.p))/(node.n+1.);// +// (node.e*node.p +node.n + 1.)/( node.p*(node.n + 1.)); // cast_w = f(p,e,n) // Placeholder experiment with the structure of the graph and the times
   }
 
   

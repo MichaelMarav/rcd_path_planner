@@ -230,8 +230,8 @@ int main(int argc, char *argv[]) {
         // Run the planner and overlay the optimal trajectory to the map
     if (planner.plan(initial_position[0], initial_position[1], target_position[0],
                     target_position[1])) {
-        // planner.recordSolution();
-        // planner.save("result_demo.ppm");
+        planner.recordSolution();
+        planner.save("result_demo.ppm");
     }
   }
 

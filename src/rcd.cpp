@@ -15,9 +15,19 @@ Core::Core(bool robot_flag, MapHandler *map_)
 {
 
   if (isRobot){
-    G.UpdateWeight(node2add,map->robot_pos, map->target_pos, map->robot_pos);
+    node2add.pos.x  = map->robot_pos.x;
+    node2add.pos.y  = map->robot_pos.y;
+    node2add.p   = CalculateDistance(node2add.pos,map->target_pos);
+    node2add.e   = 0;
+    node2add.n   = 0.;
+    node2add.cast_w = node2add.p;
   }else{
-    G.UpdateWeight(node2add,map->target_pos, map->robot_pos, map->target_pos);
+    node2add.pos.x  = map->target_pos.x;
+    node2add.pos.y  = map->target_pos.y;
+    node2add.p   = CalculateDistance(node2add.pos,map->robot_pos);
+    node2add.e   = 0;
+    node2add.n   = 0.;
+    node2add.cast_w = node2add.p;  
   }
 
   G.AddNode(node2add, G.G); // Besides adding the node to the graph it also fills the node_descriptor
@@ -42,7 +52,7 @@ void Core::PrepareCasting()
   weight_priority_queue.pop();
   // Update weight
   G.G[node2cast.node_descriptor].n += 1;
-  G.G[node2cast.node_descriptor].cast_w =log10(G.G[node2cast.node_descriptor].e+1.)/(G.G[node2cast.node_descriptor].p*exp((G.G[node2cast.node_descriptor].n+1.)));
+  G.G[node2cast.node_descriptor].cast_w /= G.G[node2cast.node_descriptor].n;//log10(G.G[node2cast.node_descriptor].e+1.)/(G.G[node2cast.node_descriptor].p*exp((G.G[node2cast.node_descriptor].n+1.)));
   weight_priority_queue.push(G.G[node2cast.node_descriptor]);
 }
 
@@ -83,11 +93,11 @@ void Core::CastRays()
 
         if (isRobot){
           printInfo("Path Found by Robot");
-          G.UpdateWeight(node2add,ray_pos, map->target_pos, map->robot_pos);
+          G.UpdateWeight(node2add,ray_dis,node2cast.p, ray_pos, map->target_pos, map->robot_pos);
           pathFoundByRobot = true;
         }else{
           printInfo("Path Found by Target");
-          G.UpdateWeight(node2add,ray_pos, map->robot_pos, map->target_pos);
+          G.UpdateWeight(node2add,ray_dis,node2cast.p,ray_pos, map->robot_pos, map->target_pos);
           pathFoundByRobot = false;
         }
 
@@ -113,7 +123,7 @@ void Core::CastRays()
         }
         // Initalize node and fill its properties          
         
-        isRobot ? G.UpdateWeight(node2add, ray_pos, map->target_pos, map->robot_pos) : G.UpdateWeight(node2add, ray_pos, map->robot_pos, map->target_pos);  
+        isRobot ? G.UpdateWeight(node2add,ray_dis,node2cast.p, ray_pos, map->target_pos, map->robot_pos) : G.UpdateWeight(node2add,ray_dis,node2cast.p, ray_pos, map->robot_pos, map->target_pos);  
         G.AddNode(node2add, G.G);
 
         node2add.edge_descriptor = G.AddEdge(node2cast.node_descriptor, node2add.node_descriptor, G.G, ray_dis);
@@ -138,7 +148,7 @@ void Core::CastRays()
         }
         ray_pos = intersection.second;
 
-        isRobot ? G.UpdateWeight(node2add, ray_pos, map->target_pos, map->robot_pos) : G.UpdateWeight(node2add, ray_pos, map->robot_pos, map->target_pos);  
+        isRobot ? G.UpdateWeight(node2add,ray_dis,node2cast.p , ray_pos, map->target_pos, map->robot_pos) : G.UpdateWeight(node2add,ray_dis, node2cast.p,ray_pos, map->robot_pos, map->target_pos);  
 
         G.AddNode(node2add, G.G);
 
@@ -315,7 +325,7 @@ std::vector<Point> Core::ShortestPath(RCD::RGraph::Node end_node)
 RCD::RGraph::Node Core::AddIntersectionNode()
 {
   auto tmp_node = intersectionNode;
-  G.UpdateWeight(tmp_node, intersectionNode.pos, map->robot_pos, map->target_pos);
+  G.UpdateWeight(tmp_node,10,10, intersectionNode.pos, map->robot_pos, map->target_pos);
   G.AddNode(tmp_node, G.G); // Add node to the graph
   
   // Find the source and target of the already implemented edge
