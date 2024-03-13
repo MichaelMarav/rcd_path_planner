@@ -12,6 +12,14 @@ namespace RCD
   class Core
   {
     private:
+      struct CompareWeight {
+          bool operator()(const RCD::RGraph::Node& a, const RCD::RGraph::Node& b) const {
+              // Compare based on cast_w in descending order
+              return a.cast_w < b.cast_w; // Change to > for descending order
+          }
+      };
+
+      std::priority_queue<RCD::RGraph::Node, std::vector<RCD::RGraph::Node>, CompareWeight> weight_priority_queue;
       // Number of rays to be casted
       const int NUM_RAYS{6}; 
     
@@ -44,9 +52,7 @@ namespace RCD
       std::vector<RCD::RGraph::Node> addNodeList; // Temp Node list that will be added to the graph at each iteration
 
       std::pair<bool,Point>  CheckIntersection(const Point & p);
-      // Returns which node to cast next based on the weights 
-      RGraph::Node& CastDecision();
-      //TODO: Add heap or set or queue for stroring the pointers to the new nodes and update the weights
+
       void PrepareCasting();
 
 

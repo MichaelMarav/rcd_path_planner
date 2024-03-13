@@ -21,50 +21,9 @@ Core::Core(bool robot_flag, MapHandler *map_)
   }
 
   G.AddNode(node2add, G.G); // Besides adding the node to the graph it also fills the node_descriptor
+  weight_priority_queue.push(node2add);
 
   srand(static_cast<unsigned int>(time(nullptr))); //Seed time for different sequence of pseudo-random numbers
-}
-
-
-/* <CastDecision>
-NOW: Searches the graph for finding the max weight
-TODO:Performs low-variance resampling  and decides which node to cast next
-*/
-RGraph::Node& Core::CastDecision()
-{
-  // Initialize variables to keep track of the maximum weight and corresponding node
-  float maxWeight = std::numeric_limits<float>::lowest();
-  size_t maxNodeDescriptor;
-  float diff;
-  // Iterate over all vertices in the graph
-  for (auto vd : boost::make_iterator_range(boost::vertices(G.G)))
-  {
-    // Access the node
-    RGraph::Node& node = G.G[vd];
-
-    if (vd != 0){
-        auto parent = boost::source(node.edge_descriptor,G.G);
-        if (parent < boost::num_vertices(G.G)){
-          diff = (node.cast_w - G.G[parent].cast_w );
-        }else{
-          diff = node.cast_w;
-        }
-
-        
-    }else{
-      diff = node.cast_w;
-    }
-
-    // Check if the weight of this node is greater than the current maximum
-    if (diff > maxWeight)
-    {       
-      // Update the maximum weight and corresponding node descriptor
-      maxWeight = node.cast_w;
-      maxNodeDescriptor = vd;
-    }
-  }
-  // Return the node with the maximum weight
-  return G.G[maxNodeDescriptor];
 }
 
 
@@ -74,15 +33,18 @@ RGraph::Node& Core::CastDecision()
 void Core::PrepareCasting()
 {
   // Find in which directions RCD is going to cast 
-  casting_dir = (static_cast<float>(rand() % (360/NUM_RAYS + 1)) )*PI/180.;  // Random casting direction
+  casting_dir = 0;//(static_cast<float>(rand() % (360/NUM_RAYS + 1)) )*PI/180.;  // Random casting direction
   for (int i = 0 ; i < NUM_RAYS ; ++i){
     casting_angles[i] = casting_dir + i*angle_increment; // Casting angles
   }
 
-  node2cast = CastDecision(); // Extract the node to be casted
+  // node2cast = CastDecision(); // Extract the node to be casted
+  node2cast = weight_priority_queue.top();
+  weight_priority_queue.pop();
   // Update weight
   G.G[node2cast.node_descriptor].n += 1;
   G.G[node2cast.node_descriptor].cast_w = 1./(G.G[node2cast.node_descriptor].p*(G.G[node2cast.node_descriptor].n+1.));
+  weight_priority_queue.push(G.G[node2cast.node_descriptor]);
 }
 
 
@@ -157,6 +119,7 @@ void Core::CastRays()
 
         node2add.edge_descriptor = G.AddEdge(node2cast.node_descriptor, node2add.node_descriptor, G.G, ray_dis);
 
+        weight_priority_queue.push(node2add);
 
         // Save node to list
         // addNodeList.push_back(node2add);  
@@ -181,6 +144,8 @@ void Core::CastRays()
         G.AddNode(node2add, G.G);
 
         node2add.edge_descriptor = G.AddEdge(node2cast.node_descriptor, node2add.node_descriptor, G.G, ray_dis);
+
+        weight_priority_queue.push(node2add);
 
         // Find the source and target of the already implemented edge
         G.source_vertex = boost::source(map->grid[ray_pos.y][ray_pos.x].edge_id, G.G);

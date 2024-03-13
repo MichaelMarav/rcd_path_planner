@@ -52,7 +52,7 @@ int main()
     TargetCaster.CastRays();
 
     // plotter.VisualizeNodes(handler, RobotCaster, TargetCaster);
-    // plotter.VisualizeRays(handler); // For real-time plotting
+    plotter.VisualizeRays(handler); // For real-time plotting
   }
  
   // Add the intersection node to the graph that didn't find the path
