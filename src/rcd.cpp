@@ -32,21 +32,31 @@ TODO:Performs low-variance resampling  and decides which node to cast next
 */
 RGraph::Node& Core::CastDecision()
 {
-  if (boost::num_vertices(G.G) == 0) {
-      throw std::runtime_error("Graph is empty");
-  }
-
   // Initialize variables to keep track of the maximum weight and corresponding node
   float maxWeight = std::numeric_limits<float>::lowest();
   size_t maxNodeDescriptor;
-
+  float diff;
   // Iterate over all vertices in the graph
   for (auto vd : boost::make_iterator_range(boost::vertices(G.G)))
   {
     // Access the node
     RGraph::Node& node = G.G[vd];
+
+    if (vd != 0){
+        auto parent = boost::source(node.edge_descriptor,G.G);
+        if (parent < boost::num_vertices(G.G)){
+          diff = (node.cast_w - G.G[parent].cast_w );
+        }else{
+          diff = node.cast_w;
+        }
+
+        
+    }else{
+      diff = node.cast_w;
+    }
+
     // Check if the weight of this node is greater than the current maximum
-    if (node.cast_w > maxWeight)
+    if (diff > maxWeight)
     {       
       // Update the maximum weight and corresponding node descriptor
       maxWeight = node.cast_w;
@@ -81,6 +91,13 @@ void Core::PrepareCasting()
  */
 void Core::CastRays()
 {
+  if (RCD::Core::pathFound){
+    return;
+  }
+
+  PrepareCasting();
+
+
   // For every casting direction
   for (const auto& angle : casting_angles)
   {

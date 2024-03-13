@@ -47,7 +47,8 @@ namespace RCD
       // Returns which node to cast next based on the weights 
       RGraph::Node& CastDecision();
       //TODO: Add heap or set or queue for stroring the pointers to the new nodes and update the weights
-    
+      void PrepareCasting();
+
 
     public:
       RCD::RGraph G; // Graph structure for this Core object
@@ -60,7 +61,6 @@ namespace RCD
       Core(bool robot_flag,MapHandler *map_); // Constructor
 
       void CastRays();
-      void PrepareCasting();
       // void UpdateGrid();
       void UpdateGrid(const RCD::RGraph::Node &  source,const RCD::RGraph::Node & target);
 

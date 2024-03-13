@@ -5,14 +5,19 @@
 #include "visualizer.hpp"
 #include "rcd_graph.hpp"
 #include "path_optimizer.hpp" 
-
+#include <numeric>
 
 
 int main()
 {
   // for (int f = 0 ; f < 10 ; ++f){
   std::cout << "Ray Casting and Diffusion model for Path Plannig \n";
-// while (true){
+  std::vector<float> time;
+  std::vector<float> path_length;
+  int N = 100;
+  for (int i = 0 ; i < N ; ++i)
+  {
+
   // Initializes the map and the relevant parameters (Maybe do this from config file to avoid building it every time)0
   // MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_17_3_52/occ_17_3_52.ppm");
   MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_22_36_41/occ_22_36_41.ppm");
@@ -33,14 +38,10 @@ int main()
   // Main loop
   while (!RCD::Core::pathFound){
 
-    RobotCaster.PrepareCasting();
     RobotCaster.CastRays();
 
-    if (!RCD::Core::pathFound){
-      TargetCaster.PrepareCasting();
-      TargetCaster.CastRays();
-    }
-  
+    TargetCaster.CastRays();
+
     // plotter.VisualizeNodes(handler, RobotCaster, TargetCaster);
     // plotter.VisualizeRays(handler); // For real-time plotting
   }
@@ -88,17 +89,36 @@ int main()
   auto end = std::chrono::system_clock::now();
 
   std::chrono::duration<double> elapsed_seconds = end - start;
-  printInfo("Elapsed Time = " + std::to_string(elapsed_seconds.count()) + " (s)");
-  printInfo("Path Length  = " + std::to_string(los_optimizer.PathDistance(los_optimizer.optimizedPath)));
-  plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+  // printInfo("Elapsed Time = " + std::to_string(elapsed_seconds.count()) + " (s)");
+  // printInfo("Path Length  = " + std::to_string(los_optimizer.PathDistance(los_optimizer.optimizedPath)));
+  time.push_back(static_cast<float>(elapsed_seconds.count()));
+  path_length.push_back(los_optimizer.PathDistance(los_optimizer.optimizedPath));
 
-    // plotter.VisualizePath(handler,robot_path, final_node); // Visualize the casting path (fully-unoptimized)
-// }
-  // plotter.VisualizeRays(handler);
-  // plotter.VisualzePath(handler,robot_path, RCD::Core::intersectionNode); // Visualize the casting path (fully-unoptimized)
+  // plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+  }
 
-  // plotter.VisualzePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+  float time_mean = std::accumulate(time.begin(), time.end(), 0.0f) / time.size();
+  float path_length_mean = std::accumulate(path_length.begin(), path_length.end(), 0.0f) / path_length.size();
+ 
+  // Compute standard deviation of time vector
+  float time_std = 0.0f;
+  for (float t : time) {
+      time_std += (t - time_mean) * (t - time_mean);
+  }
+  time_std = std::sqrt(time_std / time.size());
 
+// Compute standard deviation of path_length vector
+  float path_length_std = 0.0f;
+  for (float pl : path_length) {
+      path_length_std += (pl - path_length_mean) * (pl - path_length_mean);
+  }
+  path_length_std = std::sqrt(path_length_std / path_length.size());
+
+// Print results
+  std::cout << "Mean time: " << time_mean ;
+  std::cout << "   std time : " << time_std << std::endl;
+  std::cout << "Mean of path length: " << path_length_mean;
+  std::cout << "   std of path length: " << path_length_std << std::endl;
 
   return 0;
 }
