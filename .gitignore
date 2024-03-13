@@ -2,3 +2,4 @@
 __pycache__/
 build/*
 ompl_benchmark/build/*
+ompl_benchmark/result_demo.ppm
