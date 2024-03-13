@@ -191,25 +191,53 @@ class Planner2D {
 };
 
 int main(int argc, char *argv[]) {
-    // Example run:
-    // ./ompl_benchmark planner_runs planner_type path_to_map initial_position target_position
-    //
-    // ./ompl_benchmark 10 "SBL" "/path/to/0.ppm" 465 290 765 435
-    size_t planner_runs;
-    std::string planner_type;
-    std::string path_to_map;
-    size_t initial_position[2];
-    size_t target_position[2];
-    if (argc < 3) {
-        std::cout << "Not enough arguments passed " << argc << std::endl;
-        return 1;
-    } else {
-        planner_runs = std::atoi(argv[1]);
-        planner_type = std::string(argv[2]);
-    }
+  bool run_mazes = false;
+  bool run_example = true;
+  // Example run:
+  // ./ompl_benchmark planner_runs planner_type path_to_map initial_position target_position
+  //
+  // ./ompl_benchmark 10 "SBL" "/path/to/0.ppm" 465 290 765 435
+  size_t planner_runs;
+  std::string planner_type;
+  std::string path_to_map;
+  size_t initial_position[2];
+  size_t target_position[2];
+  if (argc < 3) {
+      std::cout << "Not enough arguments passed " << argc << std::endl;
+      return 1;
+  } else {
+      planner_runs = std::atoi(argv[1]);
+      planner_type = std::string(argv[2]);
+  }
 
+  if (run_example)
+  {
+    std::string filename = "occ_22_36_41";
+    std::string prefix = "/home/michael/github/rcd_path_planner/maps/";
+    path_to_map = prefix+ filename +"/" + "occ_22_36_41" + ".ppm";
+    auto path_to_yaml = prefix + filename +"/" + "occ_22_36_41"+".yaml";
+    YAML::Node config = YAML::LoadFile(path_to_yaml);
+
+    initial_position[0] = config["robot_position_x"].as<size_t>();
+    initial_position[1] = config["robot_position_y"].as<size_t>();
+    target_position[0]  = config["target_position_x"].as<size_t>();
+    target_position[1]  = config["target_position_y"].as<size_t>();
+
+
+    // Initialize planner
+    Planner2D planner(path_to_map.c_str(), planner_runs, planner_type);
+
+        // Run the planner and overlay the optimal trajectory to the map
+    if (planner.plan(initial_position[0], initial_position[1], target_position[0],
+                    target_position[1])) {
+        // planner.recordSolution();
+        // planner.save("result_demo.ppm");
+    }
+  }
+
+  if (run_mazes){
     std::string prefix = "/home/michael/github/rcd_path_planner/maps/mazes2/";
-    
+
     for (int i = 0 ; i < 100 ; ++i)
     {   
       
@@ -231,7 +259,7 @@ int main(int argc, char *argv[]) {
 
           // Run the planner and overlay the optimal trajectory to the map
       if (planner.plan(initial_position[0], initial_position[1], target_position[0],
-                       target_position[1])) {
+                      target_position[1])) {
           // planner.recordSolution();
           // planner.save("result_demo.ppm");
       }
@@ -239,30 +267,30 @@ int main(int argc, char *argv[]) {
     }
 
 
-  float time_mean = std::accumulate(mean_time_list.begin(), mean_time_list.end(), 0.0f) / mean_time_list.size();
-  float path_length_mean = std::accumulate(mean_path_list.begin(), mean_path_list.end(), 0.0f) / mean_path_list.size();
- 
-  // Compute standard deviation of time vector
-  float time_std = 0.0f;
-  for (float t : mean_time_list) {
-      time_std += (t - time_mean) * (t - time_mean);
+    float time_mean = std::accumulate(mean_time_list.begin(), mean_time_list.end(), 0.0f) / mean_time_list.size();
+    float path_length_mean = std::accumulate(mean_path_list.begin(), mean_path_list.end(), 0.0f) / mean_path_list.size();
+  
+    // Compute standard deviation of time vector
+    float time_std = 0.0f;
+    for (float t : mean_time_list) {
+        time_std += (t - time_mean) * (t - time_mean);
+    }
+    time_std = std::sqrt(time_std / mean_time_list.size());
+
+  // Compute standard deviation of path_length vector
+    float path_length_std = 0.0f;
+    for (float pl : mean_path_list) {
+        path_length_std += (pl - path_length_mean) * (pl - path_length_mean);
+    }
+    path_length_std = std::sqrt(path_length_std / mean_path_list.size());
+
+  // Print results
+    std::cout << "Mean time: " << time_mean ;
+    std::cout << "   std time : " << time_std << std::endl;
+    std::cout << "Mean of path length: " << path_length_mean;
+    std::cout << "   std of path length: " << path_length_std << std::endl;
   }
-  time_std = std::sqrt(time_std / mean_time_list.size());
-
-// Compute standard deviation of path_length vector
-  float path_length_std = 0.0f;
-  for (float pl : mean_path_list) {
-      path_length_std += (pl - path_length_mean) * (pl - path_length_mean);
-  }
-  path_length_std = std::sqrt(path_length_std / mean_path_list.size());
-
-// Print results
-  std::cout << "Mean time: " << time_mean ;
-  std::cout << "   std time : " << time_std << std::endl;
-  std::cout << "Mean of path length: " << path_length_mean;
-  std::cout << "   std of path length: " << path_length_std << std::endl;
-
-    
+  
 
 
     return 0;
