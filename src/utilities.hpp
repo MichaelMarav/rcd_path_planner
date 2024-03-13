@@ -6,6 +6,8 @@ Contains generic data structures and libraries
 
 #include <iostream>
 #include <fstream>
+#include <filesystem> // For std::filesystem::current_path()
+
 #include <chrono>     //start = std::chrono::system_clock::now();
 #include <cstdlib>
 #include <cmath>

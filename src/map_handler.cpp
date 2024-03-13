@@ -95,6 +95,10 @@ void MapHandler::loadOccupancyGrid(const std::string & ppm_filename)
  */
 void MapHandler::loadOccupancyParams(const std::string & yaml_file)
 {
+
+  std::string current_directory = std::filesystem::current_path();
+  std::string absolute_path = current_directory + "/" + yaml_file;
+
   YAML::Node config = YAML::LoadFile(yaml_file);
 
   this->robot_pos.x     = config["robot_position_x"].as<unsigned int>();
