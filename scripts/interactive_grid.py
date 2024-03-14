@@ -131,14 +131,29 @@ class InteractiveGridGenerator:
     # Adds obstacles by drawing at the plot
     def draw_obstacles(self, grid, position, drawing_brush_size):
         cell_position = (round(position[0]),round(position[1]))
-        half_brush = drawing_brush_size // 2
-        for i in range(-half_brush, half_brush + 1):
-            for j in range(-half_brush, half_brush + 1):
-                x = int(cell_position[0] + i)
-                y = int(cell_position[1] + j)
-                if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-                    grid[x, y] = 100
+        # half_brush = drawing_brush_size // 2
+        # for i in range(-half_brush, half_brush + 1):
+        #     for j in range(-half_brush, half_brush + 1):
+        #         x = int(cell_position[0] + i)
+        #         y = int(cell_position[1] + j)
+        #         if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+        #             grid[x, y] = 100
+
+        for x in range (0,1000):
+            for y in range(350,450):
+                grid[x, y] = 100
+        
+        for x in range (650,750):
+            for y in range(0,250):
+                grid[x, y] = 100
     
+    
+        for x in range (650,750):
+            for y in range(550,799):
+                grid[x, y] = 100
+        
+        
+        
     # Adds Walls to the occupancy grid boundaries
     def add_walls(self,wall_size):
         self.grid[0:wall_size, :] = 100

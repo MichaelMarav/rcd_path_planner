@@ -27,10 +27,10 @@ void Visualizer::visualizeOccupancyGrid()
 
   cv::Point robot(map.robot_pos.x, map.robot_pos.y); 
   cv::Point target(map.target_pos.x, map.target_pos.y); 
-  int radius = 5; // Radius of the dot
+  int radius = 10; // Radius of the dot
 
   // Draw a blue filled circle (dot)
-  cv::circle(cast_image, robot, radius, cv::Scalar(0, 255, 0 ), -1); // Color: Blue (BGR), -1 for filled circle
+  cv::circle(cast_image, robot, radius, cv::Scalar(255, 0, 0 ), -1); // Color: Blue (BGR), -1 for filled circle
   cv::circle(cast_image, target, radius, cv::Scalar(0, 0, 255), -1); // Color: Blue (BGR), -1 for filled circle
 
   // Display the cast_image using OpenCV
@@ -50,7 +50,7 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap)
     for (int j = 0; j < updatedMap.width; ++j) {
       if (updatedMap.grid[i][j].robotPass) {
         // Black for occupied cells
-        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 255, 0);
+        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 0, 0);
       } 
       
       if (updatedMap.grid[i][j].targetPass) {
@@ -66,10 +66,10 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap)
   cv::Point target(updatedMap.target_pos.x, updatedMap.target_pos.y); 
 
   
-  int radius = 5; // Radius of the dot
+  int radius = 10; // Radius of the dot
 
   // Draw a blue filled circle (dot)
-  cv::circle(cast_image, robot, radius, cv::Scalar(0, 255, 0), -1); // Color: Blue (BGR), -1 for filled circle
+  cv::circle(cast_image, robot, radius, cv::Scalar(255, 0, 0), -1); // Color: Blue (BGR), -1 for filled circle
   cv::circle(cast_image, target, radius, cv::Scalar(0, 0, 255), -1); // Color: Blue (BGR), -1 for filled circle
 
   // cv::circle(cast_image, target, radius, cv::Scalar(0, 255, 0), -1); // Color: Blue (BGR), -1 for filled circle
@@ -100,7 +100,7 @@ void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point>
     for (int j = 0; j < updatedMap.width; ++j) {
       if (updatedMap.deflated_grid[i][j].robotPass) {
         // Black for occupied cells
-        path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 255, 0);
+        path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 0, 0);
       } 
       
       if (updatedMap.deflated_grid[i][j].targetPass) {
@@ -116,8 +116,8 @@ void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point>
   cv::Point robot(map.robot_pos.x, map.robot_pos.y); // robot coordinates
   cv::Point target(map.target_pos.x, map.target_pos.y); // target coordinates
 
-  cv::circle(path_image, robot, 5, cv::Scalar(0, 255, 0), -1);
-  cv::circle(path_image, target, 5, cv::Scalar(0, 0, 255), -1);
+  cv::circle(path_image, robot, 10, cv::Scalar(255, 0, 0), -1);
+  cv::circle(path_image, target, 10, cv::Scalar(0, 0, 255), -1);
 
   int radius = 2; // Radius of the dot
 
@@ -155,7 +155,7 @@ void Visualizer::VisualizeNodes(const MapHandler & updatedMap, RCD::Core g1, RCD
       // Access the node
       RCD::RGraph::Node& node = g1.G.G[vd];        
       cv::Point p(node.pos.x, node.pos.y); // robot coordinates
-      cv::circle(cast_image, p, 2, cv::Scalar(0, 255, 0), -1);
+      cv::circle(cast_image, p,5, cv::Scalar(255, 0, 0), -1);
     }
 
 
@@ -164,6 +164,6 @@ void Visualizer::VisualizeNodes(const MapHandler & updatedMap, RCD::Core g1, RCD
       // Access the node
       RCD::RGraph::Node& node = g2.G.G[vd];        
       cv::Point p(node.pos.x, node.pos.y); // robot coordinates
-      cv::circle(cast_image, p, 2, cv::Scalar(0, 0, 255), -1);
+      cv::circle(cast_image, p, 5, cv::Scalar(0, 0, 255), -1);
     }
 }

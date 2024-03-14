@@ -26,7 +26,7 @@ for (int i = 0 ; i < N ; ++i)
 {
 
   // Initializes the map and the relevant parameters (Maybe do this from config file to avoid building it every time)0
-  MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_11_46_24/occ_11_46_24.ppm");
+  MapHandler handler("/home/michael/github/rcd_path_planner/maps/dummy/dummy.ppm");
   // MapHandler handler(path_to_map);
 
   RCD::Core::pathFound = false;
@@ -51,8 +51,8 @@ for (int i = 0 ; i < N ; ++i)
 
     TargetCaster.CastRays();
 
-    // plotter.VisualizeNodes(handler, RobotCaster, TargetCaster);
-    // plotter.VisualizeRays(handler); // For real-time plotting
+    plotter.VisualizeNodes(handler, RobotCaster, TargetCaster);
+    plotter.VisualizeRays(handler); // For real-time plotting
   }
  
   // Add the intersection node to the graph that didn't find the path
@@ -85,7 +85,7 @@ for (int i = 0 ; i < N ; ++i)
   robot_path.insert(robot_path.end(), target_path.begin(), target_path.end());
 
 
-  // plotter.VisualizePath(handler,robot_path, final_node); // Visualize the casting path (fully-unoptimized)
+  plotter.VisualizePath(handler,robot_path, final_node); // Visualize the casting path (fully-unoptimized)
 
   PathOptimizer los_optimizer(robot_path, &handler);
 
@@ -102,7 +102,7 @@ for (int i = 0 ; i < N ; ++i)
   time.push_back(static_cast<float>(elapsed_seconds.count()));
   path_length.push_back(los_optimizer.PathDistance(los_optimizer.optimizedPath));
 
-  plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+  // plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
   
   
   }
