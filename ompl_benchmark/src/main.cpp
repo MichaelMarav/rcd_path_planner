@@ -9,6 +9,11 @@
 #include <ompl/geometric/planners/rrt/RRTConnect.h>
 #include <ompl/geometric/planners/rrt/RRTstar.h>
 #include <ompl/geometric/planners/sbl/SBL.h>
+#include <ompl/geometric/planners/rrt/InformedRRTstar.h>
+#include <ompl/geometric/planners/pdst/PDST.h>
+#include <ompl/geometric/planners/rrt/BiTRRT.h>
+
+
 #include <ompl/util/PPM.h>
 #include <yaml-cpp/yaml.h>
 
@@ -79,10 +84,15 @@ class Planner2D {
                 ss_->setPlanner(std::make_shared<og::LBKPIECE1>(ss_->getSpaceInformation()));
             } else if (type == "SBL") {
                 ss_->setPlanner(std::make_shared<og::SBL>(ss_->getSpaceInformation()));
-            } else {
+            } else if (type == "PRMstar"){
                 ss_->setPlanner(std::make_shared<og::PRMstar>(ss_->getSpaceInformation()));
-            }
-
+            } else if(type == "informedRRT"){
+                ss_->setPlanner(std::make_shared<og::InformedRRTstar>(ss_->getSpaceInformation()));
+            }else if(type == "BIT"){
+                ss_->setPlanner(std::make_shared<og::BiTRRT>(ss_->getSpaceInformation()));
+            }else if(type == "PDST"){
+                ss_->setPlanner(std::make_shared<og::PDST>(ss_->getSpaceInformation()));
+           }
             ss_->getProblemDefinition()->setOptimizationObjective(
                 std::make_shared<ompl::base::PathLengthOptimizationObjective>(
                     ss_->getSpaceInformation()));
