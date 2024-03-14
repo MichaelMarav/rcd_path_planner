@@ -1,0 +1,5 @@
+robot_position_x: 789
+robot_position_y: 900
+target_position_x: 909
+target_position_y: 511
+grid_resolution: 1
