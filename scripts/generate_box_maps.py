@@ -34,9 +34,37 @@ def generate_image(coverage):
 
     return img
 
+# Function to generate random positions
+def generate_random_positions(image):
+    width, height = image.size
+    # Access pixel values using getpixel() method
+    free_space = [(x, y) for x in range(width) for y in range(height) if image.getpixel((x, y)) == 255]
+    robot_position = random.choice(free_space)
+    free_space.remove(robot_position)
+    target_position = random.choice(free_space)
+    return robot_position, target_position
+
+# Function to save YAML file
+def save_yaml(filename, robot_position, target_position,coverage):
+    with open(filename,'w') as file:
+            file.write("robot_position_x: " +  str((int)(robot_position[1]) ) + '\n')
+            file.write("robot_position_y: " +  str((int)(robot_position[0])) + '\n')
+            file.write("target_position_x: " + str((int)(target_position[1])) + '\n')
+            file.write("target_position_y: " + str((int)(target_position[0])) + '\n')
+            file.write("coverage: "+str(coverage) + '\n')         
+            
+            
+            
 for i in range(num_images):
     coverage = random.randint(20,70)
     img = generate_image(coverage)
+    robot_position, target_position = generate_random_positions(img)
+
     img.save(f"{output_folder}/{i}.png")
+    yaml_filename = f"{output_folder}/{i}.yaml"
+    save_yaml(yaml_filename, robot_position, target_position,coverage)
+
+
+    
 
 print("Images generated successfully.")

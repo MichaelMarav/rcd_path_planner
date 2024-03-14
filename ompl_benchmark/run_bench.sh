@@ -1,3 +1,3 @@
 #! /bin/bash
 
-./build/ompl_benchmark 100 "BIT" 
+./build/ompl_benchmark 100 "RRTConnect" 

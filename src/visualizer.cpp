@@ -128,7 +128,7 @@ void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point>
   for (const auto& point : path) {
     cv::Point currentPoint(point.x, point.y);
     // Draw the circle for the current point
-    cv::circle(path_image, currentPoint, radius, cv::Scalar(255, 0, 0), -1);
+    // cv::circle(path_image, currentPoint, radius, cv::Scalar(255, 0, 0), -1);
 
     // Draw a line between the current point and the previous point (if applicable)
     if (prevPoint.x != 0 &&  prevPoint.y != 0){

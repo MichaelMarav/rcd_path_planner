@@ -222,7 +222,7 @@ int main(int argc, char *argv[]) {
 
   if (run_example)
   {
-    std::string filename = "occ_12_53_54";
+    std::string filename = "occ_11_46_24";
     std::string prefix = "/home/michael/github/rcd_path_planner/maps/";
     path_to_map = prefix+ filename +"/" + filename + ".ppm";
     auto path_to_yaml = prefix + filename +"/" + filename +".yaml";
