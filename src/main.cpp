@@ -15,7 +15,7 @@ int main()
   std::vector<float> mean_time_list;
   std::vector<float> time;
   std::vector<float> path_length;
-  int N = 10;
+  int N = 100;
   std::string prefix = "/home/michael/github/rcd_path_planner/maps/mazes2/";
 
   // for (int f = 0 ; f < 20 ; ++f)
@@ -26,7 +26,7 @@ for (int i = 0 ; i < N ; ++i)
 {
 
   // Initializes the map and the relevant parameters (Maybe do this from config file to avoid building it every time)0
-  MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_22_36_41/occ_22_36_41.ppm");
+  MapHandler handler("/home/michael/github/rcd_path_planner/maps/occ_12_53_54/occ_12_53_54.ppm");
   // MapHandler handler(path_to_map);
 
   RCD::Core::pathFound = false;
@@ -102,7 +102,7 @@ for (int i = 0 ; i < N ; ++i)
   time.push_back(static_cast<float>(elapsed_seconds.count()));
   path_length.push_back(los_optimizer.PathDistance(los_optimizer.optimizedPath));
 
-  plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+  // plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
   
   
   }

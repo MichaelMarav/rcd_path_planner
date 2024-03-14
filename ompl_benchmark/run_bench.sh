@@ -1,3 +1,3 @@
 #! /bin/bash
 
-./build/ompl_benchmark 10 "RRTConnect" 
+./build/ompl_benchmark 100 "LBKPIECE1" 

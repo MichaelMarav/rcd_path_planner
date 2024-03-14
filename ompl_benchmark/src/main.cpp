@@ -212,10 +212,10 @@ int main(int argc, char *argv[]) {
 
   if (run_example)
   {
-    std::string filename = "occ_22_36_41";
+    std::string filename = "occ_12_53_54";
     std::string prefix = "/home/michael/github/rcd_path_planner/maps/";
-    path_to_map = prefix+ filename +"/" + "occ_22_36_41" + ".ppm";
-    auto path_to_yaml = prefix + filename +"/" + "occ_22_36_41"+".yaml";
+    path_to_map = prefix+ filename +"/" + filename + ".ppm";
+    auto path_to_yaml = prefix + filename +"/" + filename +".yaml";
     YAML::Node config = YAML::LoadFile(path_to_yaml);
 
     initial_position[0] = config["robot_position_x"].as<size_t>();
