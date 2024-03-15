@@ -202,8 +202,8 @@ class Planner2D {
 
 int main(int argc, char *argv[]) {
   bool run_mazes = false;
-  bool run_example = false;
-  bool run_boxes = true;
+  bool run_example = true;
+  bool run_boxes = false;
   
   // Example run:
 

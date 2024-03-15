@@ -14,18 +14,19 @@ int main()
   std::cout << "Ray Casting and Diffusion model for Path Plannig \n";
 
   int N = 50;
-  std::string prefix = "/home/michael/github/rcd_path_planner/maps/random_boxes/";
-  std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes/results_boxes/rcd.csv");
-  if (!outfile) {
-      std::cerr << "Error: Unable to open file: "  << std::endl;
-  }
+  // std::string prefix = "/home/michael/github/rcd_path_planner/maps/random_boxes/";
+  // std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes/results_boxes/rcd.csv");
+  // if (!outfile) {
+  //     std::cerr << "Error: Unable to open file: "  << std::endl;
+  // }
 
-  outfile << "i,time_mean,time_std,length_mean,length_std" << std::endl;
+  // outfile << "coverage,time_mean,time_std,length_mean,length_std" << std::endl;
 
 
 for (int f = 0 ; f < 100 ; ++f)
 {   
-    MapHandler primary_handler(prefix + std::to_string(f) + ".ppm");
+    // MapHandler primary_handler(prefix + std::to_string(f) + ".ppm");
+    MapHandler handler("/home/michael/github/rcd_path_planner/maps/mazes/1.ppm");
 
     std::vector<float> mean_time_list;
     std::vector<float> time;
@@ -33,14 +34,15 @@ for (int f = 0 ; f < 100 ; ++f)
   // auto path_to_map = prefix + std::to_string(f) + ".ppm";
 for (int i = 0 ; i < N ; ++i)
 {
-  auto handler = primary_handler;
+  // auto handler = primary_handler;
   // Initializes the map and the relevant parameters (Maybe do this from config file to avoid building it every time)0
-  // MapHandler handler(path_to_map);
+  // MapHandler handler( "/home/michael/github/rcd_path_planner/maps/random_boxes/82.ppm");
 
   RCD::Core::pathFound = false;
 
   // Visualization of the imported grid
   Visualizer plotter(handler);
+  
   
   // Robot Caster
   RCD::Core RobotCaster(true, &handler);
@@ -99,7 +101,7 @@ for (int i = 0 ; i < N ; ++i)
 
   // while (true){
     los_optimizer.OptimizePath();
-  //   plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
+    plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
   // }
 
   auto end = std::chrono::system_clock::now();
@@ -112,31 +114,31 @@ for (int i = 0 ; i < N ; ++i)
   
   
 }
-  // For one maze
-  float time_mean = std::accumulate(time.begin(), time.end(), 0.0f) / time.size();
-  float path_length_mean = std::accumulate(path_length.begin(), path_length.end(), 0.0f) / path_length.size();
+//   // For one maze
+//   float time_mean = std::accumulate(time.begin(), time.end(), 0.0f) / time.size();
+//   float path_length_mean = std::accumulate(path_length.begin(), path_length.end(), 0.0f) / path_length.size();
  
-  // Compute standard deviation of time vector
-  float time_std = 0.0f;
-  for (float t : time) {
-      time_std += (t - time_mean) * (t - time_mean);
-  }
-  time_std = std::sqrt(time_std / time.size());
+//   // Compute standard deviation of time vector
+//   float time_std = 0.0f;
+//   for (float t : time) {
+//       time_std += (t - time_mean) * (t - time_mean);
+//   }
+//   time_std = std::sqrt(time_std / time.size());
 
-// Compute standard deviation of path_length vector
-  float path_length_std = 0.0f;
-  for (float pl : path_length) {
-      path_length_std += (pl - path_length_mean) * (pl - path_length_mean);
-  }
-  path_length_std = std::sqrt(path_length_std / path_length.size());
-  mean_time_list.push_back(time_mean);
-  std::cout << "Running maze: " << f +1 << "\n" ;
-  std::cout << "Mean time: " << time_mean ;
-  std::cout << "   std time : " << time_std << std::endl;
-  std::cout << "Mean of path length: " << path_length_mean;
-  std::cout << "   std of path length: " << path_length_std << std::endl;
+// // Compute standard deviation of path_length vector
+//   float path_length_std = 0.0f;
+//   for (float pl : path_length) {
+//       path_length_std += (pl - path_length_mean) * (pl - path_length_mean);
+//   }
+//   path_length_std = std::sqrt(path_length_std / path_length.size());
+//   mean_time_list.push_back(time_mean);
+//   std::cout << "Running maze: " << f +1 << "\n" ;
+//   std::cout << "Mean time: " << time_mean ;
+//   std::cout << "   std time : " << time_std << std::endl;
+//   std::cout << "Mean of path length: " << path_length_mean;
+//   std::cout << "   std of path length: " << path_length_std << std::endl;
 
-  outfile << primary_handler.map_coverage << ',' << time_mean << ',' << time_std << ',' << path_length_mean << ',' << path_length_std << std::endl;
+//   outfile << primary_handler.map_coverage << ',' << time_mean << ',' << time_std << ',' << path_length_mean << ',' << path_length_std << std::endl;
 
 }
   // // Print results

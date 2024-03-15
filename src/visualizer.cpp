@@ -34,8 +34,8 @@ void Visualizer::visualizeOccupancyGrid()
   cv::circle(cast_image, target, radius, cv::Scalar(0, 0, 255), -1); // Color: Blue (BGR), -1 for filled circle
 
   // Display the cast_image using OpenCV
-  // cv::imshow("Occupancy Grid", cast_image);
-  // cv::waitKey(0);
+  cv::imshow("Occupancy Grid", cast_image);
+  cv::waitKey(0);
 }
 
 

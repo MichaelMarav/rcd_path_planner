@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 # Read the CSV files
 rcd_df = pd.read_csv("rcd.csv")
 kpiece_df = pd.read_csv("KPIECE1.csv")
-bit_df =  pd.read_csv("BIT.csv")
-# pdst_df =  pd.read_csv("PDST.csv")
-rrt_connect_df =  pd.read_csv("RRTConnect.csv")
+bit_df = pd.read_csv("BIT.csv")
+# pdst_df = pd.read_csv("PDST.csv")
+rrt_connect_df = pd.read_csv("RRTConnect.csv")
 
 # Convert time mean from seconds to milliseconds
 rcd_df['time_mean'] *= 1000
@@ -15,61 +15,51 @@ bit_df['time_mean'] *= 1000
 # pdst_df['time_mean'] *= 1000
 kpiece_df['time_mean'] *= 1000
 
-# Convert length mean from seconds to milliseconds
-# rcd_df['length_mean'] *= 1000
-# rrt_connect_df['length_mean'] *= 1000
-# bit_df['length_mean'] *= 1000
-# # pdst_df['length_mean'] *= 1000
-# kpiece_df['length_mean'] *= 1000
-
 # Threshold the y-axis to 8 milliseconds
 y_threshold = 8
 
-# Sort the dataframes by mean values in descending order only for RCD
-rcd_df = rcd_df.sort_values(by='time_mean', ascending=False)
+# Define coverage ranges
+coverage_ranges = [(20, 30), (30, 40), (40, 50), (50, 60), (60, 70)]  # Define your own ranges
 
-# Print experiment numbers of RCD in descending order
-print("Experiment numbers of RCD in descending order:", rcd_df.index.tolist())
+# Initialize histograms for each algorithm
+hist_rcd = []
+hist_rrt_connect = []
+hist_bit = []
+hist_kpiece = []
 
-# Plot for time
-plt.figure(figsize=(10, 5))
+# Loop through coverage ranges and calculate mean time for each algorithm
+for coverage_range in coverage_ranges:
+    # Filter data within coverage range
+    rcd_subset = rcd_df[(rcd_df['coverage'] >= coverage_range[0]) & (rcd_df['coverage'] < coverage_range[1])]
+    rrt_connect_subset = rrt_connect_df[(rrt_connect_df['coverage'] >= coverage_range[0]) & (rrt_connect_df['coverage'] < coverage_range[1])]
+    bit_subset = bit_df[(bit_df['coverage'] >= coverage_range[0]) & (bit_df['coverage'] < coverage_range[1])]
+    kpiece_subset = kpiece_df[(kpiece_df['coverage'] >= coverage_range[0]) & (kpiece_df['coverage'] < coverage_range[1])]
+    
+    # Calculate mean time for each algorithm
+    hist_rcd.append(rcd_subset['time_mean'].mean())
+    hist_rrt_connect.append(rrt_connect_subset['time_mean'].mean())
+    hist_bit.append(bit_subset['time_mean'].mean())
+    hist_kpiece.append(kpiece_subset['time_mean'].mean())
 
-# Plot RCD
-plt.plot(range(len(rcd_df)), rcd_df['time_mean'], label='RCD', marker='o', alpha=0.5)
+# Plot histograms
+plt.figure(figsize=(10, 10))
 
-# Plot other datasets without changing their order
-plt.plot(range(len(rrt_connect_df)), rrt_connect_df['time_mean'], label='RRTConnect', marker='o', alpha=0.5)
-plt.plot(range(len(bit_df)), bit_df['time_mean'], label='BIT', marker='o', alpha=0.5)
-# plt.plot(range(len(pdst_df)), pdst_df['time_mean'], label='PDST', marker='o', alpha=0.5)
-plt.plot(range(len(kpiece_df)), kpiece_df['time_mean'], label='KPIECE', marker='o', alpha=0.5)
 
-plt.xlabel('Experiment Number')
-plt.ylabel('Time Mean (ms)')
-plt.title('Time Mean')
-plt.legend()
-plt.grid(True)
-plt.ylim(0, y_threshold)  # Set y-axis limit to 8 milliseconds
-plt.tight_layout()
-plt.savefig('time_mean.png')
-plt.show()
+bar_width = 0.2  # Width of each bar
+index = range(len(coverage_ranges))  # Index for x-axis
 
-# Plot for length
-plt.figure(figsize=(10, 5))
+plt.bar(index, hist_rcd, bar_width, label='RCD')
+plt.bar([i + bar_width for i in index], hist_rrt_connect, bar_width, label='RRTConnect')
+plt.bar([i + 2 * bar_width for i in index], hist_bit, bar_width, label='BIT-RRT')
+plt.bar([i + 3 * bar_width for i in index], hist_kpiece, bar_width, label='KPIECE')
 
-# Plot RCD
-plt.plot(range(len(rcd_df)), rcd_df['length_mean'], label='RCD', marker='o', alpha=0.5)
-
-# Plot other datasets without changing their order
-plt.plot(range(len(rrt_connect_df)), rrt_connect_df['length_mean'], label='RRTConnect', marker='o', alpha=0.5)
-plt.plot(range(len(bit_df)), bit_df['length_mean'], label='BIT', marker='o', alpha=0.5)
-# plt.plot(range(len(pdst_df)), pdst_df['length_mean'], label='PDST', marker='o', alpha=0.5)
-plt.plot(range(len(kpiece_df)), kpiece_df['length_mean'], label='KPIECE', marker='o', alpha=0.5)
-
-plt.xlabel('Experiment Number')
-plt.ylabel('Length Mean (ms)')
-plt.title('Length Mean')
-plt.legend()
+plt.xlabel('Map Coverage Range (%)', fontsize=30)  # Increase font size
+plt.ylabel('Mean Time (ms)', fontsize=30)  # Increase font size
+plt.title('Mean Time per Coverage Range', fontsize=30)  # Increase font size
+plt.xticks([i + 1.5 * bar_width for i in index], [f"{range[0]}-{range[1]}" for range in coverage_ranges], fontsize=30)  # Increase font size
+plt.yticks(fontsize=30)  # Increase font size
+plt.legend(fontsize=30)  # Increase font size
 plt.grid(True)
 plt.tight_layout()
-plt.savefig('length_mean.png')
+plt.savefig('mean_time_histograms.png')
 plt.show()
