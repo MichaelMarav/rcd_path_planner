@@ -1,3 +1,3 @@
 #! /bin/bash
 
-./build/ompl_benchmark 100 "RRTConnect" 
+./build/ompl_benchmark 100 "PDST" 

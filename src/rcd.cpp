@@ -43,7 +43,7 @@ Core::Core(bool robot_flag, MapHandler *map_)
 void Core::PrepareCasting()
 {
   // Find in which directions RCD is going to cast 
-  casting_dir = 0;// (static_cast<float>(rand() % (360/NUM_RAYS + 1)) )*PI/180.;  // Random casting direction
+  casting_dir =  (static_cast<float>(rand() % (360/NUM_RAYS + 1)) )*PI/180.;  // Random casting direction
   for (int i = 0 ; i < NUM_RAYS ; ++i){
     casting_angles[i] = casting_dir + i*angle_increment; // Casting angles
   }

@@ -19,7 +19,7 @@
 
 #include <chrono>
 #include <iostream>
-
+#include <fstream>
 namespace ob = ompl::base;
 namespace og = ompl::geometric;
 
@@ -45,6 +45,7 @@ void statistics(const std::vector<double> &vec, double &mean, double &std_dev) {
 
 class Planner2D {
    public:
+    double time_mean{}, time_std{}, length_mean{}, length_std{};
 
     Planner2D(const char *ppm_file, size_t N, const std::string &type) {
         N_ = N;
@@ -136,7 +137,6 @@ class Planner2D {
             }
         }
 
-        double time_mean{}, time_std{}, length_mean{}, length_std{};
         statistics(times, time_mean, time_std);
         statistics(lengths, length_mean, length_std);
         OMPL_INFORM("Mean time %f, time std %f ", time_mean, time_std);
@@ -202,8 +202,11 @@ class Planner2D {
 
 int main(int argc, char *argv[]) {
   bool run_mazes = false;
-  bool run_example = true;
+  bool run_example = false;
+  bool run_boxes = true;
+  
   // Example run:
+
   // ./ompl_benchmark planner_runs planner_type path_to_map initial_position target_position
   //
   // ./ompl_benchmark 10 "SBL" "/path/to/0.ppm" 465 290 765 435
@@ -246,7 +249,13 @@ int main(int argc, char *argv[]) {
   }
 
   if (run_mazes){
-    std::string prefix = "/home/michael/github/rcd_path_planner/maps/mazes2/";
+    std::string prefix = "/home/michael/github/rcd_path_planner/maps/mazes/";
+    std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/mazes/results_mazes/"+planner_type +".csv");
+    if (!outfile) {
+        std::cerr << "Error: Unable to open file: "  << std::endl;
+    }
+
+    outfile << "i,time_mean,time_std,length_mean,length_std" << std::endl;
 
     for (int i = 0 ; i < 100 ; ++i)
     {   
@@ -260,7 +269,6 @@ int main(int argc, char *argv[]) {
       target_position[0]  = config["target_position_x"].as<size_t>();
       target_position[1]  = config["target_position_y"].as<size_t>();
 
-
       std::cout << initial_position[0] << '\n';
 
 
@@ -270,11 +278,16 @@ int main(int argc, char *argv[]) {
           // Run the planner and overlay the optimal trajectory to the map
       if (planner.plan(initial_position[0], initial_position[1], target_position[0],
                       target_position[1])) {
-          // planner.recordSolution();
+          planner.recordSolution();
           // planner.save("result_demo.ppm");
       }
+    //   std::cout << "time mean --> " << planner.time_mean << "  " <<  planner.time_std << '\n';
+    //   std::cout << "length mean --> " <<  planner.length_mean << "  " <<  planner.length_std << '\n';
+
+       outfile << i+1 << ',' << planner.time_mean << ',' << planner.time_std << ',' << planner.length_mean << ',' << planner.length_std << std::endl;
 
     }
+    outfile.close();
 
 
     float time_mean = std::accumulate(mean_time_list.begin(), mean_time_list.end(), 0.0f) / mean_time_list.size();
@@ -302,6 +315,70 @@ int main(int argc, char *argv[]) {
   }
   
 
+  if (run_boxes){
+    std::string prefix = "/home/michael/github/rcd_path_planner/maps/random_boxes/";
+    std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes/results_boxes/"+planner_type +".csv");
+    if (!outfile) {
+        std::cerr << "Error: Unable to open file: "  << std::endl;
+    }
 
+    outfile << "coverage,time_mean,time_std,length_mean,length_std" << std::endl;
+
+    for (int i = 0 ; i < 100 ; ++i)
+    {   
+      
+      path_to_map = prefix + std::to_string(i) + ".ppm";
+      auto path_to_yaml = prefix + std::to_string(i) +".yaml";
+      YAML::Node config = YAML::LoadFile(path_to_yaml);
+
+      initial_position[0] = config["robot_position_x"].as<size_t>();
+      initial_position[1] = config["robot_position_y"].as<size_t>();
+      target_position[0]  = config["target_position_x"].as<size_t>();
+      target_position[1]  = config["target_position_y"].as<size_t>();
+      auto coverage = config["coverage"].as<size_t>();
+
+
+      // Initialize planner
+      Planner2D planner(path_to_map.c_str(), planner_runs, planner_type);
+
+          // Run the planner and overlay the optimal trajectory to the map
+      if (planner.plan(initial_position[0], initial_position[1], target_position[0],
+                      target_position[1])) {
+          planner.recordSolution();
+          // planner.save("result_demo.ppm");
+      }
+    //   std::cout << "time mean --> " << planner.time_mean << "  " <<  planner.time_std << '\n';
+    //   std::cout << "length mean --> " <<  planner.length_mean << "  " <<  planner.length_std << '\n';
+
+       outfile << coverage << ',' << planner.time_mean << ',' << planner.time_std << ',' << planner.length_mean << ',' << planner.length_std << std::endl;
+
+    }
+    outfile.close();
+
+
+    float time_mean = std::accumulate(mean_time_list.begin(), mean_time_list.end(), 0.0f) / mean_time_list.size();
+    float path_length_mean = std::accumulate(mean_path_list.begin(), mean_path_list.end(), 0.0f) / mean_path_list.size();
+  
+    // Compute standard deviation of time vector
+    float time_std = 0.0f;
+    for (float t : mean_time_list) {
+        time_std += (t - time_mean) * (t - time_mean);
+    }
+    time_std = std::sqrt(time_std / mean_time_list.size());
+
+  // Compute standard deviation of path_length vector
+    float path_length_std = 0.0f;
+    for (float pl : mean_path_list) {
+        path_length_std += (pl - path_length_mean) * (pl - path_length_mean);
+    }
+    path_length_std = std::sqrt(path_length_std / mean_path_list.size());
+
+  // Print results
+    std::cout << "Mean time: " << time_mean ;
+    std::cout << "   std time : " << time_std << std::endl;
+    std::cout << "Mean of path length: " << path_length_mean;
+    std::cout << "   std of path length: " << path_length_std << std::endl;
+  }
+  
     return 0;
 }
