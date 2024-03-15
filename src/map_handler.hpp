@@ -27,7 +27,7 @@ class MapHandler
     OccupancyGrid<Cell> inflated_grid; // This grid will be deflated for the optimization step
 
     float grid_resolution; // in m
-
+    int map_coverage;
     // Geometry of environment (m)
     unsigned int width;
     unsigned int height;

@@ -66,7 +66,7 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap)
   cv::Point target(updatedMap.target_pos.x, updatedMap.target_pos.y); 
 
   
-  int radius = 10; // Radius of the dot
+  int radius = 15; // Radius of the dot
 
   // Draw a blue filled circle (dot)
   cv::circle(cast_image, robot, radius, cv::Scalar(255, 0, 0), -1); // Color: Blue (BGR), -1 for filled circle
@@ -119,10 +119,10 @@ void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point>
   cv::circle(path_image, robot, 10, cv::Scalar(255, 0, 0), -1);
   cv::circle(path_image, target, 10, cv::Scalar(0, 0, 255), -1);
 
-  int radius = 2; // Radius of the dot
+  int radius = 7; // Radius of the dot
 
   cv::Point prevPoint; // Store the previous point for line drawing
-  int thickness = 1;  // Thickness of the lines (adjust as needed)
+  int thickness = 4;  // Thickness of the lines (adjust as needed)
 
   // Loop through the path points
   for (const auto& point : path) {
@@ -132,7 +132,7 @@ void Visualizer::VisualizePath(const MapHandler & updatedMap, std::vector<Point>
 
     // Draw a line between the current point and the previous point (if applicable)
     if (prevPoint.x != 0 &&  prevPoint.y != 0){
-      cv::line(path_image, prevPoint, currentPoint, cv::Scalar(255, 0, 0), thickness);
+      cv::line(path_image, prevPoint, currentPoint, cv::Scalar(0,255, 0), thickness);
     }
 
     prevPoint = currentPoint; // Update the previous point for the next iteration

@@ -38,7 +38,9 @@ def generate_image(coverage):
 def generate_random_positions(image):
     width, height = image.size
     # Access pixel values using getpixel() method
-    free_space = [(x, y) for x in range(width) for y in range(height) if image.getpixel((x, y)) == 255]
+    free_space = [(x, y) for x in range(width) for y in range(height) if image.getpixel((y, x)) == 255]
+    
+   
     robot_position = random.choice(free_space)
     free_space.remove(robot_position)
     target_position = random.choice(free_space)
