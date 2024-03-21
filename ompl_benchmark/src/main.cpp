@@ -135,6 +135,9 @@ class Planner2D {
                 lengths.push_back(path.length());
                 OMPL_INFORM("Path length %f", path.length());
             }
+
+ 
+            
         }
 
         statistics(times, time_mean, time_std);
@@ -226,9 +229,12 @@ int main(int argc, char *argv[]) {
   if (run_example)
   {
     std::string filename = "occ_11_46_24";
-    std::string prefix = "/home/michael/github/rcd_path_planner/maps/";
-    path_to_map = prefix+ filename +"/" + filename + ".ppm";
-    auto path_to_yaml = prefix + filename +"/" + filename +".yaml";
+    std::string prefix = "/home/michael/github/rcd_path_planner/maps/mazes";
+    // path_to_map = prefix+ filename +"/" + filename + ".ppm";
+    path_to_map = "/home/michael/github/rcd_path_planner/maps/mazes/2.ppm";
+
+    // auto path_to_yaml = prefix + filename +"/" + filename +".yaml";
+    auto path_to_yaml = "/home/michael/github/rcd_path_planner/maps/mazes/0.yaml";
     YAML::Node config = YAML::LoadFile(path_to_yaml);
 
     initial_position[0] = config["robot_position_x"].as<size_t>();
@@ -248,6 +254,13 @@ int main(int argc, char *argv[]) {
     }
   }
 
+
+
+
+
+  /*
+  RUN MAZES
+  */
   if (run_mazes){
     std::string prefix = "/home/michael/github/rcd_path_planner/maps/mazes/";
     std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/mazes/results_mazes/"+planner_type +".csv");
@@ -316,8 +329,8 @@ int main(int argc, char *argv[]) {
   
 
   if (run_boxes){
-    std::string prefix = "/home/michael/github/rcd_path_planner/maps/random_boxes/";
-    std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes/results_boxes/"+planner_type +".csv");
+    std::string prefix = "/home/michael/github/rcd_path_planner/maps/mazes/";
+    std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes1/result_boxes/"+planner_type +".csv");
     if (!outfile) {
         std::cerr << "Error: Unable to open file: "  << std::endl;
     }

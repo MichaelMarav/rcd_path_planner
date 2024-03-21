@@ -57,6 +57,7 @@ void Core::PrepareCasting()
 }
 
 
+
 /* < CastRays > 
  * Casts NUM_RAYS into map->grid
  */
@@ -85,18 +86,14 @@ void Core::CastRays()
       if ( (!isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass) ||
            (isRobot  && map->grid[ray_pos.y][ray_pos.x].targetPass))
       {
-        printInfo("Path Found");
-
         pathFound = true;
 
         // The intersection node will be added later to both graphs
 
         if (isRobot){
-          printInfo("Path Found by Robot");
           G.UpdateWeight(node2add,ray_dis,node2cast.p, ray_pos, map->target_pos, map->robot_pos);
           pathFoundByRobot = true;
         }else{
-          printInfo("Path Found by Target");
           G.UpdateWeight(node2add,ray_dis,node2cast.p,ray_pos, map->robot_pos, map->target_pos);
           pathFoundByRobot = false;
         }
@@ -105,7 +102,7 @@ void Core::CastRays()
 
         node2add.edge_descriptor = G.AddEdge(node2cast.node_descriptor, node2add.node_descriptor, G.G, ray_dis);
         // UpdateGrid(node2cast,node2add);
-        // addNodeList.push_back(node2add);
+
         intersectionNode = node2add; // This node corresponds to the current graph
         intersectionEdge_id = map->grid[ray_pos.y][ray_pos.x].edge_id; // This edge ID corresponds to the other graph
         
@@ -117,7 +114,7 @@ void Core::CastRays()
       // Case #2: Hit wall after exploring
       if (map->grid[ray_pos.y][ray_pos.x].isOccupied)
       {
-        if (ray_dis < 10.)  //  Don't add node that immedietly hits the wall
+        if (ray_dis < 6.)  //  Don't add node that immedietly hits the wall
         {
           break;
         }
@@ -143,7 +140,9 @@ void Core::CastRays()
 
       if (intersection.first) // If there is an intersection
       {   
-        if (ray_dis < 10){
+
+        if (ray_dis < 20.)  //  Don't add node that immedietly hits the wall
+        {
           break;
         }
         ray_pos = intersection.second;
@@ -178,6 +177,7 @@ void Core::CastRays()
         new_node1.edge_descriptor = G.AddEdge(node2add.node_descriptor, G.source_vertex,G.G,disAB);
         new_node2.edge_descriptor = G.AddEdge(node2add.node_descriptor, G.target_vertex,G.G,disBC);
         
+        isRobot ? G.UpdateWeight(G.G[G.target_vertex], disBC, node2add.p, G.G[G.target_vertex].pos, map-> target_pos, map->robot_pos) : G.UpdateWeight(G.G[G.target_vertex], disBC, node2add.p, G.G[G.target_vertex].pos, map->robot_pos, map-> target_pos);
         UpdateGrid(node2cast,node2add);
         UpdateGrid(node2add,new_node1);
         UpdateGrid(node2add,new_node2);
@@ -199,55 +199,47 @@ void Core::CastRays()
 */
 void Core::UpdateGrid(const RCD::RGraph::Node&  source,const  RCD::RGraph::Node & target)
 {
-  // // fill the grid with line path (max lines = NUM_RAYS)
-  // for (const auto& node: addNodeList) 
-  // {
-    std::vector<Point> points;
-    int x1 = source.pos.x;
-    int y1 = source.pos.y;
-    int x2 = target.pos.x;
-    int y2 = target.pos.y;
+  std::vector<Point> points;
+  int x1 = source.pos.x;
+  int y1 = source.pos.y;
+  int x2 = target.pos.x;
+  int y2 = target.pos.y;
+  
+  int dx = abs(x2 - x1);
+  int dy = abs(y2 - y1);
+  
+  int sx = x1 < x2 ? 1 : -1;
+  int sy = y1 < y2 ? 1 : -1;
+  
+  int err = dx - dy;
+  int e2;
+  
+  while (true) {
+    points.push_back(Point(x1, y1));
     
-    int dx = abs(x2 - x1);
-    int dy = abs(y2 - y1);
+    if (x1 == x2 && y1 == y2) break;
     
-    int sx = x1 < x2 ? 1 : -1;
-    int sy = y1 < y2 ? 1 : -1;
-    
-    int err = dx - dy;
-    int e2;
-    
-    while (true) {
-        points.push_back(Point(x1, y1));
-        
-        if (x1 == x2 && y1 == y2) break;
-        
-        e2 = 2 * err;
-        if (e2 > -dy) {
-            err -= dy;
-            x1 += sx;
-        }
-        if (e2 < dx) {
-            err += dx;
-            y1 += sy;
-        }
+    e2 = 2 * err;
+    if (e2 > -dy) {
+        err -= dy;
+        x1 += sx;
     }
-    if (isRobot){
-      for (const auto& point : points) {
-        map->grid[point.y][point.x].robotPass = true; 
-        map->grid[point.y][point.x].edge_id = target.edge_descriptor; 
-      }
-    }else{
-      for (const auto& point : points) {
-        
-        map->grid[point.y][point.x].targetPass = true; 
-        map->grid[point.y][point.x].edge_id = target.edge_descriptor; 
-
-      }
+    if (e2 < dx) {
+        err += dx;
+        y1 += sy;
     }
-  // }
- 
-  // addNodeList.clear(); // To maintain the dynamic size (max_size = NUM_RAYS)
+  }
+  if (isRobot){
+    for (const auto& point : points) {
+      map->grid[point.y][point.x].robotPass = true; 
+      map->grid[point.y][point.x].edge_id = target.edge_descriptor; 
+    }
+  }else{
+    for (const auto& point : points) {
+      map->grid[point.y][point.x].targetPass = true; 
+      map->grid[point.y][point.x].edge_id = target.edge_descriptor; 
+    }
+  }
 }
 
 
@@ -269,7 +261,7 @@ std::vector<Point> Core::ShortestPath(RCD::RGraph::Node end_node)
     dist[end_node.node_descriptor] = 0;
 
     // Initialize the predecessor of all vertices as -1
-    std::vector<RCD::RGraph::NodeDescriptor> predecessor(boost::num_vertices(G.G), -1);
+    std::vector<RCD::RGraph::NodeDescriptor> predecessor(boost::num_vertices(G.G), - 1);
 
     // Push the end node into the priority queue
     pq.push(std::make_pair(0, end_node.node_descriptor));
@@ -357,5 +349,4 @@ std::pair<bool,Point>  Core::CheckIntersection(const Point & p)
       }
     }
     return std::make_pair(false, Point(0,0));
-
 }

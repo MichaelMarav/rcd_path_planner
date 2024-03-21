@@ -14,8 +14,8 @@ int main()
   std::cout << "Ray Casting and Diffusion model for Path Plannig \n";
 
   int N = 50;
-  // std::string prefix = "/home/michael/github/rcd_path_planner/maps/random_boxes/";
-  // std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes/results_boxes/rcd.csv");
+  std::string prefix = "/home/michael/github/rcd_path_planner/maps/occ_12_53_54/";
+  // std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes1/result_boxes/rcd.csv");
   // if (!outfile) {
   //     std::cerr << "Error: Unable to open file: "  << std::endl;
   // }
@@ -23,10 +23,10 @@ int main()
   // outfile << "coverage,time_mean,time_std,length_mean,length_std" << std::endl;
 
 
-for (int f = 0 ; f < 100 ; ++f)
-{   
+// for (int f = 0 ; f < 100 ; ++f)
+// {   
     // MapHandler primary_handler(prefix + std::to_string(f) + ".ppm");
-    MapHandler handler("/home/michael/github/rcd_path_planner/maps/mazes/1.ppm");
+    MapHandler primary_handler(prefix + "occ_12_53_54" + ".ppm");//"/home/michael/github/rcd_path_planner/maps/mazes/1.ppm");
 
     std::vector<float> mean_time_list;
     std::vector<float> time;
@@ -34,7 +34,8 @@ for (int f = 0 ; f < 100 ; ++f)
   // auto path_to_map = prefix + std::to_string(f) + ".ppm";
 for (int i = 0 ; i < N ; ++i)
 {
-  // auto handler = primary_handler;
+  auto handler = primary_handler;
+  
   // Initializes the map and the relevant parameters (Maybe do this from config file to avoid building it every time)0
   // MapHandler handler( "/home/michael/github/rcd_path_planner/maps/random_boxes/82.ppm");
 
@@ -61,10 +62,12 @@ for (int i = 0 ; i < N ; ++i)
 
     TargetCaster.CastRays();
 
-    // plotter.VisualizeNodes(handler, RobotCaster, TargetCaster);
-    // plotter.VisualizeRays(handler); // For real-time plotting
+    plotter.VisualizeNodes(RobotCaster, TargetCaster);
+    plotter.VisualizeRays(handler); // For real-time plotting
   }
- 
+  plotter.VisualizeRays(handler); // For real-time plotting
+    plotter.VisualizeNodes(RobotCaster, TargetCaster);
+
   // Add the intersection node to the graph that didn't find the path
   // Finds the shortest path
   RCD::RGraph::Node final_node;
@@ -95,14 +98,14 @@ for (int i = 0 ; i < N ; ++i)
   robot_path.insert(robot_path.end(), target_path.begin(), target_path.end());
 
 
-  // plotter.VisualizePath(handler,robot_path, final_node); // Visualize the casting path (fully-unoptimized)
+  plotter.VisualizePath(robot_path); // Visualize the casting path (fully-unoptimized)
 
   PathOptimizer los_optimizer(robot_path, &handler);
 
-  // while (true){
+  while (true){
     los_optimizer.OptimizePath();
-    plotter.VisualizePath(handler,los_optimizer.optimizedPath, RCD::Core::intersectionNode);
-  // }
+    plotter.VisualizePath(los_optimizer.optimizedPath);
+  }
 
   auto end = std::chrono::system_clock::now();
 
@@ -114,33 +117,33 @@ for (int i = 0 ; i < N ; ++i)
   
   
 }
-//   // For one maze
-//   float time_mean = std::accumulate(time.begin(), time.end(), 0.0f) / time.size();
-//   float path_length_mean = std::accumulate(path_length.begin(), path_length.end(), 0.0f) / path_length.size();
+  // For one maze
+  float time_mean = std::accumulate(time.begin(), time.end(), 0.0f) / time.size();
+  float path_length_mean = std::accumulate(path_length.begin(), path_length.end(), 0.0f) / path_length.size();
  
-//   // Compute standard deviation of time vector
-//   float time_std = 0.0f;
-//   for (float t : time) {
-//       time_std += (t - time_mean) * (t - time_mean);
-//   }
-//   time_std = std::sqrt(time_std / time.size());
+  // Compute standard deviation of time vector
+  float time_std = 0.0f;
+  for (float t : time) {
+      time_std += (t - time_mean) * (t - time_mean);
+  }
+  time_std = std::sqrt(time_std / time.size());
 
-// // Compute standard deviation of path_length vector
-//   float path_length_std = 0.0f;
-//   for (float pl : path_length) {
-//       path_length_std += (pl - path_length_mean) * (pl - path_length_mean);
-//   }
-//   path_length_std = std::sqrt(path_length_std / path_length.size());
-//   mean_time_list.push_back(time_mean);
-//   std::cout << "Running maze: " << f +1 << "\n" ;
-//   std::cout << "Mean time: " << time_mean ;
-//   std::cout << "   std time : " << time_std << std::endl;
-//   std::cout << "Mean of path length: " << path_length_mean;
-//   std::cout << "   std of path length: " << path_length_std << std::endl;
+// Compute standard deviation of path_length vector
+  float path_length_std = 0.0f;
+  for (float pl : path_length) {
+      path_length_std += (pl - path_length_mean) * (pl - path_length_mean);
+  }
+  path_length_std = std::sqrt(path_length_std / path_length.size());
+  mean_time_list.push_back(time_mean);
+  // std::cout << "Running maze: " << f +1 << "\n" ;
+  std::cout << "Mean time: " << time_mean ;
+  std::cout << "   std time : " << time_std << std::endl;
+  std::cout << "Mean of path length: " << path_length_mean;
+  std::cout << "   std of path length: " << path_length_std << std::endl;
 
-//   outfile << primary_handler.map_coverage << ',' << time_mean << ',' << time_std << ',' << path_length_mean << ',' << path_length_std << std::endl;
+  // outfile << primary_handler.map_coverage << ',' << time_mean << ',' << time_std << ',' << path_length_mean << ',' << path_length_std << std::endl;
 
-}
+// }
   // // Print results
   // std::cout << "Final Result of time--> "<<  std::accumulate(mean_time_list.begin(), mean_time_list.end(), 0.0f) / mean_time_list.size();
 

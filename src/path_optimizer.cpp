@@ -48,7 +48,7 @@ void PathOptimizer::OptimizePath()
 
     optimizedPath = interPath;
     ++opt_point;
-    // return;
+    return;
   }
 } 
 
@@ -84,7 +84,7 @@ std::vector<Point> PathOptimizer::GenerateSamples(const std::vector<Point> & pat
     
     
     // <MODIFY SAMPLE INCREMENT> 
-    sampleIncrement =  round(distance_between_points/5.) + 1;
+    sampleIncrement = round(distance_between_points/5.) + 1;
     
     
     dis = sampleIncrement;

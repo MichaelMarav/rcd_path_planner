@@ -23,9 +23,9 @@ class Visualizer
 
     void VisualizeRays(const MapHandler & updatedMap);
 
-    void VisualizePath(const MapHandler & updatedMap, std::vector<Point> path, RCD::RGraph::Node node);
+    void VisualizePath(std::vector<Point> path);
 
-    void VisualizeNodes(const MapHandler & updatedMap, RCD::Core g1, RCD::Core g2);
+    void VisualizeNodes(RCD::Core g1, RCD::Core g2);
 
   private:
     MapHandler map;    // The map with just the occupancy grid
