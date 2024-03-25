@@ -33,9 +33,68 @@ Core::Core(bool robot_flag, MapHandler *map_)
   G.AddNode(node2add, G.G); // Besides adding the node to the graph it also fills the node_descriptor
   weight_priority_queue.push(node2add);
 
-  srand(static_cast<unsigned int>(time(nullptr))); //Seed time for different sequence of pseudo-random numbers
-}
+  srand(static_cast<unsigned int>(time(nullptr))); //Seed time for different sequence of pseudo-random numbers  
+  
+  /* 
+  TODO: Add constraint search
+  */
 
+
+  fPoint B(map->target_pos.x,map->target_pos.y);
+  fPoint A(map->robot_pos.x,map->robot_pos.y);
+
+
+  float h = CalculateDistance(map->target_pos,map->robot_pos)  + 50;
+  float d = 100;
+  fPoint AB = B - A;
+  // Normalize the direction vector of AB
+  auto norm = std::sqrt(AB.x * AB.x + AB.y * AB.y);
+
+  fPoint AB_normalized = fPoint(AB.x/norm,AB.y/norm);
+
+  std::cout << AB.x << "  " << AB.y << '\n';
+  std::cout << AB_normalized.x << "  " << AB_normalized.y << '\n';
+
+
+  // Calculate the perpendicular vector to AB
+  fPoint perp_vector(AB_normalized.y, -AB_normalized.x);
+
+  // Calculate the coordinates of the mid-fPoint of AB
+  fPoint mid_fPoint = A + AB*0.5;
+
+  // Calculate the coordinates of the vertices of the rectangle
+  Point C = {mid_fPoint.x + perp_vector.x * d + AB_normalized.x * (h / 2),mid_fPoint.y + perp_vector.y * d + AB_normalized.y * (h / 2) };
+  Point D = {mid_fPoint.x + perp_vector.x * d - AB_normalized.x * (h / 2),mid_fPoint.y + perp_vector.y * d - AB_normalized.y * (h / 2) };
+  Point E = {mid_fPoint.x - perp_vector.x * d - AB_normalized.x * (h / 2),mid_fPoint.y - perp_vector.y * d - AB_normalized.y * (h / 2) };
+  Point F = {mid_fPoint.x - perp_vector.x * d + AB_normalized.x * (h / 2),mid_fPoint.y - perp_vector.y * d + AB_normalized.y * (h / 2) };
+
+  auto side_A = DefineLine(C,D);
+  auto side_B = DefineLine(D,E);
+  auto side_C = DefineLine(E,F);
+  auto side_D = DefineLine(F,C);
+
+
+  for (const auto& point : side_A) {
+    if (point.y < map->height && point.x < map->width)
+      map->grid[point.y][point.x].robotPass = true; 
+  }
+
+
+  for (const auto& point : side_B) {
+    if (point.y < map->height && point.x < map->width)
+      map->grid[point.y][point.x].robotPass = true; 
+  }
+
+  for (const auto& point : side_C) {
+    if (point.y < map->height && point.x < map->width)
+      map->grid[point.y][point.x].robotPass = true; 
+  }
+
+  for (const auto& point : side_D) {
+    if (point.y < map->height && point.x < map->width)
+      map->grid[point.y][point.x].robotPass = true; 
+  }
+}
 
 /* <PrepareCasting> 
  * Updated Graph and compute properties. (Gets object ready before cast)
@@ -193,17 +252,21 @@ void Core::CastRays()
   return;
 }
 
+/**
+ * @brief Performs the Bresenham's line algorithm and extract the points that define a line from A to B
+ * 
+ * @param A point in the occupancy grid (x,y)
+ * @param B point in the occupancy grid (x,y)
+ * @return std::vector<Point> the points that are on the line from A to B in grid resolution
+ */
 
-/* <UpdateGrid>
- Bresenham's line algorithm: Given two points, it finds where the line has passed through in 2D discrete grids
-*/
-void Core::UpdateGrid(const RCD::RGraph::Node&  source,const  RCD::RGraph::Node & target)
+std::vector<Point> Core::DefineLine(const Point & A, const Point & B) 
 {
   std::vector<Point> points;
-  int x1 = source.pos.x;
-  int y1 = source.pos.y;
-  int x2 = target.pos.x;
-  int y2 = target.pos.y;
+  int x1 = A.x;
+  int y1 = A.y;
+  int x2 = B.x;
+  int y2 = B.y;
   
   int dx = abs(x2 - x1);
   int dy = abs(y2 - y1);
@@ -214,21 +277,38 @@ void Core::UpdateGrid(const RCD::RGraph::Node&  source,const  RCD::RGraph::Node 
   int err = dx - dy;
   int e2;
   
-  while (true) {
+  while (true) 
+  {
     points.push_back(Point(x1, y1));
     
     if (x1 == x2 && y1 == y2) break;
     
     e2 = 2 * err;
-    if (e2 > -dy) {
+    if (e2 > -dy)
+    {
         err -= dy;
         x1 += sx;
     }
-    if (e2 < dx) {
+    if (e2 < dx) 
+    {
         err += dx;
         y1 += sy;
     }
   }
+  return points;
+}
+
+
+/**
+ * @brief Uses the DefineLine to find the points that connect the source and target nodes and updates the occupancy grid based on which ray has passed
+ *  Updates the *map global pointer
+ * @param source The source node
+ * @param target The target node
+ */
+void Core::UpdateGrid(const RCD::RGraph::Node&  source,const  RCD::RGraph::Node & target)
+{
+  std::vector<Point> points = DefineLine(source.pos, target.pos);
+
   if (isRobot){
     for (const auto& point : points) {
       map->grid[point.y][point.x].robotPass = true; 

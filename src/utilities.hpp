@@ -39,8 +39,51 @@ struct Point
       return !(*this == other);
   }
 
+  Point operator+(const Point& other) const {
+      return {x + other.x, y + other.y};
+  }
+
+  Point operator-(const Point& other) const {
+      return {x - other.x, y - other.y};
+  }
+
+  Point operator*(double scalar) const {
+    return {static_cast<int>(x * scalar), static_cast<int>(y * scalar)};
+  }
+
 };
 
+struct fPoint
+{
+  float x;
+  float y;
+
+  fPoint(float x_, float y_):x{x_},y{y_}{}
+  fPoint(){};
+
+  // Overloaded == operator
+  bool operator==(const fPoint& other) const {
+      return (x == other.x) && (y == other.y);
+  }
+
+  // Overloaded != operator
+  bool operator!=(const fPoint& other) const {
+      return !(*this == other);
+  }
+
+  fPoint operator+(const fPoint& other) const {
+      return {x + other.x, y + other.y};
+  }
+
+  fPoint operator-(const fPoint& other) const {
+      return {x - other.x, y - other.y};
+  }
+
+  fPoint operator*(double scalar) const {
+    return {x * scalar,y * scalar};
+  }
+
+};
 
 inline void printInfo(const std::string & message)
 {

@@ -54,6 +54,7 @@ namespace RCD
       std::pair<bool,Point>  CheckIntersection(const Point & p);
 
       void PrepareCasting();
+      std::vector<Point> DefineLine(const Point & A, const Point & B); 
 
 
     public:
