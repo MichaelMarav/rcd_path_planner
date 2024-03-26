@@ -33,4 +33,4 @@ target_include_directories(rcd
  PRIVATE
   src/
 )
-target_link_libraries(rcd PRIVATE Eigen3::Eigen ${OpenCV_LIBS} yaml-cpp)
+target_link_libraries(rcd PRIVATE Eigen3::Eigen ${OpenCV_LIBS} yaml-cpp pthread)
