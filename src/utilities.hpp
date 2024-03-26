@@ -20,13 +20,13 @@ Contains generic data structures and libraries
 
 constexpr float PI = 3.14159265359f;
 
-
+template<typename T>
 struct Point
 {
-  int x;
-  int y;
+  T x;
+  T y;
 
-  Point(int x_, int y_):x{x_},y{y_}{}
+  Point(T x_, T y_):x{x_},y{y_}{}
   Point(){};
 
   // Overloaded == operator
@@ -47,50 +47,20 @@ struct Point
       return {x - other.x, y - other.y};
   }
 
-  Point operator*(double scalar) const {
+  Point operator*(float scalar) const {
     return {static_cast<int>(x * scalar), static_cast<int>(y * scalar)};
   }
-
 };
 
-struct fPoint
-{
-  float x;
-  float y;
-
-  fPoint(float x_, float y_):x{x_},y{y_}{}
-  fPoint(){};
-
-  // Overloaded == operator
-  bool operator==(const fPoint& other) const {
-      return (x == other.x) && (y == other.y);
-  }
-
-  // Overloaded != operator
-  bool operator!=(const fPoint& other) const {
-      return !(*this == other);
-  }
-
-  fPoint operator+(const fPoint& other) const {
-      return {x + other.x, y + other.y};
-  }
-
-  fPoint operator-(const fPoint& other) const {
-      return {x - other.x, y - other.y};
-  }
-
-  fPoint operator*(double scalar) const {
-    return {x * scalar,y * scalar};
-  }
-
-};
+using iPoint = Point<int>;
+using fPoint = Point<float>;
 
 inline void printInfo(const std::string & message)
 {
   std::cout << "[INFO]  " << message << '\n';
 }
 
-inline double CalculateDistance(const Point & p1, const Point & p2)
+inline double CalculateDistance(const Point<int> & p1, const Point<int> & p2)
 {
   return std::sqrt( std::pow(static_cast<double>(p1.x) - static_cast<double>(p2.x),2.) +std::pow(static_cast<double>(p1.y) - static_cast<double>(p2.y),2.) );
 }

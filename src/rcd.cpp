@@ -52,9 +52,6 @@ Core::Core(bool robot_flag, MapHandler *map_)
 
   fPoint AB_normalized = fPoint(AB.x/norm,AB.y/norm);
 
-  std::cout << AB.x << "  " << AB.y << '\n';
-  std::cout << AB_normalized.x << "  " << AB_normalized.y << '\n';
-
 
   // Calculate the perpendicular vector to AB
   fPoint perp_vector(AB_normalized.y, -AB_normalized.x);
@@ -63,10 +60,10 @@ Core::Core(bool robot_flag, MapHandler *map_)
   fPoint mid_fPoint = A + AB*0.5;
 
   // Calculate the coordinates of the vertices of the rectangle
-  Point C = {mid_fPoint.x + perp_vector.x * d + AB_normalized.x * (h / 2),mid_fPoint.y + perp_vector.y * d + AB_normalized.y * (h / 2) };
-  Point D = {mid_fPoint.x + perp_vector.x * d - AB_normalized.x * (h / 2),mid_fPoint.y + perp_vector.y * d - AB_normalized.y * (h / 2) };
-  Point E = {mid_fPoint.x - perp_vector.x * d - AB_normalized.x * (h / 2),mid_fPoint.y - perp_vector.y * d - AB_normalized.y * (h / 2) };
-  Point F = {mid_fPoint.x - perp_vector.x * d + AB_normalized.x * (h / 2),mid_fPoint.y - perp_vector.y * d + AB_normalized.y * (h / 2) };
+  iPoint C = {static_cast<int>(std::round(mid_fPoint.x + perp_vector.x * d + AB_normalized.x * (h / 2)) ),static_cast<int>(std::round(mid_fPoint.y + perp_vector.y * d + AB_normalized.y * (h / 2))) };
+  iPoint D = {static_cast<int>(std::round(mid_fPoint.x + perp_vector.x * d - AB_normalized.x * (h / 2)) ),static_cast<int>(std::round(mid_fPoint.y + perp_vector.y * d - AB_normalized.y * (h / 2))) };
+  iPoint E = {static_cast<int>(std::round(mid_fPoint.x - perp_vector.x * d - AB_normalized.x * (h / 2)) ),static_cast<int>(std::round(mid_fPoint.y - perp_vector.y * d - AB_normalized.y * (h / 2))) };
+  iPoint F = {static_cast<int>(std::round(mid_fPoint.x - perp_vector.x * d + AB_normalized.x * (h / 2)) ),static_cast<int>(std::round(mid_fPoint.y - perp_vector.y * d + AB_normalized.y * (h / 2))) };
 
   auto side_A = DefineLine(C,D);
   auto side_B = DefineLine(D,E);
@@ -195,7 +192,7 @@ void Core::CastRays()
       }
    
       // Case #3: Same kind of ray intersection (create new node)
-      std::pair<bool,Point>  intersection = CheckIntersection(ray_pos);
+      std::pair<bool,iPoint>  intersection = CheckIntersection(ray_pos);
 
       if (intersection.first) // If there is an intersection
       {   
@@ -260,9 +257,9 @@ void Core::CastRays()
  * @return std::vector<Point> the points that are on the line from A to B in grid resolution
  */
 
-std::vector<Point> Core::DefineLine(const Point & A, const Point & B) 
+std::vector<iPoint> Core::DefineLine(const iPoint & A, const iPoint & B) 
 {
-  std::vector<Point> points;
+  std::vector<iPoint> points;
   int x1 = A.x;
   int y1 = A.y;
   int x2 = B.x;
@@ -279,7 +276,7 @@ std::vector<Point> Core::DefineLine(const Point & A, const Point & B)
   
   while (true) 
   {
-    points.push_back(Point(x1, y1));
+    points.push_back(iPoint(x1, y1));
     
     if (x1 == x2 && y1 == y2) break;
     
@@ -307,7 +304,7 @@ std::vector<Point> Core::DefineLine(const Point & A, const Point & B)
  */
 void Core::UpdateGrid(const RCD::RGraph::Node&  source,const  RCD::RGraph::Node & target)
 {
-  std::vector<Point> points = DefineLine(source.pos, target.pos);
+  std::vector<iPoint> points = DefineLine(source.pos, target.pos);
 
   if (isRobot){
     for (const auto& point : points) {
@@ -327,7 +324,7 @@ void Core::UpdateGrid(const RCD::RGraph::Node&  source,const  RCD::RGraph::Node 
 /* <ShortestPath>
  * Adds the intersection node to both graphs and finds the shortest path on the graph with breadth_first search
  */
-std::vector<Point> Core::ShortestPath(RCD::RGraph::Node end_node)
+std::vector<iPoint> Core::ShortestPath(RCD::RGraph::Node end_node)
 {
     // Define a priority queue to store vertices based on their distance from the end node
     std::priority_queue<std::pair<float, RCD::RGraph::NodeDescriptor>,
@@ -367,7 +364,7 @@ std::vector<Point> Core::ShortestPath(RCD::RGraph::Node end_node)
     }
 
     // Reconstruct the shortest path
-    std::vector<Point> path;
+    std::vector<iPoint> path;
     std::vector<RGraph::NodeDescriptor> path_ver;
 
     RCD::RGraph::NodeDescriptor current = 0; // Start from the root of the graph
@@ -419,14 +416,14 @@ RCD::RGraph::Node Core::AddIntersectionNode()
 /*<CheckIntersection>
  * Checks if there is an intersection around the ray. if it is, returns a flag and the edge descriptor 
  */
-std::pair<bool,Point>  Core::CheckIntersection(const Point & p)
+std::pair<bool,iPoint>  Core::CheckIntersection(const iPoint & p)
 {
     for (int i = -1 ; i < 2 ; ++i){
       for (int j = -1 ; j < 2; ++j){
         if ( (isRobot && map->grid[p.y + i][p.x +j].robotPass) || (!isRobot && map->grid[p.y + i][p.x +j].targetPass)){
-          return std::make_pair(true, Point(p.x +j, p.y +i));
+          return std::make_pair(true, iPoint(p.x +j, p.y +i));
         }
       }
     }
-    return std::make_pair(false, Point(0,0));
+    return std::make_pair(false, iPoint(0,0));
 }

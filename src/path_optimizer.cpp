@@ -1,6 +1,6 @@
 #include "path_optimizer.hpp"
 
-PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler *map_)
+PathOptimizer::PathOptimizer(const std::vector<iPoint> & default_path, MapHandler *map_)
 :originalPath{default_path}, map{map_}
 {
   printInfo("Initialized Path Optimizer");
@@ -9,7 +9,7 @@ PathOptimizer::PathOptimizer(const std::vector<Point> & default_path, MapHandler
   // First step optimization: one node should only be able to see one
   originalPath = GenerateSamples(originalPath,0 , originalPath.size());
   optimizedPath = originalPath;
-  last_seen = {Point(-1,-1),-1};
+  last_seen = {iPoint(-1,-1),-1};
 
 } 
 
@@ -22,7 +22,7 @@ void PathOptimizer::OptimizePath()
 
   while(last_seen.first != originalPath.back())
   {
-    last_seen = {Point(-1,-1),-1};
+    last_seen = {iPoint(-1,-1),-1};
     for (int p = opt_point + 1 ; p < optimizedPath.size() ; ++p )
     {
       if (HasLineOfSight(optimizedPath[opt_point], optimizedPath[p]))
@@ -55,13 +55,13 @@ void PathOptimizer::OptimizePath()
 
 
 
-std::vector<Point> PathOptimizer::GenerateSamples(const std::vector<Point> & path, int start, int end) // Start and end are indexes where to start and end generating samples in path
+std::vector<iPoint> PathOptimizer::GenerateSamples(const std::vector<iPoint> & path, int start, int end) // Start and end are indexes where to start and end generating samples in path
 {
   if (end > path.size()){
     printInfo("ERROR: Desired and for infusion is larger than the path");
     exit(3); 
   }
-  std::vector<Point> generatedPath;
+  std::vector<iPoint> generatedPath;
   
   for (int i = 0 ; i <= start ; ++i){
     generatedPath.push_back(path[i]);
@@ -71,7 +71,7 @@ std::vector<Point> PathOptimizer::GenerateSamples(const std::vector<Point> & pat
   double distance_between_points = 0.0;
   double angle = 0.0;
 
-  Point point2add;
+  iPoint point2add;
 
 
   for (int p = start; p < end-1; ++p) {// because p goes p + 1
@@ -114,9 +114,9 @@ std::vector<Point> PathOptimizer::GenerateSamples(const std::vector<Point> & pat
 
 
 // This is the optimal line of sight for one poitn. It finds the truly last seen element for every node
-std::vector<Point> PathOptimizer::LoS(const std::vector<Point> & path  , int opt)
+std::vector<iPoint> PathOptimizer::LoS(const std::vector<iPoint> & path  , int opt)
 {
-  std::vector<Point> reducedPath;
+  std::vector<iPoint> reducedPath;
   for (int i = 0 ; i < opt+1 ; ++i){
     reducedPath.push_back(path[i]);
   }
@@ -149,7 +149,7 @@ std::vector<Point> PathOptimizer::LoS(const std::vector<Point> & path  , int opt
 /*
  * returns true if there is a direct line of sight between p1 and p2 else it returns false
 */
-bool PathOptimizer::HasLineOfSight(const Point& p1, const Point& p2)
+bool PathOptimizer::HasLineOfSight(const iPoint& p1, const iPoint& p2)
 {
   // Calculate distance between points
   double distance_between_points = CalculateDistance(p1, p2);
@@ -207,7 +207,7 @@ bool PathOptimizer::HasLineOfSight(const Point& p1, const Point& p2)
 /*
  * Computes the path distance of the optimized path
  */
-float PathOptimizer::PathDistance(const std::vector<Point> & path)
+float PathOptimizer::PathDistance(const std::vector<iPoint> & path)
 {
   float curr_path_length = 0;
     // double prev_path_length;

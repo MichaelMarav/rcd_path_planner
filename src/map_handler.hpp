@@ -32,8 +32,8 @@ class MapHandler
     unsigned int width;
     unsigned int height;
 
-    Point robot_pos;
-    Point target_pos;
+    iPoint robot_pos;
+    iPoint target_pos;
 
     MapHandler(const std::string & map_file); // Constructor
 

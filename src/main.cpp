@@ -51,8 +51,8 @@ for (int i = 0 ; i < N ; ++i)
   // Target Caster
   RCD::Core TargetCaster(false, &handler);
   plotter.VisualizeRays(handler); // For real-time plotting
-  std::vector<Point> robot_path  ;
-  std::vector<Point> target_path ;
+  std::vector<iPoint> robot_path  ;
+  std::vector<iPoint> target_path ;
 
   auto start = std::chrono::system_clock::now();
   // Main loop

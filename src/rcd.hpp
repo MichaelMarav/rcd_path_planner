@@ -43,7 +43,7 @@ namespace RCD
       float sin_cast; // sin of casting angle
 
       // ray's position during casting
-      Point ray_pos; 
+      iPoint ray_pos; 
       
       RCD::RGraph::Node node2cast; // Node structure to be casted next
       RCD::RGraph::Node node2add;  // Node structure to be added to the graph
@@ -51,10 +51,10 @@ namespace RCD
 
       std::vector<RCD::RGraph::Node> addNodeList; // Temp Node list that will be added to the graph at each iteration
 
-      std::pair<bool,Point>  CheckIntersection(const Point & p);
+      std::pair<bool,iPoint>  CheckIntersection(const iPoint & p);
 
       void PrepareCasting();
-      std::vector<Point> DefineLine(const Point & A, const Point & B); 
+      std::vector<iPoint> DefineLine(const iPoint & A, const iPoint & B); 
 
 
     public:
@@ -72,7 +72,7 @@ namespace RCD
       void UpdateGrid(const RCD::RGraph::Node &  source,const RCD::RGraph::Node & target);
 
       RCD::RGraph::Node AddIntersectionNode();
-      std::vector<Point>  ShortestPath(RCD::RGraph::Node end_node);
+      std::vector<iPoint>  ShortestPath(RCD::RGraph::Node end_node);
       
       MapHandler* map; // pointer to the map object
 

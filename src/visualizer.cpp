@@ -103,7 +103,7 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap)
  * 
  * @param path A vector with Point that construct the path in 2D.
  */
-void Visualizer::VisualizePath(std::vector<Point> path)
+void Visualizer::VisualizePath(std::vector<iPoint> path)
 {
 
   for (int i = 0; i < map.height; ++i) {

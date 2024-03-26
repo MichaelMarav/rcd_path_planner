@@ -23,7 +23,7 @@ public:
 
   struct Node
   {
-    Point pos;
+    iPoint pos;
     // Father?
     float cast_w;   // Cast weight   -> cast_w = f(p,q,e) TODO: figure out this function
     float p;        // Proximity     -> How close this Node is to target
@@ -72,7 +72,7 @@ public:
     return;
   }
 
-  inline void UpdateWeight(RGraph::Node & node, float distance_from_father, float father_proximity, const Point & node_pos, const Point & target_pos, const Point & robot_pos)
+  inline void UpdateWeight(RGraph::Node & node, float distance_from_father, float father_proximity, const iPoint & node_pos, const iPoint & target_pos, const iPoint & robot_pos)
   {
     node.pos.x  = node_pos.x;
     node.pos.y  = node_pos.y;

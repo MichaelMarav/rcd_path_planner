@@ -23,7 +23,7 @@ class Visualizer
 
     void VisualizeRays(const MapHandler & updatedMap);
 
-    void VisualizePath(std::vector<Point> path);
+    void VisualizePath(std::vector<iPoint> path);
 
     void VisualizeNodes(RCD::Core g1, RCD::Core g2);
 
