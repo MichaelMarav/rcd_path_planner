@@ -10,7 +10,7 @@ PathPlanner::PathPlanner(int NumberOfRuns)
 }
 
 
-void PathPlanner::FindPath()
+void PathPlanner::FindPath(float scale_value)
 {
   for (int i = 0 ; i < N ; ++i)
   {
@@ -19,10 +19,10 @@ void PathPlanner::FindPath()
     RCD::Core::pathFound = false;
     
     // Robot Caster
-    RCD::Core RobotCaster(true, &handler_i,10.0);
+    RCD::Core RobotCaster(true, &handler_i,scale_value);
 
     // Target Caster
-    RCD::Core TargetCaster(false, &handler_i,10.0);
+    RCD::Core TargetCaster(false, &handler_i,scale_value);
     // Visualization of the imported grid
 
     std::vector<iPoint> robot_path  ;

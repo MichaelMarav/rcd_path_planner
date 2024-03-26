@@ -32,5 +32,5 @@ class PathPlanner
     PathPlanner(int NumberOfRuns = 1);
     void WriteResults(const std::string & filename);
     void PrintResults();
-    void FindPath();
+    void FindPath(float scale_value);
 };
