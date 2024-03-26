@@ -19,6 +19,7 @@ class MapHandler
       bool isOccupied;        // True for occupied space 
       bool robotPass;         // True if robot-produced ray has passed through that cell
       bool targetPass;        // True if target-produced ray has passed through that cell
+      bool onRectangle;       // True if this cell is on the constraint-search rectangle
       RCD::RGraph::EdgeDescriptor edge_id; // Stores the edge descriptor that connects the nodes that pass through
     };
 

@@ -121,6 +121,7 @@ void MapHandler::initializeGrid(unsigned int width, unsigned int height)
       this->grid[i][j].isOccupied = false;
       this->grid[i][j].robotPass  = false;
       this->grid[i][j].targetPass = false;
+      this->grid[i][j].onRectangle= false;      
     }
   }
 }

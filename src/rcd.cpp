@@ -9,7 +9,15 @@ RGraph::EdgeDescriptor Core::intersectionEdge_id;
 bool Core::pathFound = false;  
 bool Core::pathFoundByRobot = false;
 
-// <Core Constructor> 
+/**
+ * @brief Construct a new Core:: Core object. 
+ * 1. Initializes the two graphs
+ * 2. Initilizes the weights of the root nodes. 
+ * 3. Initilizes random seed for primary casting direction
+ * 4. Super imposes a rectangle on the occupancy grid to constraint search area
+ * @param robot_flag true if the robot caster is constructed, false if the target caster
+ * @param map_ pointer to the occupancy grid data structure
+ */
 Core::Core(bool robot_flag, MapHandler *map_)
 :isRobot(robot_flag), casting_angles(NUM_RAYS), map{map_}
 {
@@ -73,33 +81,34 @@ void Core::ConstraintSearchArea(float scale_rectangle)
   iPoint F = {static_cast<int>(std::round(mid_fPoint.x - perp_vector.x * h + AB_normalized.x * (w / 2)) ),static_cast<int>(std::round(mid_fPoint.y - perp_vector.y * h + AB_normalized.y * (w / 2))) };
 
   // Extract the points of each side of the rectangle
-  auto side_A = BresenhamLine(C,D);
-  auto side_B = BresenhamLine(D,E);
-  auto side_C = BresenhamLine(E,F);
-  auto side_D = BresenhamLine(F,C);
-
-  for (const auto& point : side_A) {
-    if (point.y < map->height && point.x < map->width)
-      map->grid[point.y][point.x].isOccupied = true; 
-  }
-
-  for (const auto& point : side_B) {
-    if (point.y < map->height && point.x < map->width)
-      map->grid[point.y][point.x].isOccupied = true; 
-  }
-
-  for (const auto& point : side_C) {
-    if (point.y < map->height && point.x < map->width)
-      map->grid[point.y][point.x].isOccupied = true; 
-  }
-
-  for (const auto& point : side_D) {
-    if (point.y < map->height && point.x < map->width)
-      map->grid[point.y][point.x].isOccupied = true; 
-  }
-
+  ImposeRectangle(BresenhamLine(C,D));
+  ImposeRectangle(BresenhamLine(D,E));
+  ImposeRectangle(BresenhamLine(E,F));
+  ImposeRectangle(BresenhamLine(F,C));      
 }
-
+/**
+ * @brief Given a line with points, it makes the map occupied while also inflating the line
+ * 
+ * @param line a vector of points that define a line
+ */
+void Core::ImposeRectangle(const std::vector<iPoint> & line)
+{
+  for (const auto& point : line) {
+    if (point.y < map->height && point.x < map->width){
+      for (int i = -ray_start_dis; i <= ray_start_dis; ++i) {
+        for (int j = -ray_start_dis; j <= ray_start_dis; ++j) {
+          int new_y = point.y + i;
+          int new_x = point.x + j;
+          if (new_y >= 0 && new_y < map->height && new_x >= 0 && new_x < map->width)
+          {
+              map->grid[new_y][new_x].isOccupied  = true; // For stopping casting besides the rectangle
+              map->grid[new_y][new_x].onRectangle = true; // For visualization purposes
+          }
+        }
+      }
+    }
+  }
+}
 
 /* <PrepareCast> 
  * Updated Graph and compute properties. (Gets object ready before cast)
@@ -139,7 +148,7 @@ void Core::CastRays()
   {
     cos_cast = std::cos(angle);
     sin_cast = std::sin(angle);
-    ray_dis = 5.0; // Starting distance from node
+    ray_dis = ray_start_dis; // Starting distance from node
     
     while (!pathFound)
     {
@@ -178,7 +187,7 @@ void Core::CastRays()
       // Case #2: Hit wall after exploring
       if (map->grid[ray_pos.y][ray_pos.x].isOccupied)
       {
-        if (ray_dis < 6.)  //  Don't add node that immedietly hits the wall
+        if (ray_dis < ray_start_dis + 1.)  //  Don't add node that immedietly hits the wall
         {
           break;
         }
@@ -205,7 +214,7 @@ void Core::CastRays()
       if (intersection.first) // If there is an intersection
       {   
 
-        if (ray_dis < 20.)  //  Don't add node that immedietly hits the wall
+        if (ray_dis < ray_start_dis + 10.)  //  Don't add node that immedietly hits the wall
         {
           break;
         }

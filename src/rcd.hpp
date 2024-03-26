@@ -20,14 +20,18 @@ namespace RCD
       };
 
       std::priority_queue<RCD::RGraph::Node, std::vector<RCD::RGraph::Node>, CompareWeight> weight_priority_queue;
-      // Number of rays to be casted
-      const int NUM_RAYS{6}; 
+
+      const int NUM_RAYS{6};  // Number of rays to be casted
     
       // Symmetric angle increment dependent on number of rays (e.g. 6 rays = 60 deg., 3 rays 120 deg.) 
       const float angle_increment = static_cast<float>(2.0 * PI / static_cast<float>(NUM_RAYS));
     
-      // Casted ray travelling distance
-      float ray_dis; 
+      const float width_bias = 50.; // rectangle width bias for constraining search
+
+      const float ray_start_dis = 5.0;
+
+      float ray_dis;   // Casted ray travelling distance
+
 
       // Random initial casting direction    
       float casting_dir;
@@ -42,7 +46,6 @@ namespace RCD
       float cos_cast; // cos of casting angle
       float sin_cast; // sin of casting angle
 
-      const float width_bias = 50.; // rectangle width bias for constraining search
       // ray's position during casting
       iPoint ray_pos; 
       
@@ -55,9 +58,12 @@ namespace RCD
       std::pair<bool,iPoint>  CheckIntersection(const iPoint & p);
 
       void PrepareCast();
+      
       std::vector<iPoint> BresenhamLine(const iPoint & A, const iPoint & B); 
+
       void ConstraintSearchArea(float scale_rectangle);
 
+      void ImposeRectangle(const std::vector<iPoint> & line);
 
     public:
       RCD::RGraph G; // Graph structure for this Core object

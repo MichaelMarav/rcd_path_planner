@@ -63,21 +63,16 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap)
   for (int i = 0; i < updatedMap.height; ++i) {
     for (int j = 0; j < updatedMap.width; ++j) {
       if (updatedMap.grid[i][j].robotPass) {
-        // Black for occupied cells
-        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 0, 0);
+        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 0, 0); // Blue for robot rays
       } 
 
       if (updatedMap.grid[i][j].targetPass) {
-        // White for unoccupied cells
-        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 255);
+        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 255); // Red for target rays
       }
 
-      if (updatedMap.grid[i][j].isOccupied) {
-        // Black for occupied cells
-        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
-      } 
-
-        // cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b( updatedMap.grid[i][j].edge_id.m_source, updatedMap.grid[i][j].edge_id.m_target, 0);
+      if (updatedMap.grid[i][j].onRectangle) {
+        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 120, 255); // Red for target rays
+      }
     }
   }
   cv::Point robot(updatedMap.robot_pos.x, updatedMap.robot_pos.y); 
