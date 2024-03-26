@@ -9,13 +9,34 @@
 #include <numeric>
 #include <vector>
 #include "path_planner.hpp"
+#include <thread>
+
 
 int main()
 {
-  // for (int f = 0 ; f < 10 ; ++f){
+  bool threading = true;
   std::cout << "Ray Casting and Diffusion model for Path Planning \n";
   PathPlanner rcd_path_planner(5);
-  rcd_path_planner.FindPath();
+
+  if (threading)
+  {
+    std::vector<std::thread> threads;
+    std::vector<float> scales = {1, 2, 3, 4, 5}; // Add as many values as needed
+
+    for (int scale : scales) {
+      threads.emplace_back([&rcd_path_planner, scale]() {
+          rcd_path_planner.FindPath(scale);
+      });
+    }
+
+    for (std::thread &thread : threads) {
+      thread.join();
+    }
+  }else{
+    rcd_path_planner.FindPath(1);
+  }
+ 
+
 //   int N = 50;
 //   std::string prefix = "/home/michael/github/rcd_path_planner/maps/mazes/";
 //   // std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes1/result_boxes/rcd.csv");
