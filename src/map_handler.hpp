@@ -37,7 +37,7 @@ class MapHandler
     iPoint target_pos;
 
     MapHandler(const std::string & map_file); // Constructor
-
+    MapHandler() = default; // Default constructor
   private:
     std::string yaml_filename;
     std::string ppm_filename;

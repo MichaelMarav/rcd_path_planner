@@ -8,6 +8,7 @@ set(rcd_sources ${rcd_sources}
     src/rcd.cpp
     src/visualizer.cpp
     src/map_handler.cpp
+    src/path_planner.cpp
 )
 
 if(NOT CMAKE_BUILD_TYPE)

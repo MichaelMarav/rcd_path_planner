@@ -3,7 +3,8 @@
 /*
   Loads map and initializes 
 */
-MapHandler::MapHandler(const std::string & map_file): ppm_filename(map_file)
+MapHandler::MapHandler(const std::string & map_file)
+: ppm_filename(map_file)
 {
   std::cout << "Initializing Occupancy Grid..\n";
   std::cout << "Loading file: " << ppm_filename <<'\n';

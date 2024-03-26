@@ -18,8 +18,8 @@ bool Core::pathFoundByRobot = false;
  * @param robot_flag true if the robot caster is constructed, false if the target caster
  * @param map_ pointer to the occupancy grid data structure
  */
-Core::Core(bool robot_flag, MapHandler *map_)
-:isRobot(robot_flag), casting_angles(NUM_RAYS), map{map_}
+Core::Core(bool robot_flag, MapHandler *map_, float scaleRectangle)
+:isRobot(robot_flag), casting_angles(NUM_RAYS), map{map_}, scaleRectangle_{scaleRectangle}
 {
 
   // Initialize robot and target root weights
@@ -44,7 +44,7 @@ Core::Core(bool robot_flag, MapHandler *map_)
 
   srand(static_cast<unsigned int>(time(nullptr))); //Seed time for different sequence of pseudo-random numbers  
   
-  ConstraintSearchArea(4.0); // Add rectangle to limit search area
+  ConstraintSearchArea(); // Add rectangle to limit search area
 }
 
 
@@ -53,14 +53,14 @@ Core::Core(bool robot_flag, MapHandler *map_)
  * 
  * @param scale_rectangle A float used for scaling the size of the rectangle
  */
-void Core::ConstraintSearchArea(float scale_rectangle)
+void Core::ConstraintSearchArea()
 {
   fPoint B(map->target_pos.x,map->target_pos.y);
   fPoint A(map->robot_pos.x,map->robot_pos.y);
 
 
-  float w = scale_rectangle*(CalculateDistance(map->target_pos,map->robot_pos)  + width_bias); // Width of the constraint-search rectangle
-  float h = scale_rectangle*50.;
+  float w = scaleRectangle_*(CalculateDistance(map->target_pos,map->robot_pos)  + width_bias); // Width of the constraint-search rectangle
+  float h = scaleRectangle_*50.;
   fPoint AB = B - A;
 
   // Normalize the direction vector of AB
@@ -110,10 +110,10 @@ void Core::ImposeRectangle(const std::vector<iPoint> & line)
   }
 }
 
-/* <PrepareCast> 
+/* <CastDecision> 
  * Updated Graph and compute properties. (Gets object ready before cast)
  */
-void Core::PrepareCast()
+void Core::CastDecision()
 {
   // Find in which directions RCD is going to cast 
   casting_dir =  (static_cast<float>(rand() % (360/NUM_RAYS + 1)) )*PI/180.;  // Random casting direction
@@ -140,7 +140,7 @@ void Core::CastRays()
     return;
   }
 
-  PrepareCast();
+  CastDecision();
 
 
   // For every casting direction

@@ -29,7 +29,7 @@ namespace RCD
       const float width_bias = 50.; // rectangle width bias for constraining search
 
       const float ray_start_dis = 5.0;
-
+      float scaleRectangle_;
       float ray_dis;   // Casted ray travelling distance
 
 
@@ -57,15 +57,17 @@ namespace RCD
 
       std::pair<bool,iPoint>  CheckIntersection(const iPoint & p);
 
-      void PrepareCast();
+      void CastDecision();
       
       std::vector<iPoint> BresenhamLine(const iPoint & A, const iPoint & B); 
 
-      void ConstraintSearchArea(float scale_rectangle);
+      void ConstraintSearchArea();
 
       void ImposeRectangle(const std::vector<iPoint> & line);
 
     public:
+      Core(bool robot_flag,MapHandler *map_, float scaleRectangle); // Constructor
+
       RCD::RGraph G; // Graph structure for this Core object
 
       static bool pathFound; // Flag set to true if the path is found
@@ -73,7 +75,6 @@ namespace RCD
       static RCD::RGraph::Node intersectionNode; // The node tha connects the two graphs
       static RCD::RGraph::EdgeDescriptor intersectionEdge_id; // The edge_id of the intersection
 
-      Core(bool robot_flag,MapHandler *map_); // Constructor
 
       void CastRays();
       // void UpdateGrid();

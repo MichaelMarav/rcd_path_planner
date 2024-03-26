@@ -44,7 +44,7 @@ void Visualizer::visualizeOccupancyGrid()
   cv::circle(cast_image, target, radius, cv::Scalar(0, 0, 255), -1); // Color: Blue (BGR), -1 for filled circle
 
   // Display the cast_image using OpenCV
-  cv::imshow("Occupancy Grid", cast_image);
+  cv::imshow("RCD", cast_image);
   cv::waitKey(0);
 
   cv::waitKey(0);
@@ -79,7 +79,7 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap)
   cv::Point target(updatedMap.target_pos.x, updatedMap.target_pos.y); 
 
   
-  int radius = 15; // Radius of the dot
+  int radius = 10; // Radius of the dot
 
   // Draw a blue filled circle (dot)
   cv::circle(cast_image, robot, radius, cv::Scalar(255, 0, 0), -1); // Color: Blue (BGR), -1 for filled circle
@@ -90,7 +90,7 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap)
 
 
   // Display the cast_image using OpenCV
-  cv::imshow("Path", cast_image);
+  cv::imshow("RCD", cast_image);
   cv::waitKey(0);
 
   cv::waitKey(0);

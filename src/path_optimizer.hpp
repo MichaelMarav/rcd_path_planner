@@ -27,7 +27,7 @@ class PathOptimizer
     MapHandler* map; // pointer to the map object
     
     PathOptimizer(const std::vector<iPoint> & default_path, MapHandler *map_);
-    void OptimizePath(); // Optimizes infusedPath with LoS (iterative)
+    void OptimizePath(bool stepOptimize); // Optimizes infusedPath with LoS (iterative)
     float PathDistance(const std::vector<iPoint> & path);
 
 

@@ -18,7 +18,8 @@ class Visualizer
 {
   public:
     Visualizer(const MapHandler & map);
-    
+    Visualizer() = default; // Default constructor
+
     void visualizeOccupancyGrid(); 
 
     void VisualizeRays(const MapHandler & updatedMap);

@@ -17,9 +17,8 @@ PathOptimizer::PathOptimizer(const std::vector<iPoint> & default_path, MapHandle
 /* <OptmizePath> 
  *
  */
-void PathOptimizer::OptimizePath()
+void PathOptimizer::OptimizePath(bool stepOptimize)
 {
-
   while(last_seen.first != originalPath.back())
   {
     last_seen = {iPoint(-1,-1),-1};
@@ -48,7 +47,10 @@ void PathOptimizer::OptimizePath()
 
     optimizedPath = interPath;
     ++opt_point;
-    return;
+    
+    if (stepOptimize)
+      return;
+    
   }
 } 
 
