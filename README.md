@@ -1,6 +1,8 @@
 #  <span style="color:red;">R</span>ay <span style="color:red;">C</span>asting & <span style="color:red;">D</span>iffusion (<span style="color:red;">RCD</span>) model for global path planning 
 # TODOs
-Implement multithreading. Now it is broken because of RCD's static variables. Need to completely removet them and convert them to object related
+* Implement multithreading. Now it is broken because of RCD's static variables. Need to completely removet them and convert them to object related
+* Add parameter to visualizer to visualize wtf every thread does 
+
 ## Build
 ```
 mkdir build && cd build
