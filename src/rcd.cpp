@@ -14,6 +14,7 @@ Core::Core(bool robot_flag, MapHandler *map_)
 :isRobot(robot_flag), casting_angles(NUM_RAYS), map{map_}
 {
 
+  // Initialize robot and target root weights
   if (isRobot){
     node2add.pos.x  = map->robot_pos.x;
     node2add.pos.y  = map->robot_pos.y;
@@ -65,10 +66,10 @@ Core::Core(bool robot_flag, MapHandler *map_)
   iPoint E = {static_cast<int>(std::round(mid_fPoint.x - perp_vector.x * d - AB_normalized.x * (h / 2)) ),static_cast<int>(std::round(mid_fPoint.y - perp_vector.y * d - AB_normalized.y * (h / 2))) };
   iPoint F = {static_cast<int>(std::round(mid_fPoint.x - perp_vector.x * d + AB_normalized.x * (h / 2)) ),static_cast<int>(std::round(mid_fPoint.y - perp_vector.y * d + AB_normalized.y * (h / 2))) };
 
-  auto side_A = DefineLine(C,D);
-  auto side_B = DefineLine(D,E);
-  auto side_C = DefineLine(E,F);
-  auto side_D = DefineLine(F,C);
+  auto side_A = BresenhamLine(C,D);
+  auto side_B = BresenhamLine(D,E);
+  auto side_C = BresenhamLine(E,F);
+  auto side_D = BresenhamLine(F,C);
 
 
   for (const auto& point : side_A) {
@@ -93,10 +94,10 @@ Core::Core(bool robot_flag, MapHandler *map_)
   }
 }
 
-/* <PrepareCasting> 
+/* <PrepareCast> 
  * Updated Graph and compute properties. (Gets object ready before cast)
  */
-void Core::PrepareCasting()
+void Core::PrepareCast()
 {
   // Find in which directions RCD is going to cast 
   casting_dir =  (static_cast<float>(rand() % (360/NUM_RAYS + 1)) )*PI/180.;  // Random casting direction
@@ -123,7 +124,7 @@ void Core::CastRays()
     return;
   }
 
-  PrepareCasting();
+  PrepareCast();
 
 
   // For every casting direction
@@ -257,7 +258,7 @@ void Core::CastRays()
  * @return std::vector<Point> the points that are on the line from A to B in grid resolution
  */
 
-std::vector<iPoint> Core::DefineLine(const iPoint & A, const iPoint & B) 
+std::vector<iPoint> Core::BresenhamLine(const iPoint & A, const iPoint & B) 
 {
   std::vector<iPoint> points;
   int x1 = A.x;
@@ -304,7 +305,7 @@ std::vector<iPoint> Core::DefineLine(const iPoint & A, const iPoint & B)
  */
 void Core::UpdateGrid(const RCD::RGraph::Node&  source,const  RCD::RGraph::Node & target)
 {
-  std::vector<iPoint> points = DefineLine(source.pos, target.pos);
+  std::vector<iPoint> points = BresenhamLine(source.pos, target.pos);
 
   if (isRobot){
     for (const auto& point : points) {

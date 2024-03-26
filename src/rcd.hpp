@@ -53,8 +53,8 @@ namespace RCD
 
       std::pair<bool,iPoint>  CheckIntersection(const iPoint & p);
 
-      void PrepareCasting();
-      std::vector<iPoint> DefineLine(const iPoint & A, const iPoint & B); 
+      void PrepareCast();
+      std::vector<iPoint> BresenhamLine(const iPoint & A, const iPoint & B); 
 
 
     public:
