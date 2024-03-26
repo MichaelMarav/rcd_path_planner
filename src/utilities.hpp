@@ -48,7 +48,7 @@ struct Point
   }
 
   Point operator*(float scalar) const {
-    return {static_cast<int>(x * scalar), static_cast<int>(y * scalar)};
+    return {(x * scalar), (y * scalar)};
   }
 };
 

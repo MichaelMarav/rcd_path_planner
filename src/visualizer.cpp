@@ -66,11 +66,16 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap)
         // Black for occupied cells
         cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 0, 0);
       } 
-      
+
       if (updatedMap.grid[i][j].targetPass) {
         // White for unoccupied cells
         cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 255);
       }
+
+      if (updatedMap.grid[i][j].isOccupied) {
+        // Black for occupied cells
+        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
+      } 
 
         // cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b( updatedMap.grid[i][j].edge_id.m_source, updatedMap.grid[i][j].edge_id.m_target, 0);
     }

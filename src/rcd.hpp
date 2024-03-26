@@ -42,6 +42,7 @@ namespace RCD
       float cos_cast; // cos of casting angle
       float sin_cast; // sin of casting angle
 
+      const float width_bias = 50.; // rectangle width bias for constraining search
       // ray's position during casting
       iPoint ray_pos; 
       
@@ -55,6 +56,7 @@ namespace RCD
 
       void PrepareCast();
       std::vector<iPoint> BresenhamLine(const iPoint & A, const iPoint & B); 
+      void ConstraintSearchArea(float scale_rectangle);
 
 
     public:

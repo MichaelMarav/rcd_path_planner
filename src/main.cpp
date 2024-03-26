@@ -65,7 +65,7 @@ for (int i = 0 ; i < N ; ++i)
     plotter.VisualizeNodes(RobotCaster, TargetCaster);
     plotter.VisualizeRays(handler); // For real-time plotting
   }
-  plotter.VisualizeRays(handler); // For real-time plotting
+    plotter.VisualizeRays(handler); // For real-time plotting
     plotter.VisualizeNodes(RobotCaster, TargetCaster);
 
   // Add the intersection node to the graph that didn't find the path

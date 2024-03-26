@@ -36,23 +36,29 @@ Core::Core(bool robot_flag, MapHandler *map_)
 
   srand(static_cast<unsigned int>(time(nullptr))); //Seed time for different sequence of pseudo-random numbers  
   
-  /* 
-  TODO: Add constraint search
-  */
+  ConstraintSearchArea(4.0); // Add rectangle to limit search area
+}
 
 
+/**
+ * @brief Imposes a rectangle into the grid in order to constraint the search area (adds an occupied rectangle that includes the pos of robot and target)
+ * 
+ * @param scale_rectangle A float used for scaling the size of the rectangle
+ */
+void Core::ConstraintSearchArea(float scale_rectangle)
+{
   fPoint B(map->target_pos.x,map->target_pos.y);
   fPoint A(map->robot_pos.x,map->robot_pos.y);
 
 
-  float h = CalculateDistance(map->target_pos,map->robot_pos)  + 50;
-  float d = 100;
+  float w = scale_rectangle*(CalculateDistance(map->target_pos,map->robot_pos)  + width_bias); // Width of the constraint-search rectangle
+  float h = scale_rectangle*50.;
   fPoint AB = B - A;
+
   // Normalize the direction vector of AB
   auto norm = std::sqrt(AB.x * AB.x + AB.y * AB.y);
 
   fPoint AB_normalized = fPoint(AB.x/norm,AB.y/norm);
-
 
   // Calculate the perpendicular vector to AB
   fPoint perp_vector(AB_normalized.y, -AB_normalized.x);
@@ -61,38 +67,39 @@ Core::Core(bool robot_flag, MapHandler *map_)
   fPoint mid_fPoint = A + AB*0.5;
 
   // Calculate the coordinates of the vertices of the rectangle
-  iPoint C = {static_cast<int>(std::round(mid_fPoint.x + perp_vector.x * d + AB_normalized.x * (h / 2)) ),static_cast<int>(std::round(mid_fPoint.y + perp_vector.y * d + AB_normalized.y * (h / 2))) };
-  iPoint D = {static_cast<int>(std::round(mid_fPoint.x + perp_vector.x * d - AB_normalized.x * (h / 2)) ),static_cast<int>(std::round(mid_fPoint.y + perp_vector.y * d - AB_normalized.y * (h / 2))) };
-  iPoint E = {static_cast<int>(std::round(mid_fPoint.x - perp_vector.x * d - AB_normalized.x * (h / 2)) ),static_cast<int>(std::round(mid_fPoint.y - perp_vector.y * d - AB_normalized.y * (h / 2))) };
-  iPoint F = {static_cast<int>(std::round(mid_fPoint.x - perp_vector.x * d + AB_normalized.x * (h / 2)) ),static_cast<int>(std::round(mid_fPoint.y - perp_vector.y * d + AB_normalized.y * (h / 2))) };
+  iPoint C = {static_cast<int>(std::round(mid_fPoint.x + perp_vector.x * h + AB_normalized.x * (w / 2)) ),static_cast<int>(std::round(mid_fPoint.y + perp_vector.y * h + AB_normalized.y * (w / 2))) };
+  iPoint D = {static_cast<int>(std::round(mid_fPoint.x + perp_vector.x * h - AB_normalized.x * (w / 2)) ),static_cast<int>(std::round(mid_fPoint.y + perp_vector.y * h - AB_normalized.y * (w / 2))) };
+  iPoint E = {static_cast<int>(std::round(mid_fPoint.x - perp_vector.x * h - AB_normalized.x * (w / 2)) ),static_cast<int>(std::round(mid_fPoint.y - perp_vector.y * h - AB_normalized.y * (w / 2))) };
+  iPoint F = {static_cast<int>(std::round(mid_fPoint.x - perp_vector.x * h + AB_normalized.x * (w / 2)) ),static_cast<int>(std::round(mid_fPoint.y - perp_vector.y * h + AB_normalized.y * (w / 2))) };
 
+  // Extract the points of each side of the rectangle
   auto side_A = BresenhamLine(C,D);
   auto side_B = BresenhamLine(D,E);
   auto side_C = BresenhamLine(E,F);
   auto side_D = BresenhamLine(F,C);
 
-
   for (const auto& point : side_A) {
     if (point.y < map->height && point.x < map->width)
-      map->grid[point.y][point.x].robotPass = true; 
+      map->grid[point.y][point.x].isOccupied = true; 
   }
-
 
   for (const auto& point : side_B) {
     if (point.y < map->height && point.x < map->width)
-      map->grid[point.y][point.x].robotPass = true; 
+      map->grid[point.y][point.x].isOccupied = true; 
   }
 
   for (const auto& point : side_C) {
     if (point.y < map->height && point.x < map->width)
-      map->grid[point.y][point.x].robotPass = true; 
+      map->grid[point.y][point.x].isOccupied = true; 
   }
 
   for (const auto& point : side_D) {
     if (point.y < map->height && point.x < map->width)
-      map->grid[point.y][point.x].robotPass = true; 
+      map->grid[point.y][point.x].isOccupied = true; 
   }
+
 }
+
 
 /* <PrepareCast> 
  * Updated Graph and compute properties. (Gets object ready before cast)
