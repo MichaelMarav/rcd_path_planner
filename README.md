@@ -1,20 +1,6 @@
 #  <span style="color:red;">R</span>ay <span style="color:red;">C</span>asting & <span style="color:red;">D</span>iffusion (<span style="color:red;">RCD</span>) model for global path planning 
-
-# Issues
-* generated path is broken
-* Change all node names to vertexes
-* Reformat code to google C++ style
-# TO ADD features
-* Fix max weight searching of the graph by filling up a list in real-time
-* Implement multiple runs on the same dataset and compute mean and std
-* Add multi-threading for robot and target update function. 
-* Add guards for grid (avoid changing it simultaneously by two threads) 
-* Refine the path with LoS (Implement path_optimizer.cpp)
-
-
-# For future work
-* The pointer to the map will be changed by three entities -> real-time occ. grid updated, robot , target
-
+# TODOs
+Implement multithreading. Now it is broken because of RCD's static variables. Need to completely removet them and convert them to object related
 ## Build
 ```
 mkdir build && cd build
