@@ -21,7 +21,7 @@ int main()
   if (threading)
   {
     std::vector<std::thread> threads;
-    std::vector<float> scales = {1, 2, 3, 4, 5}; // Add as many values as needed
+    std::vector<float> scales = {1, 2, 3, 4, 5,10}; // Add as many values as needed
 
     for (int scale : scales) {
       threads.emplace_back([&rcd_path_planner, scale]() {
@@ -33,7 +33,7 @@ int main()
       thread.join();
     }
   }else{
-    rcd_path_planner.FindPath(1);
+    rcd_path_planner.FindPath(10);
   }
  
 

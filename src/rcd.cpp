@@ -3,11 +3,7 @@
 using namespace RCD;
 
 
-// Initialize static variables
-RGraph::Node Core::intersectionNode; 
-RGraph::EdgeDescriptor Core::intersectionEdge_id;
-bool Core::pathFound = false;  
-bool Core::pathFoundByRobot = false;
+
 
 /**
  * @brief Construct a new Core:: Core object. 
@@ -136,7 +132,7 @@ void Core::CastDecision()
  */
 void Core::CastRays()
 {
-  if (RCD::Core::pathFound){
+  if (pathFound){
     return;
   }
 
@@ -146,14 +142,13 @@ void Core::CastRays()
   // For every casting direction
   for (const auto& angle : casting_angles)
   {
-    cos_cast = std::cos(angle);
-    sin_cast = std::sin(angle);
+
     ray_dis = ray_start_dis; // Starting distance from node
     
     while (!pathFound)
     {
-      ray_pos.x = std::ceil(node2cast.pos.x + ray_dis*cos_cast);
-      ray_pos.y = std::ceil(node2cast.pos.y + ray_dis*sin_cast);
+      ray_pos.x = std::ceil(node2cast.pos.x + ray_dis*std::cos(angle));
+      ray_pos.y = std::ceil(node2cast.pos.y + ray_dis*std::sin(angle));
 
       // Case #1: Path found
       if ( (!isRobot && map->grid[ray_pos.y][ray_pos.x].robotPass) ||
@@ -163,18 +158,11 @@ void Core::CastRays()
 
         // The intersection node will be added later to both graphs
 
-        if (isRobot){
-          G.UpdateWeight(node2add,ray_dis,node2cast.p, ray_pos, map->target_pos, map->robot_pos);
-          pathFoundByRobot = true;
-        }else{
-          G.UpdateWeight(node2add,ray_dis,node2cast.p,ray_pos, map->robot_pos, map->target_pos);
-          pathFoundByRobot = false;
-        }
+        isRobot ? G.UpdateWeight(node2add,ray_dis,node2cast.p, ray_pos, map->target_pos, map->robot_pos) : G.UpdateWeight(node2add,ray_dis,node2cast.p, ray_pos, map->robot_pos, map->target_pos);  
 
         G.AddNode(node2add, G.G);
 
         node2add.edge_descriptor = G.AddEdge(node2cast.node_descriptor, node2add.node_descriptor, G.G, ray_dis);
-        // UpdateGrid(node2cast,node2add);
 
         intersectionNode = node2add; // This node corresponds to the current graph
         intersectionEdge_id = map->grid[ray_pos.y][ray_pos.x].edge_id; // This edge ID corresponds to the other graph
@@ -408,15 +396,15 @@ std::vector<iPoint> Core::ShortestPath(RCD::RGraph::Node end_node)
  * otherGraph: Is the graph that found the intersection (either robot or target)
  * Returns the last node that was added to the graph
  */
-RCD::RGraph::Node Core::AddIntersectionNode()
+RCD::RGraph::Node Core::AddIntersectionNode(RGraph::Node intersection,RGraph::EdgeDescriptor intersectionEdgeID)
 {
-  auto tmp_node = intersectionNode;
-  G.UpdateWeight(tmp_node,10,10, intersectionNode.pos, map->robot_pos, map->target_pos);
+  auto tmp_node = intersection;
+  G.UpdateWeight(tmp_node,10,10, intersection.pos, map->robot_pos, map->target_pos);
   G.AddNode(tmp_node, G.G); // Add node to the graph
   
   // Find the source and target of the already implemented edge
-  G.source_vertex = boost::source(intersectionEdge_id, G.G);
-  G.target_vertex = boost::target(intersectionEdge_id, G.G);
+  G.source_vertex = boost::source(intersectionEdgeID, G.G);
+  G.target_vertex = boost::target(intersectionEdgeID, G.G);
 
   auto disAB = std::sqrt(std::pow(G.G[G.source_vertex].pos.x - tmp_node.pos.x,2) + std::pow(G.G[G.source_vertex].pos.y - tmp_node.pos.y,2));
   auto disBC = std::sqrt(std::pow(G.G[G.target_vertex].pos.x - tmp_node.pos.x,2) + std::pow(G.G[G.target_vertex].pos.y - tmp_node.pos.y,2));

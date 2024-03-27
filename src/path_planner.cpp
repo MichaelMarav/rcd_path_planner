@@ -16,8 +16,6 @@ void PathPlanner::FindPath(float scale_value)
   {
     auto handler_i = defaultMapHandler;
 
-    RCD::Core::pathFound = false;
-    
     // Robot Caster
     RCD::Core RobotCaster(true, &handler_i,scale_value);
 
@@ -29,11 +27,11 @@ void PathPlanner::FindPath(float scale_value)
     std::vector<iPoint> target_path ;
 
     auto start = std::chrono::system_clock::now();
-
+    int casting_times = 0;
     // Main loop
     if (real_time_plotting)
     {
-      while (!RCD::Core::pathFound){
+      while (!RobotCaster.pathFound && !TargetCaster.pathFound && casting_times < 10000){
 
         RobotCaster.CastRays();
 
@@ -41,6 +39,8 @@ void PathPlanner::FindPath(float scale_value)
 
         plotter.VisualizeNodes(RobotCaster, TargetCaster);
         plotter.VisualizeRays(handler_i); // For real-time plotting
+  
+        ++casting_times;
       }
       plotter.VisualizeRays(handler_i); // For real-time plotting
       plotter.VisualizeNodes(RobotCaster, TargetCaster);
@@ -48,11 +48,13 @@ void PathPlanner::FindPath(float scale_value)
     }
     else
     {
-      while (!RCD::Core::pathFound){
+      while (!RobotCaster.pathFound && !TargetCaster.pathFound && casting_times < 10000){
 
         RobotCaster.CastRays();
 
         TargetCaster.CastRays();
+        ++casting_times;
+
       }
     }
   
@@ -61,20 +63,28 @@ void PathPlanner::FindPath(float scale_value)
     // Add the intersection node to the graph that didn't find the path
     // Finds the shortest path
     RCD::RGraph::Node final_node;
-    if (RCD::Core::pathFoundByRobot){
-      final_node = TargetCaster.AddIntersectionNode();
+    if (RobotCaster.pathFound){
+      std::cout << "Path found By robot\n";
+      final_node = TargetCaster.AddIntersectionNode(RobotCaster.intersectionNode,RobotCaster.intersectionEdge_id);
       
-      robot_path = RobotCaster.ShortestPath(RCD::Core::intersectionNode);
+      robot_path = RobotCaster.ShortestPath(RobotCaster.intersectionNode);
       
       target_path = TargetCaster.ShortestPath(final_node);
-    }else{
-      final_node = RobotCaster.AddIntersectionNode();
-
-      robot_path = RobotCaster.ShortestPath(final_node);
-      
-      target_path = TargetCaster.ShortestPath(RCD::Core::intersectionNode);
     }
-    
+    else if (TargetCaster.pathFound)
+    {
+      std::cout << "Path found By target\n";
+
+      final_node = RobotCaster.AddIntersectionNode(TargetCaster.intersectionNode,TargetCaster.intersectionEdge_id);
+
+      target_path = TargetCaster.ShortestPath(TargetCaster.intersectionNode);
+
+      robot_path = RobotCaster.ShortestPath(final_node);      
+    }else{
+      printInfo("No path found by thread --> " + std::to_string(scale_value));
+
+      return;
+    }
     // Remove Duplicate intersection point (from target / robot graph)
     std::reverse(target_path.begin(), target_path.end());
     robot_path.pop_back();
@@ -82,28 +92,30 @@ void PathPlanner::FindPath(float scale_value)
     robot_path.insert(robot_path.end(), target_path.begin(), target_path.end());
 
 
-    plotter.VisualizePath(robot_path); // Visualize the casting path (fully-unoptimized)
-
     PathOptimizer los_optimizer(robot_path, &handler_i);
     
     if (stepOptimization)
     {
+      plotter.VisualizePath(robot_path); // Visualize the casting path (fully-unoptimized)
+
       while (true){
         los_optimizer.OptimizePath(stepOptimization);
         plotter.VisualizePath(los_optimizer.optimizedPath);
       }
     }else{
       los_optimizer.OptimizePath(stepOptimization);
-      plotter.VisualizePath(los_optimizer.optimizedPath);
-
     }
     
 
     auto end = std::chrono::system_clock::now();
 
     std::chrono::duration<double> elapsed_seconds = end - start;
-    // printInfo("Elapsed Time = " + std::to_string(elapsed_seconds.count()) + " (s)");
-    // printInfo("Path Length  = " + std::to_string(los_optimizer.PathDistance(los_optimizer.optimizedPath)));
+    std::cout << "Tread --> " << scale_value << "   Found path \n";
+    printInfo("Elapsed Time = " + std::to_string(elapsed_seconds.count()) + " (s)");
+    printInfo("Path Length  = " + std::to_string(los_optimizer.PathDistance(los_optimizer.optimizedPath)));
+    std::cout << "---------------------\n";
+
+
     time.push_back(static_cast<float>(elapsed_seconds.count()));
     path_length.push_back(los_optimizer.PathDistance(los_optimizer.optimizedPath));
 

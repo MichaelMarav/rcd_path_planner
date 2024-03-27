@@ -43,9 +43,6 @@ namespace RCD
       // Flag for describing the rcd object, Either robot casting or target 
       bool isRobot;
 
-      float cos_cast; // cos of casting angle
-      float sin_cast; // sin of casting angle
-
       // ray's position during casting
       iPoint ray_pos; 
       
@@ -70,17 +67,16 @@ namespace RCD
 
       RCD::RGraph G; // Graph structure for this Core object
 
-      static bool pathFound; // Flag set to true if the path is found
-      static bool pathFoundByRobot;
-      static RCD::RGraph::Node intersectionNode; // The node tha connects the two graphs
-      static RCD::RGraph::EdgeDescriptor intersectionEdge_id; // The edge_id of the intersection
+      bool pathFound = false;
+      RCD::RGraph::Node intersectionNode; // The node tha connects the two graphs
+      RCD::RGraph::EdgeDescriptor intersectionEdge_id; // The edge_id of the intersection
 
 
       void CastRays();
       // void UpdateGrid();
       void UpdateGrid(const RCD::RGraph::Node &  source,const RCD::RGraph::Node & target);
 
-      RCD::RGraph::Node AddIntersectionNode();
+      RCD::RGraph::Node AddIntersectionNode(RGraph::Node intersection,RGraph::EdgeDescriptor intersectionEdgeID);
       std::vector<iPoint>  ShortestPath(RCD::RGraph::Node end_node);
       
       MapHandler* map; // pointer to the map object
