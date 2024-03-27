@@ -84,7 +84,7 @@ void MapHandler::loadOccupancyGrid(const std::string & ppm_filename)
       }
     }
   }
-  grid = inflated_grid;
+  grid = deflated_grid;
 
 
   file.close();

@@ -11,7 +11,7 @@ Visualizer::Visualizer(const MapHandler & map_object)
 {
   printInfo("Visualizing Occupancy Grid..");
   printInfo("Confirm that the dots are the initial and target positions");
-  visualizeOccupancyGrid();
+  // visualizeOccupancyGrid();
 
 }
 
@@ -103,26 +103,32 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap)
  * 
  * @param path A vector with Point that construct the path in 2D.
  */
-void Visualizer::VisualizePath(std::vector<iPoint> path)
+void Visualizer::VisualizePath(const MapHandler & thread_map, std::vector<iPoint> path, float thread_id)
 {
-
-  for (int i = 0; i < map.height; ++i) {
-    for (int j = 0; j < map.width; ++j) {
-      if (map.grid[i][j].isOccupied) {
+  cv::Mat thread_path_image = cv::Mat(thread_map.height,thread_map.width,CV_8UC3);
+  // path_image = cast_image;
+  for (int i = 0; i < thread_map.height; ++i) {
+    for (int j = 0; j < thread_map.width; ++j) {
+      if (thread_map.grid[i][j].onRectangle) {
+        thread_path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 120, 255); // Red for target rays
+        continue;;
+      }
+      if (thread_map.grid[i][j].isOccupied) {
         // Black for occupied cells
-        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
+        thread_path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 0);
       } else {
         // White for unoccupied cells
-        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 255, 255);
+        thread_path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 255, 255);
       }
+
     }
   }
 
   cv::Point robot(map.robot_pos.x, map.robot_pos.y); // robot coordinates
   cv::Point target(map.target_pos.x, map.target_pos.y); // target coordinates
 
-  cv::circle(cast_image, robot, 10, cv::Scalar(255, 0, 0), -1);
-  cv::circle(cast_image, target, 10, cv::Scalar(0, 0, 255), -1);
+  cv::circle(thread_path_image, robot, 10, cv::Scalar(255, 0, 0), -1);
+  cv::circle(thread_path_image, target, 10, cv::Scalar(0, 0, 255), -1);
 
   int radius = 7; // Radius of the dot
 
@@ -133,17 +139,17 @@ void Visualizer::VisualizePath(std::vector<iPoint> path)
   for (const auto& point : path) {
     cv::Point currentPoint(point.x, point.y);
     // Draw the circle for the current point
-    cv::circle(cast_image, currentPoint, radius, cv::Scalar(255, 0, 0), -1);
+    cv::circle(thread_path_image, currentPoint, radius, cv::Scalar(255, 0, 0), -1);
 
     // Draw a line between the current point and the previous point (if applicable)
     if (prevPoint.x != 0 &&  prevPoint.y != 0){
-      cv::line(cast_image, prevPoint, currentPoint, cv::Scalar(0,255, 0), thickness);
+      cv::line(thread_path_image, prevPoint, currentPoint, cv::Scalar(0,255, 0), thickness);
     }
 
     prevPoint = currentPoint; // Update the previous point for the next iteration
   }
   // Display the cast_image using OpenCV
-  cv::imshow("Path", cast_image);
+  cv::imshow(std::to_string(thread_id) + " Path", thread_path_image);
   cv::waitKey(0);
   cv::waitKey(0);
 

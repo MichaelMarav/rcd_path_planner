@@ -64,7 +64,6 @@ void PathPlanner::FindPath(float scale_value)
     // Finds the shortest path
     RCD::RGraph::Node final_node;
     if (RobotCaster.pathFound){
-      std::cout << "Path found By robot\n";
       final_node = TargetCaster.AddIntersectionNode(RobotCaster.intersectionNode,RobotCaster.intersectionEdge_id);
       
       robot_path = RobotCaster.ShortestPath(RobotCaster.intersectionNode);
@@ -73,8 +72,6 @@ void PathPlanner::FindPath(float scale_value)
     }
     else if (TargetCaster.pathFound)
     {
-      std::cout << "Path found By target\n";
-
       final_node = RobotCaster.AddIntersectionNode(TargetCaster.intersectionNode,TargetCaster.intersectionEdge_id);
 
       target_path = TargetCaster.ShortestPath(TargetCaster.intersectionNode);
@@ -96,21 +93,22 @@ void PathPlanner::FindPath(float scale_value)
     
     if (stepOptimization)
     {
-      plotter.VisualizePath(robot_path); // Visualize the casting path (fully-unoptimized)
+      plotter.VisualizePath(handler_i,robot_path,scale_value); // Visualize the casting path (fully-unoptimized)
 
       while (true){
         los_optimizer.OptimizePath(stepOptimization);
-        plotter.VisualizePath(los_optimizer.optimizedPath);
+        plotter.VisualizePath(handler_i, los_optimizer.optimizedPath,scale_value);
       }
     }else{
       los_optimizer.OptimizePath(stepOptimization);
+      // plotter.VisualizePath(handler_i,los_optimizer.optimizedPath,scale_value);
     }
     
 
     auto end = std::chrono::system_clock::now();
 
     std::chrono::duration<double> elapsed_seconds = end - start;
-    std::cout << "Tread --> " << scale_value << "   Found path \n";
+    printInfo("Found path by thread --> "  + std::to_string(scale_value));
     printInfo("Elapsed Time = " + std::to_string(elapsed_seconds.count()) + " (s)");
     printInfo("Path Length  = " + std::to_string(los_optimizer.PathDistance(los_optimizer.optimizedPath)));
     std::cout << "---------------------\n";
@@ -120,6 +118,7 @@ void PathPlanner::FindPath(float scale_value)
     path_length.push_back(los_optimizer.PathDistance(los_optimizer.optimizedPath));
 
   }
+
   
 }
 

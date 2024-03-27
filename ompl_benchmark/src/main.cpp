@@ -231,10 +231,10 @@ int main(int argc, char *argv[]) {
     std::string filename = "occ_11_46_24";
     std::string prefix = "/home/michael/github/rcd_path_planner/maps/mazes";
     // path_to_map = prefix+ filename +"/" + filename + ".ppm";
-    path_to_map = "/home/michael/github/rcd_path_planner/maps/mazes/2.ppm";
+    path_to_map = "/home/michael/github/rcd_path_planner/maps/random_boxes1/4.ppm";
 
     // auto path_to_yaml = prefix + filename +"/" + filename +".yaml";
-    auto path_to_yaml = "/home/michael/github/rcd_path_planner/maps/mazes/0.yaml";
+    auto path_to_yaml = "/home/michael/github/rcd_path_planner/maps/random_boxes1/3.yaml";
     YAML::Node config = YAML::LoadFile(path_to_yaml);
 
     initial_position[0] = config["robot_position_x"].as<size_t>();
