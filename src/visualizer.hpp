@@ -20,9 +20,9 @@ class Visualizer
     Visualizer(const MapHandler & map);
     Visualizer() = default; // Default constructor
 
-    void visualizeOccupancyGrid(); 
+    void InitializeCastImage(); 
 
-    void VisualizeRays(const MapHandler & updatedMap);
+    void VisualizeRays(const MapHandler & updatedMap, RCD::Core g1, RCD::Core g2);
 
     void VisualizePath(const MapHandler & thread_map, std::vector<iPoint> path,float thread_id);
 

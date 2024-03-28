@@ -14,7 +14,7 @@
 
 int main()
 {
-  bool threading = true;
+  bool threading = false;
   std::cout << "Ray Casting and Diffusion model for Path Planning \n";
   PathPlanner rcd_path_planner(1);
 
@@ -36,7 +36,7 @@ int main()
       thread.join();
     }
   }else{
-    rcd_path_planner.FindPath(10);
+    rcd_path_planner.FindPath(1);
   }
  
 

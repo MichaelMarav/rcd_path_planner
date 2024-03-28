@@ -11,7 +11,7 @@ Visualizer::Visualizer(const MapHandler & map_object)
 {
   printInfo("Visualizing Occupancy Grid..");
   printInfo("Confirm that the dots are the initial and target positions");
-  // visualizeOccupancyGrid();
+  InitializeCastImage();
 
 }
 
@@ -19,7 +19,7 @@ Visualizer::Visualizer(const MapHandler & map_object)
  * @brief Visualizes the occupancy grid with black for occupied and white for free space
  * Pops up an image with the grid
  */
-void Visualizer::visualizeOccupancyGrid()
+void Visualizer::InitializeCastImage()
 {
   // Fill the cast_image with appropriate colors based on the grid
   for (int i = 0; i < map.height; ++i) {
@@ -41,13 +41,7 @@ void Visualizer::visualizeOccupancyGrid()
 
   // Draw a blue filled circle (dot)
   cv::circle(cast_image, robot, radius, cv::Scalar(255, 0, 0 ), -1); // Color: Blue (BGR), -1 for filled circle
-  cv::circle(cast_image, target, radius, cv::Scalar(0, 0, 255), -1); // Color: Blue (BGR), -1 for filled circle
-
-  // Display the cast_image using OpenCV
-  cv::imshow("RCD", cast_image);
-  cv::waitKey(0);
-
-  cv::waitKey(0);
+  cv::circle(cast_image, target, radius, cv::Scalar(190, 150, 37), -1); // Color: Blue (BGR), -1 for filled circle
 }
 
 
@@ -57,22 +51,33 @@ void Visualizer::visualizeOccupancyGrid()
  * 
  * @param: updatedMap The map object that gets updated at each iteration with the new rays
  */
-void Visualizer::VisualizeRays(const MapHandler & updatedMap)
+void Visualizer::VisualizeRays(const MapHandler & updatedMap, RCD::Core g1, RCD::Core g2)
 {
+
+
   // Fill the cast_image with appropriate colors based on the grid
   for (int i = 0; i < updatedMap.height; ++i) {
     for (int j = 0; j < updatedMap.width; ++j) {
       if (updatedMap.grid[i][j].robotPass) {
-        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 0, 0); // Blue for robot rays
+        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(128, 75, 0); // Blue for robot rays
+        continue;
       } 
 
       if (updatedMap.grid[i][j].targetPass) {
-        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 0, 255); // Red for target rays
+        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(18, 0, 230); // Red for target rays
+        continue;
       }
 
       if (updatedMap.grid[i][j].onRectangle) {
-        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 120, 255); // Red for target rays
+        cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 206, 254); // Red for target rays
+        continue;
       }
+
+
+      // if (!updatedMap.grid[i][j].isOccupied) {
+      //   cast_image.at<cv::Vec3b>(i, j) = cv::Vec3b(255, 255, 255); // Red for target rays
+      //   continue;
+      // }
     }
   }
   cv::Point robot(updatedMap.robot_pos.x, updatedMap.robot_pos.y); 
@@ -82,10 +87,11 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap)
   int radius = 10; // Radius of the dot
 
   // Draw a blue filled circle (dot)
-  cv::circle(cast_image, robot, radius, cv::Scalar(255, 0, 0), -1); // Color: Blue (BGR), -1 for filled circle
-  cv::circle(cast_image, target, radius, cv::Scalar(0, 0, 255), -1); // Color: Blue (BGR), -1 for filled circle
+  cv::circle(cast_image, robot, radius, cv::Scalar(128, 75, 0), -1); // Color: Blue (BGR), -1 for filled circle
+  cv::circle(cast_image, target, radius, cv::Scalar(18, 0, 230), -1); // Color: Blue (BGR), -1 for filled circle
 
   // cv::circle(cast_image, target, radius, cv::Scalar(0, 255, 0), -1); // Color: Blue (BGR), -1 for filled circle
+  Visualizer::VisualizeNodes(g1, g2);
 
 
 
@@ -111,7 +117,7 @@ void Visualizer::VisualizePath(const MapHandler & thread_map, std::vector<iPoint
     for (int j = 0; j < thread_map.width; ++j) {
       if (thread_map.grid[i][j].onRectangle) {
         thread_path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 120, 255); // Red for target rays
-        continue;;
+        continue;
       }
       if (thread_map.grid[i][j].isOccupied) {
         // Black for occupied cells
@@ -127,7 +133,7 @@ void Visualizer::VisualizePath(const MapHandler & thread_map, std::vector<iPoint
   cv::Point robot(map.robot_pos.x, map.robot_pos.y); // robot coordinates
   cv::Point target(map.target_pos.x, map.target_pos.y); // target coordinates
 
-  cv::circle(thread_path_image, robot, 10, cv::Scalar(255, 0, 0), -1);
+  cv::circle(thread_path_image, robot, 10, cv::Scalar(128, 75, 0), -1);
   cv::circle(thread_path_image, target, 10, cv::Scalar(0, 0, 255), -1);
 
   int radius = 7; // Radius of the dot
@@ -171,8 +177,8 @@ void Visualizer::VisualizeNodes(RCD::Core g1, RCD::Core g2)
       // Access the node
       RCD::RGraph::Node& node = g1.G.G[vd];        
       cv::Point p(node.pos.x, node.pos.y); // robot coordinates
-      cv::circle(cast_image, p,5, cv::Scalar(255, 0, 0), -1);
-    }
+      cv::circle(cast_image, p,5, cv::Scalar(128, 75, 0), -1);
+    } 
 
 
     for (auto vd : boost::make_iterator_range(boost::vertices(g2.G.G)))
@@ -180,6 +186,6 @@ void Visualizer::VisualizeNodes(RCD::Core g1, RCD::Core g2)
       // Access the node
       RCD::RGraph::Node& node = g2.G.G[vd];        
       cv::Point p(node.pos.x, node.pos.y); // robot coordinates
-      cv::circle(cast_image, p, 5, cv::Scalar(0, 0, 255), -1);
+      cv::circle(cast_image, p, 5, cv::Scalar(18, 0, 230), -1);
     }
 }

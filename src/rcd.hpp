@@ -26,7 +26,7 @@ namespace RCD
       // Symmetric angle increment dependent on number of rays (e.g. 6 rays = 60 deg., 3 rays 120 deg.) 
       const float angle_increment = static_cast<float>(2.0 * PI / static_cast<float>(NUM_RAYS));
     
-      const float width_bias = 50.; // rectangle width bias for constraining search
+      const float width_bias = 100.; // rectangle width bias for constraining search
 
       const float ray_start_dis = 5.0;
       float scaleRectangle_;

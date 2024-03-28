@@ -37,13 +37,11 @@ void PathPlanner::FindPath(float scale_value)
 
         TargetCaster.CastRays();
 
-        plotter.VisualizeNodes(RobotCaster, TargetCaster);
-        plotter.VisualizeRays(handler_i); // For real-time plotting
+        plotter.VisualizeRays(handler_i, RobotCaster, TargetCaster); // For real-time plotting
   
         ++casting_times;
       }
-      plotter.VisualizeRays(handler_i); // For real-time plotting
-      plotter.VisualizeNodes(RobotCaster, TargetCaster);
+      plotter.VisualizeRays(handler_i, RobotCaster, TargetCaster); // For real-time plotting
 
     }
     else
