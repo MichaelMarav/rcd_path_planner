@@ -139,16 +139,17 @@ class InteractiveGridGenerator:
         #         if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
         #             grid[x, y] = 100
 
-        for x in range (0,1000):
-            for y in range(350,450):
+        # Default Easy map
+        for x in range (0,800):
+            for y in range(450,550):
                 grid[x, y] = 100
         
-        for x in range (650,750):
+        for x in range (550,650):
             for y in range(0,250):
                 grid[x, y] = 100
     
     
-        for x in range (650,750):
+        for x in range (550,650):
             for y in range(550,799):
                 grid[x, y] = 100
         

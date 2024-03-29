@@ -86,7 +86,7 @@ std::vector<iPoint> PathOptimizer::GenerateSamples(const std::vector<iPoint> & p
     
     
     // <MODIFY SAMPLE INCREMENT> 
-    sampleIncrement = round(distance_between_points/5.) + 1;
+    sampleIncrement = 5;//round(distance_between_points/5.) + 1;
     
     
     dis = sampleIncrement;

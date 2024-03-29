@@ -1,4 +1,4 @@
-workspace_size: [128,80] # (m) [x,y] Size of the workspace/room where the robot needs to navigate
+workspace_size: [100,100] # (m) [x,y] Size of the workspace/room where the robot needs to navigate
 grid_resolution: 0.1    # (m) The distance between two neighboring cells 
 drawing_brush_size: 5   # (m) How big the drawing brash will be
 robot_size: 1           # (m) How much the walls are going to be inflated

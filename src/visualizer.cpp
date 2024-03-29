@@ -88,7 +88,7 @@ void Visualizer::VisualizeRays(const MapHandler & updatedMap, RCD::Core g1, RCD:
 
   // Draw a blue filled circle (dot)
   cv::circle(cast_image, robot, radius, cv::Scalar(128, 75, 0), -1); // Color: Blue (BGR), -1 for filled circle
-  cv::circle(cast_image, target, radius, cv::Scalar(18, 0, 230), -1); // Color: Blue (BGR), -1 for filled circle
+  cv::circle(cast_image, target, radius, cv::Scalar(18, 0, 230), -1); // Color: Red (BGR), -1 for filled circle
 
   // cv::circle(cast_image, target, radius, cv::Scalar(0, 255, 0), -1); // Color: Blue (BGR), -1 for filled circle
   Visualizer::VisualizeNodes(g1, g2);
@@ -116,7 +116,7 @@ void Visualizer::VisualizePath(const MapHandler & thread_map, std::vector<iPoint
   for (int i = 0; i < thread_map.height; ++i) {
     for (int j = 0; j < thread_map.width; ++j) {
       if (thread_map.grid[i][j].onRectangle) {
-        thread_path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 120, 255); // Red for target rays
+        thread_path_image.at<cv::Vec3b>(i, j) = cv::Vec3b(0, 206, 254); // Red for target rays
         continue;
       }
       if (thread_map.grid[i][j].isOccupied) {
@@ -133,10 +133,9 @@ void Visualizer::VisualizePath(const MapHandler & thread_map, std::vector<iPoint
   cv::Point robot(map.robot_pos.x, map.robot_pos.y); // robot coordinates
   cv::Point target(map.target_pos.x, map.target_pos.y); // target coordinates
 
-  cv::circle(thread_path_image, robot, 10, cv::Scalar(128, 75, 0), -1);
-  cv::circle(thread_path_image, target, 10, cv::Scalar(0, 0, 255), -1);
 
-  int radius = 7; // Radius of the dot
+
+  int radius = 10; // Radius of the dot
 
   cv::Point prevPoint; // Store the previous point for line drawing
   int thickness = 4;  // Thickness of the lines (adjust as needed)
@@ -145,15 +144,29 @@ void Visualizer::VisualizePath(const MapHandler & thread_map, std::vector<iPoint
   for (const auto& point : path) {
     cv::Point currentPoint(point.x, point.y);
     // Draw the circle for the current point
-    cv::circle(thread_path_image, currentPoint, radius, cv::Scalar(255, 0, 0), -1);
 
     // Draw a line between the current point and the previous point (if applicable)
     if (prevPoint.x != 0 &&  prevPoint.y != 0){
-      cv::line(thread_path_image, prevPoint, currentPoint, cv::Scalar(0,255, 0), thickness);
+      cv::line(thread_path_image, prevPoint, currentPoint, cv::Scalar(53,130, 84), thickness);
     }
+
+
 
     prevPoint = currentPoint; // Update the previous point for the next iteration
   }
+
+  // for (const auto& point : path) {
+  //   cv::Point currentPoint(point.x, point.y);
+
+  //   cv::circle(thread_path_image, currentPoint, radius, cv::Scalar(0, 165, 255), -1);
+  // }
+
+
+
+  cv::circle(thread_path_image, robot, 10, cv::Scalar(128, 75, 0), -1);
+  cv::circle(thread_path_image, target, 10, cv::Scalar(18, 0, 230), -1);
+
+
   // Display the cast_image using OpenCV
   cv::imshow(std::to_string(thread_id) + " Path", thread_path_image);
   cv::waitKey(0);
@@ -177,8 +190,8 @@ void Visualizer::VisualizeNodes(RCD::Core g1, RCD::Core g2)
       // Access the node
       RCD::RGraph::Node& node = g1.G.G[vd];        
       cv::Point p(node.pos.x, node.pos.y); // robot coordinates
-      cv::circle(cast_image, p,5, cv::Scalar(128, 75, 0), -1);
-    } 
+      cv::circle(cast_image, p, 5, cv::Scalar(128, 75, 0), -1);
+    }  
 
 
     for (auto vd : boost::make_iterator_range(boost::vertices(g2.G.G)))

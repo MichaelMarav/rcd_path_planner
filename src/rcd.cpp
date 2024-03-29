@@ -25,14 +25,14 @@ Core::Core(bool robot_flag, MapHandler *map_, float scaleRectangle)
     node2add.p   = CalculateDistance(node2add.pos,map->target_pos);
     node2add.e   = 0;
     node2add.n   = 0.;
-    node2add.cast_w = node2add.p;
+    node2add.cast_w = 0;//node2add.p;
   }else{
     node2add.pos.x  = map->target_pos.x;
     node2add.pos.y  = map->target_pos.y;
     node2add.p   = CalculateDistance(node2add.pos,map->robot_pos);
     node2add.e   = 0;
     node2add.n   = 0.;
-    node2add.cast_w = node2add.p;  
+    node2add.cast_w = 0;//node2add.p;  
   }
 
   G.AddNode(node2add, G.G); // Besides adding the node to the graph it also fills the node_descriptor

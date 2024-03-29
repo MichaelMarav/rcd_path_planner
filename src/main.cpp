@@ -36,7 +36,7 @@ int main()
       thread.join();
     }
   }else{
-    rcd_path_planner.FindPath(1);
+    rcd_path_planner.FindPath(20);
   }
  
 

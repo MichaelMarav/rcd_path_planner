@@ -22,6 +22,7 @@ void PathPlanner::FindPath(float scale_value)
     // Target Caster
     RCD::Core TargetCaster(false, &handler_i,scale_value);
     // Visualization of the imported grid
+        plotter.VisualizeRays(handler_i, RobotCaster, TargetCaster); // For real-time plotting
 
     std::vector<iPoint> robot_path  ;
     std::vector<iPoint> target_path ;
