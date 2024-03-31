@@ -14,6 +14,3 @@ make
 RCD is a global path planner that given a binary occupancy grid, the target's and the robot's position produces a collision free path.
 
 
-
-
-![Alt Text](.gif/RCD.gif)
