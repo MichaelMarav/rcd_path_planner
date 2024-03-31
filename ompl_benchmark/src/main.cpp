@@ -205,8 +205,8 @@ class Planner2D {
 
 int main(int argc, char *argv[]) {
   bool run_mazes = false;
-  bool run_example = true;
-  bool run_boxes = false;
+  bool run_example = false;
+  bool run_boxes = true;
   
   // Example run:
 
@@ -329,8 +329,8 @@ int main(int argc, char *argv[]) {
   
 
   if (run_boxes){
-    std::string prefix = "/home/michael/github/rcd_path_planner/maps/mazes/";
-    std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes1/result_boxes/"+planner_type +".csv");
+    std::string prefix = "/home/michael/github/rcd_path_planner/maps/random_boxes1/";
+    std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes1/result_boxes/home_pc_results/"+planner_type +".csv");
     if (!outfile) {
         std::cerr << "Error: Unable to open file: "  << std::endl;
     }

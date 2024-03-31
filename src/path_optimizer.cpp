@@ -3,7 +3,7 @@
 PathOptimizer::PathOptimizer(const std::vector<iPoint> & default_path, MapHandler *map_)
 :originalPath{default_path}, map{map_}
 {
-  printInfo("Initialized Path Optimizer");
+  // printInfo("Initialized Path Optimizer");
   
   opt_point = 0;
   // First step optimization: one node should only be able to see one
@@ -86,7 +86,7 @@ std::vector<iPoint> PathOptimizer::GenerateSamples(const std::vector<iPoint> & p
     
     
     // <MODIFY SAMPLE INCREMENT> 
-    sampleIncrement = 5;//round(distance_between_points/5.) + 1;
+    sampleIncrement = 2;//round(distance_between_points/5.) + 1;
     
     
     dis = sampleIncrement;

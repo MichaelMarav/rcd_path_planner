@@ -10,7 +10,7 @@
 
 #include <fstream>
 #include <string>
-
+#include <numeric>
 
 class PathPlanner
 {
@@ -23,14 +23,19 @@ class PathPlanner
     std::vector<float> mean_time_list;
     std::vector<float> time;
     std::vector<float> path_length;
+    // Coverage, time, length
 
     void LoadRCDparams();
     MapHandler defaultMapHandler;
     Visualizer plotter;
 
+
   public:
-    PathPlanner(int NumberOfRuns = 1);
+    PathPlanner(int NumberOfRuns, std::string BoxMapFile);
     void WriteResults(const std::string & filename);
     void PrintResults();
     void FindPath(float scale_value);
+
+    std::vector<float> bestThreadResult = {-1,-1,-1}; // In terms of path length
+
 };

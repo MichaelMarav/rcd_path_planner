@@ -80,7 +80,7 @@ public:
     node.e   = distance_from_father;
     node.n   = 0.;
     float r = CalculateDistance(node_pos,robot_pos)/CalculateDistance(node_pos,target_pos);
-    node.cast_w = (10.*node.e + (father_proximity-node.p))/(node.n+1.);// +// (node.e*node.p +node.n + 1.)/( node.p*(node.n + 1.)); // cast_w = f(p,e,n) // Placeholder experiment with the structure of the graph and the times
+    node.cast_w = r*(node.e+ (father_proximity- node.p));// +// (node.e*node.p +node.n + 1.)/( node.p*(node.n + 1.)); // cast_w = f(p,e,n) // Placeholder experiment with the structure of the graph and the times
   }
 
   

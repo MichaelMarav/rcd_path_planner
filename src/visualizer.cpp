@@ -9,8 +9,8 @@
 Visualizer::Visualizer(const MapHandler & map_object)
 : map(map_object), path_image{cv::Mat(map_object.height,map_object.width,CV_8UC3)},cast_image{cv::Mat(map_object.height,map_object.width,CV_8UC3)}
 {
-  printInfo("Visualizing Occupancy Grid..");
-  printInfo("Confirm that the dots are the initial and target positions");
+  // printInfo("Visualizing Occupancy Grid..");
+  // printInfo("Confirm that the dots are the initial and target positions");
   InitializeCastImage();
 
 }
@@ -155,11 +155,11 @@ void Visualizer::VisualizePath(const MapHandler & thread_map, std::vector<iPoint
     prevPoint = currentPoint; // Update the previous point for the next iteration
   }
 
-  // for (const auto& point : path) {
-  //   cv::Point currentPoint(point.x, point.y);
+  for (const auto& point : path) {
+    cv::Point currentPoint(point.x, point.y);
 
-  //   cv::circle(thread_path_image, currentPoint, radius, cv::Scalar(0, 165, 255), -1);
-  // }
+    cv::circle(thread_path_image, currentPoint, 3, cv::Scalar(0, 165, 255), -1);
+  }
 
 
 

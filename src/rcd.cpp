@@ -14,8 +14,8 @@ using namespace RCD;
  * @param robot_flag true if the robot caster is constructed, false if the target caster
  * @param map_ pointer to the occupancy grid data structure
  */
-Core::Core(bool robot_flag, MapHandler *map_, float scaleRectangle)
-:isRobot(robot_flag), casting_angles(NUM_RAYS), map{map_}, scaleRectangle_{scaleRectangle}
+Core::Core(int NumberOfRays,bool robot_flag, MapHandler *map_, float scaleRectangle)
+:isRobot(robot_flag), casting_angles(NUM_RAYS), map{map_}, scaleRectangle_{scaleRectangle}, NUM_RAYS{NumberOfRays}
 {
 
   // Initialize robot and target root weights
@@ -38,8 +38,7 @@ Core::Core(bool robot_flag, MapHandler *map_, float scaleRectangle)
   G.AddNode(node2add, G.G); // Besides adding the node to the graph it also fills the node_descriptor
   weight_priority_queue.push(node2add);
 
-  srand(static_cast<unsigned int>(time(nullptr))); //Seed time for different sequence of pseudo-random numbers  
-  
+  srand(static_cast<unsigned int>(time(nullptr))); //Seed time for different sequence of pseudo-random numbers
   ConstraintSearchArea(); // Add rectangle to limit search area
 }
 
@@ -110,9 +109,16 @@ void Core::ImposeRectangle(const std::vector<iPoint> & line)
  * Updated Graph and compute properties. (Gets object ready before cast)
  */
 void Core::CastDecision()
-{
-  // Find in which directions RCD is going to cast 
-  casting_dir =  (static_cast<float>(rand() % (360/NUM_RAYS + 1)) )*PI/180.;  // Random casting direction
+{ 
+  // True Randomness
+  unsigned seed = std::random_device{}() ^((unsigned)std::chrono::system_clock::now().time_since_epoch().count());
+
+  std::mt19937 gen(seed); // Standard mersenne_twister_engine seeded with a combination of sources
+
+  std::uniform_real_distribution<float> dist(0, 360.0 / NUM_RAYS); // Distribution for casting direction
+
+  float casting_dir = dist(gen); // Random casting direction
+  // casting_dir = (static_cast<float>(rand() % (360/NUM_RAYS + 1)) )*PI/180.;  // Random casting direction
   for (int i = 0 ; i < NUM_RAYS ; ++i){
     casting_angles[i] = casting_dir + i*angle_increment; // Casting angles
   }
@@ -221,7 +227,7 @@ void Core::CastRays()
         G.target_vertex = boost::target(map->grid[ray_pos.y][ray_pos.x].edge_id, G.G);
 
         // // Remove the edge between source and target
-        // boost::remove_edge(G.source_vertex, G.target_vertex, G.G);
+        boost::remove_edge(G.source_vertex, G.target_vertex, G.G);
 
         // Add edge that connect node2Cast with node2add
         // Find distance between new node and source/target of the already existing edge
@@ -238,7 +244,7 @@ void Core::CastRays()
         new_node1.edge_descriptor = G.AddEdge(node2add.node_descriptor, G.source_vertex,G.G,disAB);
         new_node2.edge_descriptor = G.AddEdge(node2add.node_descriptor, G.target_vertex,G.G,disBC);
         
-        isRobot ? G.UpdateWeight(G.G[G.target_vertex], disBC, node2add.p, G.G[G.target_vertex].pos, map-> target_pos, map->robot_pos) : G.UpdateWeight(G.G[G.target_vertex], disBC, node2add.p, G.G[G.target_vertex].pos, map->robot_pos, map-> target_pos);
+        isRobot ? G.UpdateWeight(G.G[G.target_vertex], disBC, node2add.p, G.G[G.target_vertex].pos, map->target_pos, map->robot_pos) : G.UpdateWeight(G.G[G.target_vertex], disBC, node2add.p, G.G[G.target_vertex].pos, map->robot_pos, map-> target_pos);
         UpdateGrid(node2cast,node2add);
         UpdateGrid(node2add,new_node1);
         UpdateGrid(node2add,new_node2);

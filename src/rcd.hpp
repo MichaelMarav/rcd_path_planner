@@ -6,6 +6,9 @@
 #include "utilities.hpp"
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/dijkstra_shortest_paths.hpp>
+#include <ctime>
+#include <random>
+
 
 namespace RCD
 {
@@ -21,14 +24,14 @@ namespace RCD
 
       std::priority_queue<RCD::RGraph::Node, std::vector<RCD::RGraph::Node>, CompareWeight> weight_priority_queue;
 
-      const int NUM_RAYS{6};  // Number of rays to be casted
+      int NUM_RAYS;  // Number of rays to be casted
     
       // Symmetric angle increment dependent on number of rays (e.g. 6 rays = 60 deg., 3 rays 120 deg.) 
       const float angle_increment = static_cast<float>(2.0 * PI / static_cast<float>(NUM_RAYS));
     
       const float width_bias = 100.; // rectangle width bias for constraining search
 
-      const float ray_start_dis = 5.0;
+      const float ray_start_dis = 9.0;
       float scaleRectangle_;
       float ray_dis;   // Casted ray travelling distance
 
@@ -56,14 +59,15 @@ namespace RCD
 
       void CastDecision();
       
-      std::vector<iPoint> BresenhamLine(const iPoint & A, const iPoint & B); 
 
       void ConstraintSearchArea();
 
       void ImposeRectangle(const std::vector<iPoint> & line);
+      
+      std::vector<iPoint> BresenhamLine(const iPoint & A, const iPoint & B); 
 
     public:
-      Core(bool robot_flag,MapHandler *map_, float scaleRectangle); // Constructor
+      Core(int NumberOfRays,bool robot_flag,MapHandler *map_, float scaleRectangle); // Constructor
 
       RCD::RGraph G; // Graph structure for this Core object
 

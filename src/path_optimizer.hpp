@@ -20,6 +20,7 @@ class PathOptimizer
     std::pair<iPoint,int> last_seen;
 
     int sampleIncrement; // Distance between two consecutive generated samples 
+
   public:
 
     std::vector<iPoint> optimizedPath; // Optimized path with LoS

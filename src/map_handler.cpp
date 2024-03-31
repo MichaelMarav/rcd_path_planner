@@ -107,7 +107,7 @@ void MapHandler::loadOccupancyParams(const std::string & yaml_file)
   this->target_pos.x    = config["target_position_x"].as<unsigned int>();
   this->target_pos.y    = config["target_position_y"].as<unsigned int>();
   // this->grid_resolution = config["grid_resolution"].as<float>(); 
-  // this->map_coverage = config["coverage"].as<unsigned int>();
+  this->map_coverage = config["coverage"].as<unsigned int>();
 }
 
 /*
