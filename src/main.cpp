@@ -14,7 +14,7 @@
 
 int main()
 {
-  bool threading = false;
+  bool threading = true;
   std::cout << "Ray Casting and Diffusion model for Path Planning \n";
 
 
@@ -23,33 +23,49 @@ int main()
   {
     std::string prefix = "/home/michael/github/rcd_path_planner/maps/random_boxes1/";
 
-    std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes1/result_boxes/home_pc_results/rcd.csv");
+    std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes1/result_boxes/work_pc_results/rcd_path.csv");
     if (!outfile) {
         std::cerr << "Error: Unable to open file: "  << std::endl;
     }
     outfile << "coverage,time_mean,length_mean" << std::endl;
 
+
     for (int i = 0 ; i < 90 ; ++i)
     {
-      std::string filename = prefix + std::to_string(i) +".ppm";
-      PathPlanner rcd_path_planner(5, filename);
-
-      std::vector<std::thread> threads;
-    
       std::vector<float> scales = {3, 4, 5, 6, 10}; // Add as many values as needed
-
+      std::vector<std::thread> threads;
+      std::vector<std::pair<float, float>> results;
       for (int scale : scales) {
-        threads.emplace_back([&rcd_path_planner, scale]() {
-            rcd_path_planner.FindPath(scale);
+
+        std::string filename = prefix + std::to_string(i) +".ppm";
+        PathPlanner rcd_path_planner(1, filename);
+
+      
+
+        threads.emplace_back([&results, rcd_path_planner, scale]() mutable{
+          std::pair<float,float> result = rcd_path_planner.FindPath(scale);
+          results.push_back(result);
         });
       }
 
       for (std::thread &thread : threads) {
         thread.join();
       }
-      outfile << rcd_path_planner.bestThreadResult[0]<< ',' << rcd_path_planner.bestThreadResult[1] << ',' << rcd_path_planner.bestThreadResult[2] << std::endl;
+          // Find the pair with the smallest execution time
+      std::pair<float, float> smallest_result = {std::numeric_limits<float>::max(), 0.0f};
+      for (auto& result : results) {
+        if (result.first < smallest_result.first) {
+            smallest_result = result;
+        }
+      }
+
+      std::cout << "RESULTS ---> " << smallest_result.first << "   " << smallest_result.second << '\n';
+      outfile << "fail" << "," << smallest_result.first <<"," << smallest_result.second <<  std::endl;
 
     }
+
+    outfile.close();
+
   }
   else{
     bool runAll = false;
@@ -85,7 +101,6 @@ int main()
   
   }
  
-
 
 
 

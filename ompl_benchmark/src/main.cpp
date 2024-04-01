@@ -330,7 +330,7 @@ int main(int argc, char *argv[]) {
 
   if (run_boxes){
     std::string prefix = "/home/michael/github/rcd_path_planner/maps/random_boxes1/";
-    std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes1/result_boxes/home_pc_results/"+planner_type +".csv");
+    std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes1/result_boxes/work_pc_results/"+planner_type +".csv");
     if (!outfile) {
         std::cerr << "Error: Unable to open file: "  << std::endl;
     }

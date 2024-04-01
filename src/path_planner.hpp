@@ -34,7 +34,7 @@ class PathPlanner
     PathPlanner(int NumberOfRuns, std::string BoxMapFile);
     void WriteResults(const std::string & filename);
     void PrintResults();
-    void FindPath(float scale_value);
+    std::pair<float,float> FindPath(float scale_value);
 
     std::vector<float> bestThreadResult = {-1,-1,-1}; // In terms of path length
 

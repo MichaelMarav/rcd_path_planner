@@ -1,5 +1,5 @@
 #include "path_planner.hpp"
-
+#include <fstream>
 PathPlanner::PathPlanner(int NumberOfRuns, std::string BoxMapFile)
 :N{NumberOfRuns} 
 {
@@ -9,8 +9,15 @@ PathPlanner::PathPlanner(int NumberOfRuns, std::string BoxMapFile)
 }
 
 
-void PathPlanner::FindPath(float scale_value)
+std::pair<float,float> PathPlanner::FindPath(float scale_value)
 {
+  // bool writeResults = true;
+  // if (writeResults)
+  // {
+  //   std::ofstream outfile("/home/michael/github/rcd_path_planner/maps/random_boxes1/result_boxes/work_pc_results/rcd.csv");
+  //   outfile << "coverage,time_mean,length_mean" << std::endl;
+  // }
+  
   for (int i = 0 ; i < N ; ++i)
   {
     auto handler_i = defaultMapHandler;
@@ -78,7 +85,7 @@ void PathPlanner::FindPath(float scale_value)
     }else{
       printInfo("No path found by thread --> " + std::to_string(scale_value));
 
-      return;
+      return {std::numeric_limits<float>::max(),std::numeric_limits<float>::max()};
     }
 
   
@@ -119,7 +126,7 @@ void PathPlanner::FindPath(float scale_value)
 
     time.push_back(static_cast<float>(elapsed_seconds.count()));
     path_length.push_back(los_optimizer.PathDistance(los_optimizer.optimizedPath));
-    plotter.VisualizePath(handler_i,los_optimizer.optimizedPath,scale_value);
+    // plotter.VisualizePath(handler_i,los_optimizer.optimizedPath,scale_value);
 
   }
 
@@ -130,20 +137,20 @@ void PathPlanner::FindPath(float scale_value)
   float mean_path =  sum_path / time.size();
   printInfo("Mean elapsed Time = " + std::to_string(mean_time) + " (s)");
   printInfo("Mean path Length  = " + std::to_string(mean_path));
-
-  if (bestThreadResult[2] < 0){
-    bestThreadResult[0] = defaultMapHandler.map_coverage;
-    bestThreadResult[1] = mean_time;
-    bestThreadResult[2] = mean_path;
-    return;
-  }
-  if (mean_time < bestThreadResult[1] ){
-    std::cout << " BEST TIME ---> " << bestThreadResult[1] << "CUrrent time ---> " << mean_time <<'\n';
-    bestThreadResult[0] = defaultMapHandler.map_coverage;
-    bestThreadResult[1] = mean_time;
-    bestThreadResult[2] = mean_path;
-    return;
-  }
+  return {mean_time,mean_path};
+  // if (bestThreadResult[2] < 0){
+  //   bestThreadResult[0] = defaultMapHandler.map_coverage;
+  //   bestThreadResult[1] = mean_time;
+  //   bestThreadResult[2] = mean_path;
+  //   return;
+  // }
+  // if (mean_time < bestThreadResult[1] ){
+  //   std::cout << " BEST TIME ---> " << bestThreadResult[1] << "CUrrent time ---> " << mean_time <<'\n';
+  //   bestThreadResult[0] = defaultMapHandler.map_coverage;
+  //   bestThreadResult[1] = mean_time;
+  //   bestThreadResult[2] = mean_path;
+  //   return;
+  // }
 }
 
 /**
