@@ -12,7 +12,7 @@ import datetime
 import yaml
 import os
 from PIL import Image
-
+import subprocess
 
 
 class InteractiveGridGenerator:
@@ -22,6 +22,7 @@ class InteractiveGridGenerator:
     grid_resolution    = None
     drawing_brush_size = None
     robot_size = None
+    occupancy_grid_filename = None
     grid = np.zeros(())
     robot_pos   = None
     target_pos  = None
@@ -61,34 +62,36 @@ class InteractiveGridGenerator:
             
         # Inflate the occupancy grid
         self.inflate_occupancy_grid()
-    
-        # Configure map's filename
-        time = datetime.datetime.now()
-        base_name = "occ_" + str(time.hour)+ "_" + str(time.minute)+ "_" + str(time.second) 
-        file_path = f"../maps/{base_name}/{base_name}.png"
-        os.makedirs("../maps/" + base_name, exist_ok=True)
-
+        
         inverted_array = 100 - self.grid.T[::-1]
         # Save the 2D array as png
         normalized_array = (inverted_array / 100) * 255
+        
+        os.makedirs("../maps/" + self.occupancy_grid_filename, exist_ok=True)
+
+        # Configure map's filename
+        file_path = "../maps/"+ self.occupancy_grid_filename +"/"+ self.occupancy_grid_filename+ ".png"
+
+
         # Convert the array to uint8 for PIL compatibility
         image_data = np.uint8(normalized_array)
         # Create an image from the array data
         image = Image.fromarray(image_data, mode='L')  # 'L' mode for grayscale
         # Save the image as PNG
         image.save(file_path)
+        self.print_green("Map saved as " + self.occupancy_grid_filename + ".png" + " at maps/ folder")
+            
+        command2 = "cd ../maps/" + self.occupancy_grid_filename + "&& mogrify -format ppm *.png"
 
-        
-
-        self.print_green("Map saved as " + base_name + ".png" + " at maps/ folder")
+        # Execute the shell command
+        subprocess.run(command2, shell=True) 
+                    
         # TODO: add the txt + yaml params inside a file in the folder.
-        with open(f"/home/michael/github/rcd_path_planner/maps/{base_name}/{base_name}.yaml",'w') as file:
+        with open(f"/home/michael/github/rcd_path_planner/maps/" + self.occupancy_grid_filename + "/" + self.occupancy_grid_filename + ".yaml",'w') as file:
             file.write("robot_position_x: " +  str((int)(self.robot_pos[0]) ) + '\n')
             file.write("robot_position_y: " +  str((int)(self.grid_size[1] - self.robot_pos[1]) ) + '\n')
             file.write("target_position_x: " + str((int)(self.target_pos[0])) + '\n')
             file.write("target_position_y: " + str((int)(self.grid_size[1] - self.target_pos[1])) + '\n')
-            # file.write("workspace_dimension_x: " + str(self.workspace_size[0]) + '\n')
-            # file.write("workspace_dimension_y: " + str(self.workspace_size[1]) + '\n')
             file.write("grid_resolution: "+str(self.grid_resolution) + '\n')         
         print("Exiting..")
         
@@ -127,32 +130,21 @@ class InteractiveGridGenerator:
         self.drawing_brush_size = config_options["drawing_brush_size"]
         self.drawing_brush_size = int(self.drawing_brush_size/self.grid_resolution)
         self.robot_size         = config_options["robot_size"]
+        self.occupancy_grid_filename= str(config_options["occupancy_grid_filename"])
+
         
     # Adds obstacles by drawing at the plot
     def draw_obstacles(self, grid, position, drawing_brush_size):
         cell_position = (round(position[0]),round(position[1]))
-        # half_brush = drawing_brush_size // 2
-        # for i in range(-half_brush, half_brush + 1):
-        #     for j in range(-half_brush, half_brush + 1):
-        #         x = int(cell_position[0] + i)
-        #         y = int(cell_position[1] + j)
-        #         if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
-        #             grid[x, y] = 100
+        half_brush = drawing_brush_size // 2
+        for i in range(-half_brush, half_brush + 1):
+            for j in range(-half_brush, half_brush + 1):
+                x = int(cell_position[0] + i)
+                y = int(cell_position[1] + j)
+                if 0 <= y < grid.shape[1] and 0 <= x < grid.shape[0]:
+                    grid[x, y] = 100
 
-        # Default Easy map
-        for x in range (0,800):
-            for y in range(450,550):
-                grid[x, y] = 100
-        
-        for x in range (550,650):
-            for y in range(0,250):
-                grid[x, y] = 100
-    
-    
-        for x in range (550,650):
-            for y in range(550,799):
-                grid[x, y] = 100
-        
+
         
         
     # Adds Walls to the occupancy grid boundaries
@@ -187,12 +179,12 @@ class InteractiveGridGenerator:
         if event.xdata is not None and event.ydata is not None:
            
             if not self.__init_target_pos and self.__init_robot_pos:
-                self.target_pos = [round(event.xdata),round(event.ydata)] # [43,70] ICRA
+                self.target_pos = [round(event.xdata),round(event.ydata)] 
                 self.__init_target_pos = True
                 plt.scatter([self.target_pos[0]], [self.target_pos[1]], color='green', marker='o', s=80, label='Target', zorder=2)
             
             if not self.__init_robot_pos:
-                self.robot_pos = [round(event.xdata),round(event.ydata)] # ICRA [43,230]
+                self.robot_pos = [round(event.xdata),round(event.ydata)] 
                 self.__init_robot_pos = True
                 plt.scatter([self.robot_pos[0]], [self.robot_pos[1]], color='blue', marker='o', s=80, label='Robot', zorder=2)
 

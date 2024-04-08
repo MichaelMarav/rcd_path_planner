@@ -1,5 +1,6 @@
-map_folder: "/home/michael/github/rcd_path_planner/maps/random_boxes1/"
-filename: "13.ppm" 
+map_folder: "/home/michael/github/rcd_path_planner/maps/null/"
+filename: "null.ppm" 
 num_beams: 6
 real_time_plotting: false 
 real_time_path_optimization: false
+visualize_final_path: true

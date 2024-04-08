@@ -26,16 +26,19 @@ class PathPlanner
     // Coverage, time, length
 
     void LoadRCDparams();
-    MapHandler defaultMapHandler;
     Visualizer plotter;
 
 
   public:
-    PathPlanner(int NumberOfRuns, std::string BoxMapFile);
+    PathPlanner();
     void WriteResults(const std::string & filename);
     void PrintResults();
-    std::pair<float,float> FindPath(float scale_value);
+    MapHandler defaultMapHandler;
+
+    std::pair<float,std::vector<iPoint>> FindPath(float scale_value);
 
     std::vector<float> bestThreadResult = {-1,-1,-1}; // In terms of path length
+
+    bool visualizeFinalPath;
 
 };

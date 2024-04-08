@@ -1,5 +1,5 @@
-robot_position_x: 150
-robot_position_y: 693
-target_position_x: 321
-target_position_y: 888
-coverage: 48
+robot_position_x: 10
+robot_position_y: 989
+target_position_x: 989
+target_position_y: 10
+coverage: 37
